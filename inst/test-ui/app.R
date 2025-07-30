@@ -18,13 +18,13 @@ ui <- fluidPage(
       title = "Epidemiological units",
       value = "study_settings",
       icon = icon("map"),
-      # studySettingsUI("study_settings_tab")
+      div("Epi units")
     ),
     nav_panel(
       title = "Emission risk",
       value = "emission_risk",
       icon = icon("arrows-up-down-left-right"),
-      # emissionRiskUI("emission_risk_tab")
+      div("emission risk")
     ),
     nav_menu(
       title = "Introduction risks",
@@ -32,60 +32,56 @@ ui <- fluidPage(
       icon = icon("warning"),
 
       nav_item(actionLink(
-        inputId = "border_risk",
+        inputId = "nav_border_risk",
         label = "Border risk",
         icon("arrow-down-up-across-line")
       )),
       nav_item(actionLink(
-        inputId = "animal_movement_risk",
+        inputId = "nav_animal_movement_risk",
         label = "Animal movement risk",
         icon("truck-plane")
         )),
       nav_item(actionLink(
-        inputId = "city_access_risk",
+        inputId = "nav_entry_point_risk",
         label = "Entry point risk",
         icon("location-dot")
         )),
       nav_item(actionLink(
-        inputId = "road_access_risk",
+        inputId = "nav_road_access_risk",
         label = "Road access risk",
         icon("arrow-right-to-city")
       )),
       nav_item(actionLink(
-        inputId = "misc_risk",
+        inputId = "nav_misc_risk",
         label = "Miscellaneous risks",
         icon("arrows-to-circle")
       ))
     ),
-    # nav_panel_hidden(
-    #   # title = "Miscellaneous risks",
-    #   value = "border_risk",
-    #   icon = icon("arrow-down-up-across-line"),
-    #   # borderRiskUI("border_risk_tab")
-    # ),
-    # nav_panel_hidden(
-    #   # title = "Animal movement risk",
-    #   value = "animal_movement_risk",
-    #   icon = icon("truck-plane"),
-    #   # animalMovementUI("animal_movement_tab")
-    # ),
-    # nav_panel_hidden(
-    #   # title = "Road access risk",
-    #   value = "road_access_risk",
-    #   icon = icon("arrow-right-to-city"),
-    #   # roadAccessUI("road_access_risk_tab")
-    # ),
-    # nav_panel_hidden(
-    #   # title = "Miscellaneous risks",
-    #   value = "misc_risk",
-    #   icon = icon("arrows-to-circle"),
-    #   # riskSummaryUI("risk_summary_tab")
-    # ),
     nav_panel(
       title = "Summary",
       value = "summary_tab",
       icon = icon("arrows-to-circle"),
-      # riskSummaryUI("risk_summary_tab")
+      div("Hello Summary")
+    ),
+    nav_panel_hidden(
+      value = "nav_animal_movement_risk",
+      div("nav_animal_movement_risk")
+    ),
+    nav_panel_hidden(
+      value = "nav_road_access_risk",
+      div("nav_road_access_risk")
+    ),
+    nav_panel_hidden(
+      value = "nav_misc_risk",
+      div("nav_misc_risk")
+    ),
+    nav_panel_hidden(
+      value = "nav_border_risk",
+      div("nav_border_risk")
+    ),
+    nav_panel_hidden(
+      value = "nav_entry_point_risk",
+      div("nav_entry_point_risk")
     ),
     nav_spacer(),
     nav_menu(
@@ -139,6 +135,13 @@ server <- function(input, output) {
   #   req(tab_epi_units())
   #   session$userData$tab_epi_units(tab_epi_units())
   # })
+
+  # nav_panel navigation ----
+  observeEvent(input$nav_border_risk, {nav_select("navbar", selected = "nav_border_risk")})
+  observeEvent(input$nav_animal_movement_risk, {nav_select("navbar", selected = "nav_animal_movement_risk")})
+  observeEvent(input$nav_road_access_risk, {nav_select("navbar", selected = "nav_road_access_risk")})
+  observeEvent(input$nav_misc_risk, {nav_select("navbar", selected = "nav_misc_risk")})
+  observeEvent(input$nav_entry_point_risk, {nav_select("navbar", selected = "nav_entry_point_risk")})
 }
 
 # Run the application
