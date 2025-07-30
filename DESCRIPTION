@@ -1,0 +1,26 @@
+Package: riskintroapp
+Title: Analyse Risk of Introduction of Animal Diseases
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Eli", "Daniels", , "eli.daniels@ardata.fr", role = c("aut", "cre")),
+    person("David", "Gohel", , "david.gohel@ardata.fr", role = "aut"),
+    person("CIRAD", role = "cph")
+  )
+Description: The package provides an 'RShiny' application for users to
+    estimate the risk of an animal disease being introduced into a given
+    geographical region using World Animal Health Information System
+    (WAHIS) and user imported data.
+License: MIT + file LICENSE
+Imports: 
+    cli,
+    riskintroanalysis,
+    riskintrodata,
+    shiny,
+    shinyWidgets,
+    workspace
+Remotes: 
+    ardata-fr/riskintroanalysis
+    ardata-fr/riskintrodata
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
