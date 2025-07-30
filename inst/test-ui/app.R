@@ -113,6 +113,32 @@ ui <- fluidPage(
 
 server <- function(input, output) {
 
+  # Datasets -----
+  # Input
+  tab_epi_units <- reactiveVal(NULL)
+  tab_emission_risk_factors <- reactiveVal(NULL)
+  tab_emission_risk <- reactiveVal(NULL)
+  tab_shared_borders <- reactiveVal(NULL)
+
+  # Analysis output
+  tab_ri_entry_points <- reactiveVal(NULL)
+  tab_ri_road_access <- reactiveVal(NULL)
+  tab_ri_animal_mobility <- reactiveVal(NULL)
+  tab_ri_border <- reactiveVal(NULL)
+  tab_ri_misc <- reactiveVal(list())
+
+  # Summary of analyses
+  tab_ri_summary <- reactiveVal(NULL)
+
+  # Settings ----
+  # Analysis settings
+  settings <- reactiveVal(list())
+
+  # session$userData$tab_epi_units <- reactiveVal(NULL)
+  # observeEvent(tab_epi_units(), {
+  #   req(tab_epi_units())
+  #   session$userData$tab_epi_units(tab_epi_units())
+  # })
 }
 
 # Run the application
