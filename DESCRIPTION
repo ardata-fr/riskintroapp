@@ -17,6 +17,8 @@ Imports:
     gdtools,
     ggplot2,
     htmltools,
+    leaflet,
+    reactable,
     riskintroanalysis,
     riskintrodata,
     shiny,

@@ -1,4 +1,7 @@
 #' @export
+#' @importFrom bslib navset_card_underline nav_panel
+#' @importFrom reactable reactableOutput renderReactable reactable
+#' @import leaflet
 importEpiUnitsUI <- function(id) {
   ns <- shiny::NS(id)
   tagList(
@@ -22,9 +25,16 @@ importEpiUnitsUI <- function(id) {
       ),
       width = "100%"
     ),
-    uiOutput(outputId = ns("table_preview")),
-    uiOutput(outputId = ns("column_mapping")),
-    uiOutput(outputId = ns("validation_message"))
+    navset_card_underline(
+      nav_panel(
+        title = "Map",
+        leafletOutput(outputId = ns("map_preview"))
+      ),
+      nav_panel(
+        title = "Table",
+        reactableOutput(outputId = ns("table_preview"))
+      )
+    )
   )
 }
 
@@ -58,9 +68,14 @@ importEpiUnitsServer <- function(id) {
       resultTable(polygon)
     })
 
-    output$table_preview <- renderUI({
+    output$map_preview <- renderLeaflet({
       req(resultTable(), !isTruthy(resultTable()$error))
-      DT::renderDataTable(DT::datatable(resultTable()$result, options = list(pageLength = 5)))
+      leaflet(resultTable()$result) |> addPolygons() |> addTiles()
+    })
+
+    output$table_preview <- renderReactable({
+      req(resultTable(), !isTruthy(resultTable()$error))
+      reactable(resultTable()$result)
     })
 
 
