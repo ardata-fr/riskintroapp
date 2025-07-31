@@ -12,11 +12,17 @@ Description: The package provides an 'RShiny' application for users to
     (WAHIS) and user imported data.
 License: MIT + file LICENSE
 Imports: 
+    bslib,
     cli,
+    gdtools,
+    ggplot2,
+    htmltools,
     riskintroanalysis,
     riskintrodata,
     shiny,
+    shinyjs,
     shinyWidgets,
+    systemfonts,
     workspace
 Remotes: 
     ardata-fr/riskintroanalysis

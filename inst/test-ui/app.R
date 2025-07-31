@@ -1,15 +1,17 @@
 
+library(riskintroapp)
 library(shiny)
+library(shinyjs)
 library(bslib)
 
 ui <- fluidPage(
   page_navbar(
     id = "navbar",
     navbar_options = navbar_options(
-      bg = "#06292b",
-      inverse = TRUE
+      bg = "#06292b"
     ),
-    # theme = bs_theme_cirad(),
+    header = app_header(),
+    theme = bs_theme_cirad(),
     title = "RiskIntroApp",
     nav_item(
       div(icon("warning"))
@@ -145,4 +147,4 @@ server <- function(input, output) {
 }
 
 # Run the application
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server, onStart = onstart)
