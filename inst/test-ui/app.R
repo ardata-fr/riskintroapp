@@ -1,6 +1,6 @@
-
 library(riskintroapp)
 library(shiny)
+library(shinyWidgets)
 library(shinyjs)
 library(bslib)
 
@@ -20,7 +20,15 @@ ui <- fluidPage(
       title = "Epidemiological units",
       value = "study_settings",
       icon = icon("map"),
-      div("Epi units")
+      layout_sidebar(
+        sidebar = sidebar(
+          actionButton(
+            inputId = "do_import_epi_units",
+            label = "Import"
+          )
+        ),
+        div("Epi units")
+      )
     ),
     nav_panel(
       title = "Emission risk",
@@ -42,12 +50,12 @@ ui <- fluidPage(
         inputId = "nav_animal_movement_risk",
         label = "Animal movement risk",
         icon("truck-plane")
-        )),
+      )),
       nav_item(actionLink(
         inputId = "nav_entry_point_risk",
         label = "Entry point risk",
         icon("location-dot")
-        )),
+      )),
       nav_item(actionLink(
         inputId = "nav_road_access_risk",
         label = "Road access risk",
@@ -99,7 +107,7 @@ ui <- fluidPage(
         inputId = "load",
         label = "Load",
         icon("upload")
-        ))
+      ))
     ),
     nav_panel(
       title = "About",
@@ -110,7 +118,6 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-
   # Datasets -----
   # Input
   tab_epi_units <- reactiveVal(NULL)
@@ -139,11 +146,35 @@ server <- function(input, output) {
   # })
 
   # nav_panel navigation ----
-  observeEvent(input$nav_border_risk, {nav_select("navbar", selected = "nav_border_risk")})
-  observeEvent(input$nav_animal_movement_risk, {nav_select("navbar", selected = "nav_animal_movement_risk")})
-  observeEvent(input$nav_road_access_risk, {nav_select("navbar", selected = "nav_road_access_risk")})
-  observeEvent(input$nav_misc_risk, {nav_select("navbar", selected = "nav_misc_risk")})
-  observeEvent(input$nav_entry_point_risk, {nav_select("navbar", selected = "nav_entry_point_risk")})
+  observeEvent(input$nav_border_risk, {
+    nav_select("navbar", selected = "nav_border_risk")
+  })
+  observeEvent(input$nav_animal_movement_risk, {
+    nav_select("navbar", selected = "nav_animal_movement_risk")
+  })
+  observeEvent(input$nav_road_access_risk, {
+    nav_select("navbar", selected = "nav_road_access_risk")
+  })
+  observeEvent(input$nav_misc_risk, {
+    nav_select("navbar", selected = "nav_misc_risk")
+  })
+  observeEvent(input$nav_entry_point_risk, {
+    nav_select("navbar", selected = "nav_entry_point_risk")
+  })
+
+  # Observe the import button
+  importEpiUnitsServer("import_epi_units")
+  observeEvent(input$do_import_epi_units, {
+    showModal(
+      modalDialog(
+        title = "Import Epi Units",
+        size = "l",
+        easyClose = TRUE,
+        fade = TRUE,
+        importEpiUnitsUI("import_epi_units")
+      )
+    )
+  })
 }
 
 # Run the application
