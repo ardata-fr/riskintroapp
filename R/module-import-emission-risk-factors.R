@@ -179,7 +179,7 @@ importEmissionRiskFactorsServer <- function(id) {
       observeEvent(input$manual_open, {
         hideDropMenu(id = "dropMenu_dropmenu")
         showModal(modalDialog(
-          tags$h3("Set study settings for manual entry")
+          tags$h3("Set study settings for manual entry"),
           textInputIcon(
             inputId = ns("man_disease"),
             label = NULL,
