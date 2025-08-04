@@ -25,7 +25,8 @@ Imports:
     shinyjs,
     shinyWidgets,
     systemfonts,
-    workspace
+    workspace,
+    datamods
 Remotes: 
     ardata-fr/riskintroanalysis
     ardata-fr/riskintrodata

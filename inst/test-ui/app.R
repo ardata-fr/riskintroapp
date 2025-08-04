@@ -1,8 +1,11 @@
-library(riskintroapp)
+# library(riskintroapp)
+library(riskintrodata)
+library(riskintroanalysis)
 library(shiny)
 library(shinyWidgets)
 library(shinyjs)
 library(bslib)
+library(datamods)
 
 ui <- fluidPage(
   page_navbar(
@@ -34,7 +37,13 @@ ui <- fluidPage(
       title = "Emission risk",
       value = "emission_risk",
       icon = icon("arrows-up-down-left-right"),
-      div("emission risk")
+      page_sidebar(
+        title = "Country emission risk factors and scores",
+        sidebar = sidebar(
+          importEmissionRiskFactorsUI("erf")
+        ),
+        riskintroanalysis:::new_leaflet()
+      )
     ),
     nav_menu(
       title = "Introduction risks",
@@ -118,10 +127,11 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
+
   # Datasets -----
   # Input
   tab_epi_units <- reactiveVal(NULL)
-  tab_emission_risk_factors <- reactiveVal(NULL)
+  tab_emission_risk_factors <- importEmissionRiskFactorsServer("erf")
   tab_emission_risk <- reactiveVal(NULL)
   tab_shared_borders <- reactiveVal(NULL)
 
@@ -138,12 +148,6 @@ server <- function(input, output) {
   # Settings ----
   # Analysis settings
   settings <- reactiveVal(list())
-
-  # session$userData$tab_epi_units <- reactiveVal(NULL)
-  # observeEvent(tab_epi_units(), {
-  #   req(tab_epi_units())
-  #   session$userData$tab_epi_units(tab_epi_units())
-  # })
 
   # nav_panel navigation ----
   observeEvent(input$nav_border_risk, {
@@ -175,6 +179,9 @@ server <- function(input, output) {
       )
     )
   })
+
+
+
 }
 
 # Run the application
