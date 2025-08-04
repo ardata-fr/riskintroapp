@@ -25,7 +25,9 @@ importEpiUnitsUI <- function(id) {
       ),
       width = "100%"
     ),
+    uiOutput(ns("import_error")),
     navset_card_underline(
+      id = ns("panel_ui"),
       nav_panel(
         title = "Map",
         leafletOutput(outputId = ns("map_preview"))
@@ -34,7 +36,9 @@ importEpiUnitsUI <- function(id) {
         title = "Table",
         reactableOutput(outputId = ns("table_preview"))
       )
-    )
+    ),
+    uiOutput(ns("dragula")),
+    textOutput(ns("selection"))
   )
 }
 
@@ -43,8 +47,10 @@ importEpiUnitsUI <- function(id) {
 #' @importFrom purrr safely
 importEpiUnitsServer <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
+    ns <- session$ns
 
-    resultTable <- reactiveVal(NULL)
+    importTable <- reactiveVal(NULL)
+    validationStatus <- reactiveVal(NULL)
 
     observeEvent(input$file, {
       file <- input$file
@@ -65,21 +71,64 @@ importEpiUnitsServer <- function(id) {
 
       safe_read_geo_file <- safely(read_geo_file)
       polygon <- safe_read_geo_file(file$new_name)
-      resultTable(polygon)
+      importTable(polygon)
     })
 
+    output$import_error <- renderUI({
+      req(importTable())
+      req(isTruthy(importTable()$error))
+      shinyWidgets::alert(
+        paste("Unable to import file: \n", importTable()$error),
+        status = "danger"
+          )
+    })
     output$map_preview <- renderLeaflet({
-      req(resultTable(), !isTruthy(resultTable()$error))
-      leaflet(resultTable()$result) |> addPolygons() |> addTiles()
+      req(importTable(), !isTruthy(importTable()$error))
+      leaflet(importTable()$result) |> addPolygons() |> addTiles()
     })
-
     output$table_preview <- renderReactable({
-      req(resultTable(), !isTruthy(resultTable()$error))
-      reactable(resultTable()$result)
+      req(importTable(), !isTruthy(importTable()$error))
+      reactable(importTable()$result)
+    })
+    output$dragula <- renderUI({
+      req(importTable())
+      req(importTable()$result)
+      browser()
+      dataset <- req(importTable()$result)
+      sources <- colnames(dataset)
+      targets <- names(riskintrodata:::.spec_epi_units)
+      targets <- targets[targets != "geometry"]
+      dragulaInput(
+        inputId = ns("col_mapping"),
+        label = "Column mapping",
+        sourceLabel = "Imported data columns",
+        targetsLabels = targets,
+        targetsIds = targets,
+        choices = sources,
+        selected = auto_select_cols(
+          user_cols = sources,
+          options = targets
+          ),
+        replace = TRUE,
+        copySource = TRUE
+      )
+    })
+
+    observe({
+      req(importTable())
+      dataset <- req()
+      mapping <- req(input$col_mapping)
+      browser()
+      args <- mapping$target
+      args <- append(args,
+                     list(x = importTable()$result,
+                          table_name = "epi_units"))
+
+      validation_status <- do.call(validate_dataset, args)
+      validationStatus(validation_status)
     })
 
 
-
-  })
+    })
 }
 

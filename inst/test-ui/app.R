@@ -1,4 +1,4 @@
-# library(riskintroapp)
+library(riskintroapp)
 library(riskintrodata)
 library(riskintroanalysis)
 library(shiny)
@@ -6,6 +6,7 @@ library(shinyWidgets)
 library(shinyjs)
 library(bslib)
 library(datamods)
+library(esquisse)
 
 ui <- fluidPage(
   page_navbar(
@@ -172,7 +173,7 @@ server <- function(input, output) {
     showModal(
       modalDialog(
         title = "Import Epi Units",
-        size = "l",
+        size = "xl",
         easyClose = TRUE,
         fade = TRUE,
         importEpiUnitsUI("import_epi_units")

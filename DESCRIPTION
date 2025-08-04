@@ -26,7 +26,9 @@ Imports:
     shinyWidgets,
     systemfonts,
     workspace,
-    datamods
+    datamods,
+    stringr,
+    purrr
 Remotes: 
     ardata-fr/riskintroanalysis
     ardata-fr/riskintrodata
