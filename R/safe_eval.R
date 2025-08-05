@@ -23,7 +23,7 @@ formatCondition <- function(x) {
 
 
 #' @importFrom cli ansi_strip
-#' @importFrom rlang cnd_entrace
+#' @importFrom rlang cnd_entrace call_name call_args_names call_args
 #' @title Evaluate an expression in a safe wrapper with logging
 #' @description
 #' Similar to eval, but evaluation occurs inside a try and withCallingHandlers wrapper.

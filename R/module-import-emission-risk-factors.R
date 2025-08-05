@@ -1,3 +1,6 @@
+#' @export
+#' @importFrom shinyWidgets dropMenu
+#' @importFrom shiny NS actionButton
 importEmissionRiskFactorsUI <- function(id) {
   ns <- NS(id)
   dropMenu(
@@ -33,8 +36,15 @@ importEmissionRiskFactorsUI <- function(id) {
   )
 }
 
-#' @importFrom datamods select_group_server
+#' @export
+#' @importFrom shinyWidgets alert panel
+#' @importFrom shinyjs enable disable
+#' @importFrom datamods select_group_server select_group_ui
 #' @importFrom reactable reactable renderReactable reactableOutput
+#' @importFrom dplyr select
+#' @importFrom riskintrodata get_wahis_erf read_emission_risk_factor_file
+#' @importFrom shiny moduleServer reactiveVal renderUI req reactive observeEvent showModal modalDialog fluidRow column uiOutput actionButton observe removeModal reactiveValues renderText fileInput verbatimTextOutput isTruthy textInput radioButtons
+#' @importFrom shinyWidgets hideDropMenu
 importEmissionRiskFactorsServer <- function(id) {
   moduleServer(id, function(input, output, session) {
       ns <- session$ns
@@ -226,19 +236,20 @@ importEmissionRiskFactorsServer <- function(id) {
         hideDropMenu(id = "dropMenu_dropmenu")
         showModal(modalDialog(
           tags$h3("Set study settings for manual entry"),
-          textInputIcon(
+          textInput(
             inputId = ns("man_disease"),
-            label = NULL,
+            label = "Disease",
             value = "",
             placeholder = "Disease name",
-            icon = icon("virus")
+            updateOn = "blur"
           ),
-          textInputIcon(
+          textInput(
             inputId = ns("man_species"),
-            label = NULL,
+            label = "Species",
             value = "",
             placeholder = "Species name",
-            icon = icon("paw")
+            icon = icon("paw"),
+            updateOn = "blur"
           ),
           radioButtons(
             inputId = ns("man_animal_category"),
@@ -274,7 +285,6 @@ importEmissionRiskFactorsServer <- function(id) {
           man_btn_observer$destroy()
           man_btn_observer <- NULL
         }
-        browser()
         empty_erf <- riskintrodata::wahis_emission_risk_factors[0, ]
         attr(empty_erf, "study_settings") <- c(
           disease = input$man_disease,

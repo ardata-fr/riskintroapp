@@ -1,7 +1,5 @@
 #' @export
-#' @importFrom bslib navset_card_underline nav_panel
-#' @importFrom reactable reactableOutput renderReactable reactable
-#' @import leaflet
+#' @importFrom shiny NS actionButton
 importEpiUnitsUI <- function(id) {
   ns <- shiny::NS(id)
   actionButton(
@@ -14,6 +12,19 @@ importEpiUnitsUI <- function(id) {
 #' @export
 #' @importFrom riskintrodata read_geo_file
 #' @importFrom purrr safely
+#' @importFrom bslib navset_card_tab nav_panel
+#' @importFrom reactable reactableOutput renderReactable reactable
+#' @importFrom shinyWidgets alert panel
+#' @importFrom esquisse dragulaInput
+#' @importFrom shinyjs enable disable
+#' @importFrom shiny
+#'  moduleServer reactiveVal observeEvent renderUI req
+#'  isTruthy observe showModal modalDialog fluidRow column fileInput uiOutput
+#'  actionButton removeModal
+#' @importFrom leaflet
+#'  leafletOutput renderLeaflet
+#' @importFrom riskintrodata
+#'  validate_dataset is_dataset_valid extract_dataset
 importEpiUnitsServer <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -24,7 +35,6 @@ importEpiUnitsServer <- function(id) {
 
     observeEvent(input$file, {
       file <- input$file
-
       # Handling shapefiles differently because they are made up of multiple files
       shp <- file$datapath[endsWith(file$datapath, suffix = ".shp")]
       if (length(shp) > 0) {
@@ -38,7 +48,6 @@ importEpiUnitsServer <- function(id) {
           to = file$new_name
         )
       }
-
       safe_read_geo_file <- safely(read_geo_file)
       polygon <- safe_read_geo_file(file$new_name)
       importTable(polygon)
@@ -121,7 +130,7 @@ importEpiUnitsServer <- function(id) {
         fluidRow(column(
           width = 10, offset = 1,
           tags$p("Import a geospatial file with Browse..."),
-          tags$p("For shapefiles (shp), make sure to import all associated files."),
+          tags$p("For shapefiles (shp), make sure to select all the neccessary files."),
           fileInput(
             inputId = ns("file"),
             label = NULL,
@@ -141,7 +150,7 @@ importEpiUnitsServer <- function(id) {
             width = "100%"
           ),
           uiOutput(ns("import_error")),
-          navset_card_underline(
+          navset_card_tab(
             id = ns("panel_ui"),
             nav_panel(
               title = "Map view",
@@ -187,12 +196,11 @@ importEpiUnitsServer <- function(id) {
     })
     observeEvent(input$cancel,{
       removeModal()
-      if (!is.null(man_btn_observer)) {
+      if (!is.null(apply_btn_observer)) {
         apply_btn_observer$destroy()
         apply_btn_observer <- NULL
       }
     })
-
 
     returnDataset
   })
