@@ -11,25 +11,34 @@ Description: The package provides an 'RShiny' application for users to
     geographical region using World Animal Health Information System
     (WAHIS) and user imported data.
 License: MIT + file LICENSE
-Imports: 
+Depends:
+    R (>= 4.1.0)
+Imports:
+    shiny,
+    shinyjs,
     bslib,
     cli,
-    gdtools,
     ggplot2,
     htmltools,
     leaflet,
     reactable,
     riskintroanalysis,
     riskintrodata,
-    shiny,
-    shinyjs,
     shinyWidgets,
+    datamods,
+    esquisse,
     systemfonts,
-    workspace,
-    datamods
+    gdtools,
+    stringr,
+    purrr,
+    sf,
+    glue,
+    rlang,
+    dplyr
 Remotes: 
     ardata-fr/riskintroanalysis
     ardata-fr/riskintrodata
+    ardata-fr/workspace
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

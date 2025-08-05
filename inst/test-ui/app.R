@@ -1,4 +1,4 @@
-# library(riskintroapp)
+library(riskintroapp)
 library(riskintrodata)
 library(riskintroanalysis)
 library(shiny)
@@ -6,6 +6,8 @@ library(shinyWidgets)
 library(shinyjs)
 library(bslib)
 library(datamods)
+library(esquisse)
+library(leaflet)
 
 ui <- fluidPage(
   page_navbar(
@@ -23,26 +25,26 @@ ui <- fluidPage(
       title = "Epidemiological units",
       value = "study_settings",
       icon = icon("map"),
-      layout_sidebar(
-        sidebar = sidebar(
-          actionButton(
-            inputId = "do_import_epi_units",
-            label = "Import"
-          )
-        ),
-        div("Epi units")
+      page_fillable(
+        layout_sidebar(
+          sidebar = sidebar(
+            title = "Epidemiological units",
+            importEpiUnitsUI("import_epi_units")
+          ),
+            leafletOutput(outputId = "map_ri_summary", width = "100%", height = "85vh")
+        )
       )
     ),
     nav_panel(
       title = "Emission risk",
       value = "emission_risk",
       icon = icon("arrows-up-down-left-right"),
-      page_sidebar(
-        title = "Country emission risk factors and scores",
+      layout_sidebar(
         sidebar = sidebar(
-          importEmissionRiskFactorsUI("erf")
+          title = "Emission risks",
+          importEmissionRiskFactorsUI("import_erf")
         ),
-        riskintroanalysis:::new_leaflet()
+        leafletOutput(outputId = "map_emission_risk", width = "100%", height = "85vh")
       )
     ),
     nav_menu(
@@ -130,9 +132,20 @@ server <- function(input, output) {
 
   # Datasets -----
   # Input
-  tab_epi_units <- reactiveVal(NULL)
-  tab_emission_risk_factors <- importEmissionRiskFactorsServer("erf")
+  tab_epi_units <- importEpiUnitsServer("import_epi_units")
+  tab_emission_risk_factors <- importEmissionRiskFactorsServer("import_erf")
+
   tab_emission_risk <- reactiveVal(NULL)
+  observeEvent(tab_emission_risk_factors(), {
+    erf <- req(tab_emission_risk_factors())
+    er <- calc_emission_risk(
+      emission_risk_factors = erf,
+      weights = riskintrodata::emission_risk_weights,
+      keep_scores = TRUE
+    )
+    tab_emission_risk(er)
+  })
+
   tab_shared_borders <- reactiveVal(NULL)
 
   # Analysis output
@@ -142,8 +155,16 @@ server <- function(input, output) {
   tab_ri_border <- reactiveVal(NULL)
   tab_ri_misc <- reactiveVal(list())
 
-  # Summary of analyses
+  # Summary of analyses -----
   tab_ri_summary <- reactiveVal(NULL)
+  observeEvent(tab_epi_units(),{
+    epi_units <- req(tab_epi_units())
+    risk_tab <- riskintroanalysis::risk_table(
+      epi_units = epi_units,
+      scale = c(0, 100)
+      )
+    tab_ri_summary(risk_tab)
+  })
 
   # Settings ----
   # Analysis settings
@@ -151,38 +172,47 @@ server <- function(input, output) {
 
   # nav_panel navigation ----
   observeEvent(input$nav_border_risk, {
-    nav_select("navbar", selected = "nav_border_risk")
+    nav_select(id = "navbar", selected = "nav_border_risk")
   })
   observeEvent(input$nav_animal_movement_risk, {
-    nav_select("navbar", selected = "nav_animal_movement_risk")
+    nav_select(id = "navbar", selected = "nav_animal_movement_risk")
   })
   observeEvent(input$nav_road_access_risk, {
-    nav_select("navbar", selected = "nav_road_access_risk")
+    nav_select(id = "navbar", selected = "nav_road_access_risk")
   })
   observeEvent(input$nav_misc_risk, {
-    nav_select("navbar", selected = "nav_misc_risk")
+    nav_select(id = "navbar", selected = "nav_misc_risk")
   })
   observeEvent(input$nav_entry_point_risk, {
-    nav_select("navbar", selected = "nav_entry_point_risk")
+    nav_select(id = "navbar", selected = "nav_entry_point_risk")
   })
 
-  # Observe the import button
-  importEpiUnitsServer("import_epi_units")
-  observeEvent(input$do_import_epi_units, {
-    showModal(
-      modalDialog(
-        title = "Import Epi Units",
-        size = "l",
-        easyClose = TRUE,
-        fade = TRUE,
-        importEpiUnitsUI("import_epi_units")
-      )
+  # Maps ----
+  output$map_ri_summary <- renderLeaflet(basemap())
+  output$map_emission_risk <- renderLeaflet(basemap())
+
+  # Update maps ----
+  ## Risk summary map -----
+  observeEvent(tab_ri_summary(), {
+    req(tab_ri_summary())
+    plot_risk_interactive(
+      dataset = tab_ri_summary(),
+      ll = leafletProxy("map_ri_summary")
     )
   })
-
+  ## Emission risk map ----
+  observeEvent(tab_emission_risk(), {
+    er <- req(tab_emission_risk())
+    browser()
+    plot_emission_risk_interactive(
+      emission_risk = tab_emission_risk(),
+      leafletProxy(mapId = "map_emission_risk")
+    )
+  })
 
 
 }
 
 # Run the application
 shinyApp(ui = ui, server = server, onStart = onstart)
+
