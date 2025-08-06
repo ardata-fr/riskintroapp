@@ -105,21 +105,7 @@ ui <- fluidPage(
       div("nav_entry_point_risk")
     ),
     nav_spacer(),
-    nav_menu(
-      title = "Workspace",
-      align = "right",
-      icon = icon("briefcase"),
-      nav_item(actionLink(
-        inputId = "save",
-        label = "Save",
-        icon("download"),
-      )),
-      nav_item(actionLink(
-        inputId = "load",
-        label = "Load",
-        icon("upload")
-      ))
-    ),
+    workspaceUI("workspace"),
     nav_panel(
       title = "About",
       value = "about",
@@ -131,39 +117,43 @@ ui <- fluidPage(
 server <- function(input, output) {
 
   # Datasets -----
-  # Input
-  tab_epi_units <- importEpiUnitsServer("import_epi_units")
-  tab_emission_risk_factors <- importEmissionRiskFactorsServer("import_erf")
+  datasets <- reactiveValues(
+    epi_units = NULL,
+    emission_risk_factors = NULL,
+    emission_risk = NULL,
+    entry_points = NULL,
+    animal_mobility = NULL,
+    risk_table = NULL,
+    shared_borders = NULL,
+    road_access = NULL,
+    border_risk = NULL
+  )
 
-  tab_emission_risk <- reactiveVal(NULL)
-  observeEvent(tab_emission_risk_factors(), {
-    erf <- req(tab_emission_risk_factors())
-    er <- calc_emission_risk(
+  new_epi_units <- importEpiUnitsServer("import_epi_units")
+  observeEvent(new_epi_units(),{
+    datasets$epi_units <-new_epi_units()
+  })
+  observeEvent(datasets$epi_units, {
+    epi_units <- req(datasets$epi_units)
+    browser()
+    datasets$risk_table <- riskintroanalysis::risk_table(
+      epi_units = epi_units,
+      scale = c(0, 100)
+    )
+  })
+  new_erf <- importEmissionRiskFactorsServer("import_erf")
+  observeEvent(new_erf(),{
+    datasets$emission_risk_factors <- new_erf()
+  })
+
+  observe({
+    erf <- req(datasets$emission_risk_factors)
+    browser()
+    datasets$emission_risk <- calc_emission_risk(
       emission_risk_factors = erf,
       weights = riskintrodata::emission_risk_weights,
       keep_scores = TRUE
     )
-    tab_emission_risk(er)
-  })
-
-  tab_shared_borders <- reactiveVal(NULL)
-
-  # Analysis output
-  tab_ri_entry_points <- reactiveVal(NULL)
-  tab_ri_road_access <- reactiveVal(NULL)
-  tab_ri_animal_mobility <- reactiveVal(NULL)
-  tab_ri_border <- reactiveVal(NULL)
-  tab_ri_misc <- reactiveVal(list())
-
-  # Summary of analyses -----
-  tab_ri_summary <- reactiveVal(NULL)
-  observeEvent(tab_epi_units(),{
-    epi_units <- req(tab_epi_units())
-    risk_tab <- riskintroanalysis::risk_table(
-      epi_units = epi_units,
-      scale = c(0, 100)
-      )
-    tab_ri_summary(risk_tab)
   })
 
   # Settings ----
@@ -188,29 +178,64 @@ server <- function(input, output) {
   })
 
   # Maps ----
-  output$map_ri_summary <- renderLeaflet(basemap())
-  output$map_emission_risk <- renderLeaflet(basemap())
+  baseLeafletRT <- reactive({basemap()})
+  output$map_ri_summary <- renderLeaflet({
+    req(baseLeafletRT())
+    baseLeafletRT()
+    })
+  outputOptions(output, "map_ri_summary", suspendWhenHidden = FALSE)
+
+  baseLeafletER <- reactive({basemap()})
+  output$map_emission_risk <- renderLeaflet({
+    req(baseLeafletER())
+    baseLeafletER()
+  })
+  outputOptions(output, "map_emission_risk", suspendWhenHidden = FALSE)
 
   # Update maps ----
   ## Risk summary map -----
-  observeEvent(tab_ri_summary(), {
-    req(tab_ri_summary())
+  observe({
+    req(baseLeafletRT())
+    rt <- req(datasets$risk_table)
+    browser()
     plot_risk_interactive(
-      dataset = tab_ri_summary(),
+      dataset = rt,
       ll = leafletProxy("map_ri_summary")
     )
   })
   ## Emission risk map ----
-  observeEvent(tab_emission_risk(), {
-    er <- req(tab_emission_risk())
-    browser()
+  observe({
+    req(baseLeafletER())
+    er <- req(datasets$emission_risk)
     plot_emission_risk_interactive(
-      emission_risk = tab_emission_risk(),
-      leafletProxy(mapId = "map_emission_risk")
+      emission_risk = er,
+      ll = leafletProxy("map_emission_risk")
     )
   })
 
 
+  # Workspace ----
+  new_workspace <- workspaceServer(
+    id = "workspace",
+    settings = list(),
+    datasets = datasets # Used for saving workspace
+    )
+  ## Load ----
+  observeEvent(new_workspace(),{
+    new_datasets <- new_workspace()$datasets
+    to_update <- intersect(names(new_datasets), names(datasets))
+    for (name in to_update){
+      datasets[[name]] <- new_datasets[[name]]
+    }
+    to_delete <- setdiff(names(datasets), names(new_datasets))
+    # delete if not already NULL
+    for (name in to_delete){
+      if (isTruthy(datasets[[name]])){
+        datasets[[name]] <- NULL
+      }
+    }
+    settings(new_workspace()$settings)
+  })
 }
 
 # Run the application

@@ -1,3 +1,10 @@
+#' Epidemiological Units Import Module UI
+#'
+#' Creates a simple import button for uploading geospatial epidemiological units data.
+#'
+#' @param id Character string. The namespace id for the module.
+#' @return An action button for importing epidemiological units.
+#'
 #' @export
 #' @importFrom shiny NS actionButton
 importEpiUnitsUI <- function(id) {
@@ -9,6 +16,17 @@ importEpiUnitsUI <- function(id) {
   )
 }
 
+#' Epidemiological Units Import Module Server
+#'
+#' Handles geospatial file import for epidemiological units with:
+#' - File upload (shapefile, GeoPackage, GeoJSON support)
+#' - Interactive column mapping via drag-and-drop interface
+#' - Map and table preview of imported data
+#' - Data validation and error reporting
+#'
+#' @param id Character string. The namespace id for the module.
+#' @return A reactive function returning the validated epidemiological units dataset.
+#'
 #' @export
 #' @importFrom riskintrodata read_geo_file
 #' @importFrom purrr safely
@@ -39,17 +57,11 @@ importEpiUnitsServer <- function(id) {
       shp <- file$datapath[endsWith(file$datapath, suffix = ".shp")]
       if (length(shp) > 0) {
         # restore original basenames
-        file$new_name <- file.path(
-          dirname(file$datapath),
-          file$name
-        )
-        file.rename(
-          from = file$datapath,
-          to = file$new_name
-        )
+        file$new_name <- file.path(dirname(file$datapath), file$name)
+        file.rename(from = file$datapath, to = file$new_name)
       }
-      safe_read_geo_file <- safely(read_geo_file)
-      polygon <- safe_read_geo_file(file$new_name)
+      safely_read_geo_file <- safely(read_geo_file)
+      polygon <- safely_read_geo_file(file$new_name %||% file$datapath)
       importTable(polygon)
     })
 
@@ -123,7 +135,7 @@ importEpiUnitsServer <- function(id) {
     observeEvent(input$do_import_epi_units, {
       showModal(modalDialog(
         width = 10, offset = 1,
-        title = "Import Epi Units",
+        title = "Import epidemiological units",
         size = "l",
         easyClose = TRUE,
         fade = TRUE,
