@@ -1,9 +1,18 @@
+#' Emission Risk Factors Import Module UI
+#'
+#' Creates a dropdown menu with three import options for emission risk factors data:
+#' WAHIS data filtering, file upload, and manual data entry forms.
+#'
+#' @param id Character string. The namespace id for the module.
+#' @return A dropdown menu UI element with import options.
+#'
 #' @export
 #' @importFrom shinyWidgets dropMenu
 #' @importFrom shiny NS actionButton
 importEmissionRiskFactorsUI <- function(id) {
   ns <- NS(id)
   dropMenu(
+    arrow = FALSE,
     tag = actionButton(
       inputId = ns("dropMenu"),
       label = "Import",
@@ -36,6 +45,16 @@ importEmissionRiskFactorsUI <- function(id) {
   )
 }
 
+#' Emission Risk Factors Import Module Server
+#'
+#' Handles three import methods for emission risk factors:
+#' 1. WAHIS data: Interactive filtering by disease, species, and animal category
+#' 2. File import: CSV/TSV file upload with validation
+#' 3. Manual entry: Create empty dataset with study parameters for manual data entry
+#'
+#' @param id Character string. The namespace id for the module.
+#' @return A reactive function returning the imported emission risk factors dataset.
+#'
 #' @export
 #' @importFrom shinyWidgets alert panel
 #' @importFrom shinyjs enable disable
@@ -192,8 +211,8 @@ importEmissionRiskFactorsServer <- function(id) {
                   buttonLabel = "Browse...",
                   placeholder = "No file selected"
                 ),
-                reactable::reactableOutput(outputId = ns("import_reactable")),
                 verbatimTextOutput(outputId = ns("import_validation")),
+                reactable::reactableOutput(outputId = ns("import_reactable")),
                 uiOutput(outputId = ns("existing_dataset_warning"))
               )),
             )),
