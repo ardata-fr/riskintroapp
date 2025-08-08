@@ -1,120 +1,6 @@
-library(riskintroapp)
-library(riskintrodata)
-library(riskintroanalysis)
-library(shiny)
-library(shinyWidgets)
-library(shinyjs)
-library(bslib)
-library(datamods)
-library(esquisse)
-library(leaflet)
-
-ui <- fluidPage(
-  page_navbar(
-    id = "navbar",
-    navbar_options = navbar_options(
-      bg = "#06292b"
-    ),
-    header = app_header(),
-    theme = bs_theme_cirad(),
-    title = "RiskIntroApp",
-    nav_item(
-      div(icon("warning"))
-    ),
-    nav_panel(
-      title = "Epidemiological units",
-      value = "study_settings",
-      icon = icon("map"),
-      page_fillable(
-        layout_sidebar(
-          sidebar = sidebar(
-            title = "Epidemiological units",
-            importEpiUnitsUI("import_epi_units")
-          ),
-            leafletOutput(outputId = "map_ri_summary", width = "100%", height = "85vh")
-        )
-      )
-    ),
-    nav_panel(
-      title = "Emission risk",
-      value = "emission_risk",
-      icon = icon("arrows-up-down-left-right"),
-      layout_sidebar(
-        sidebar = sidebar(
-          title = "Emission risks",
-          importEmissionRiskFactorsUI("import_erf")
-        ),
-        leafletOutput(outputId = "map_emission_risk", width = "100%", height = "85vh")
-      )
-    ),
-    nav_menu(
-      title = "Introduction risks",
-      value = "risk_panel_selector",
-      icon = icon("warning"),
-
-      nav_item(actionLink(
-        inputId = "nav_border_risk",
-        label = "Border risk",
-        icon("arrow-down-up-across-line")
-      )),
-      nav_item(actionLink(
-        inputId = "nav_animal_movement_risk",
-        label = "Animal movement risk",
-        icon("truck-plane")
-      )),
-      nav_item(actionLink(
-        inputId = "nav_entry_point_risk",
-        label = "Entry point risk",
-        icon("location-dot")
-      )),
-      nav_item(actionLink(
-        inputId = "nav_road_access_risk",
-        label = "Road access risk",
-        icon("arrow-right-to-city")
-      )),
-      nav_item(actionLink(
-        inputId = "nav_misc_risk",
-        label = "Miscellaneous risks",
-        icon("arrows-to-circle")
-      ))
-    ),
-    nav_panel(
-      title = "Summary",
-      value = "summary_tab",
-      icon = icon("arrows-to-circle"),
-      div("Hello Summary")
-    ),
-    nav_panel_hidden(
-      value = "nav_animal_movement_risk",
-      div("nav_animal_movement_risk")
-    ),
-    nav_panel_hidden(
-      value = "nav_road_access_risk",
-      div("nav_road_access_risk")
-    ),
-    nav_panel_hidden(
-      value = "nav_misc_risk",
-      div("nav_misc_risk")
-    ),
-    nav_panel_hidden(
-      value = "nav_border_risk",
-      div("nav_border_risk")
-    ),
-    nav_panel_hidden(
-      value = "nav_entry_point_risk",
-      div("nav_entry_point_risk")
-    ),
-    nav_spacer(),
-    workspaceUI("workspace"),
-    nav_panel(
-      title = "About",
-      value = "about",
-      icon = icon("circle-info")
-    )
-  )
-)
-
-server <- function(input, output) {
+#' @import shiny
+#' @importFrom leaflet renderLeaflet leafletProxy
+server <- function(input, output, session) {
 
   # Datasets -----
   datasets <- reactiveValues(
@@ -135,7 +21,6 @@ server <- function(input, output) {
   })
   observeEvent(datasets$epi_units, {
     epi_units <- req(datasets$epi_units)
-    browser()
     datasets$risk_table <- riskintroanalysis::risk_table(
       epi_units = epi_units,
       scale = c(0, 100)
@@ -148,7 +33,6 @@ server <- function(input, output) {
 
   observe({
     erf <- req(datasets$emission_risk_factors)
-    browser()
     datasets$emission_risk <- calc_emission_risk(
       emission_risk_factors = erf,
       weights = riskintrodata::emission_risk_weights,
@@ -182,7 +66,7 @@ server <- function(input, output) {
   output$map_ri_summary <- renderLeaflet({
     req(baseLeafletRT())
     baseLeafletRT()
-    })
+  })
   outputOptions(output, "map_ri_summary", suspendWhenHidden = FALSE)
 
   baseLeafletER <- reactive({basemap()})
@@ -197,7 +81,7 @@ server <- function(input, output) {
   observe({
     req(baseLeafletRT())
     rt <- req(datasets$risk_table)
-    browser()
+    # req(has_risk(rt))
     plot_risk_interactive(
       dataset = rt,
       ll = leafletProxy("map_ri_summary")
@@ -206,20 +90,22 @@ server <- function(input, output) {
   ## Emission risk map ----
   observe({
     req(baseLeafletER())
-    er <- req(datasets$emission_risk)
+    er <- req(risk_table_summary())
+    browser()
     plot_emission_risk_interactive(
       emission_risk = er,
       ll = leafletProxy("map_emission_risk")
     )
   })
 
+  risk_table_summary <- summariseRiskScoresServer("summarise_risk_table")
 
   # Workspace ----
   new_workspace <- workspaceServer(
     id = "workspace",
     settings = list(),
     datasets = datasets # Used for saving workspace
-    )
+  )
   ## Load ----
   observeEvent(new_workspace(),{
     new_datasets <- new_workspace()$datasets
@@ -237,7 +123,3 @@ server <- function(input, output) {
     settings(new_workspace()$settings)
   })
 }
-
-# Run the application
-shinyApp(ui = ui, server = server, onStart = onstart)
-
