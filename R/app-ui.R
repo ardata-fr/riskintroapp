@@ -1,5 +1,8 @@
 
-
+#' Riskintro Shiny UI
+#'
+#' Serves as the UI for riskintro shiny app.
+#'
 #' @import shiny
 #' @importFrom bslib
 #' bs_theme nav_panel nav_panel_hidden nav_item nav_menu
@@ -31,7 +34,11 @@ ui <- function() {
             importEpiUnitsUI("import_epi_units"),
             summariseRiskScoresUI("summarise_risk_table")
           ),
-          leafletOutput(outputId = "map_ri_summary", width = "100%", height = "85vh")
+          leafletOutput(
+            outputId = "map_ri_summary",
+            width = "100%",
+            height = "85vh"
+            )
         )
       )
     ),
@@ -44,7 +51,11 @@ ui <- function() {
           title = "Emission risks",
           importEmissionRiskFactorsUI("import_erf")
         ),
-        leafletOutput(outputId = "map_emission_risk", width = "100%", height = "85vh")
+        leafletOutput(
+          outputId = "map_emission_risk",
+          width = "100%",
+          height = "85vh"
+          )
       )
     ),
     nav_menu(
@@ -94,7 +105,7 @@ ui <- function() {
     ),
     nav_panel_hidden(
       value = "nav_misc_risk",
-      div("nav_misc_risk")
+      miscRiskUI("misc")
     ),
     nav_panel_hidden(
       value = "nav_border_risk",

@@ -130,7 +130,7 @@ workspaceServer <- function(id, datasets, settings) {
     new_workspace <- reactiveVal(NULL)
     observeEvent(input$modal_load_file, {
       safely_load_workspace <- purrr::safely(load_workspace)
-      result <- safely_load_workspace( input$modal_load_file$datapath)
+      result <- safely_load_workspace(input$modal_load_file$datapath)
       removeModal()
       if (is_error(result$error)) {
         popup_alert_error(
@@ -142,10 +142,22 @@ workspaceServer <- function(id, datasets, settings) {
       new_datasets <- result$result$datasets
       validated_datasets <- list()
       validate_msg <- list()
+      safely_validate_dataset <- safely(validate_dataset)
       for (name in names(new_datasets)) {
-        validation_status <- validate_dataset(
+        validation_status <- safely_validate_dataset(
           x = new_datasets[[name]], table_name = name
         )
+        if(is_error(validation_status$error)){
+          popup_alert_error(
+            title = "Error while loading workspace",
+            text = "Unable to load workspace due to the following error. Workspace file maybe be corrupt",
+            error = validation_status$error
+          )
+          break
+        } else {
+          validation_status <- validation_status$result
+        }
+
         if(is_dataset_valid(validation_status)) {
           validated_datasets[[name]] <- extract_dataset(validation_status)
         } else {

@@ -1,6 +1,25 @@
 #' @import shiny
-#' @importFrom leaflet renderLeaflet leafletProxy
+#' @importFrom leaflet renderLeaflet leafletProxy flyToBounds
+#' @importFrom sf st_bbox
+#' @importFrom bslib nav_select
+#' @import riskintroanalysis
+#' @import riskintrodata
 server <- function(input, output, session) {
+
+  # Initialise maps ----
+  baseLeafletRT <- reactive({basemap()})
+  output$map_ri_summary <- renderLeaflet({
+    req(baseLeafletRT())
+    baseLeafletRT()
+  })
+  outputOptions(output, "map_ri_summary", suspendWhenHidden = FALSE)
+
+  baseLeafletER <- reactive({basemap()})
+  output$map_emission_risk <- renderLeaflet({
+    req(baseLeafletER())
+    baseLeafletER()
+  })
+  outputOptions(output, "map_emission_risk", suspendWhenHidden = FALSE)
 
   # Datasets -----
   datasets <- reactiveValues(
@@ -17,10 +36,17 @@ server <- function(input, output, session) {
 
   new_epi_units <- importEpiUnitsServer("import_epi_units")
   observeEvent(new_epi_units(),{
-    datasets$epi_units <-new_epi_units()
+    datasets$epi_units <- new_epi_units()
   })
+  # New epi_units ----
   observeEvent(datasets$epi_units, {
     epi_units <- req(datasets$epi_units)
+    bb <- sf::st_bbox(epi_units)
+    leaflet::flyToBounds(
+      map = leafletProxy("map_ri_summary"),
+      lng1 = bb$xmin[[1]], lat1 = bb$ymin[[1]],
+      lng2 = bb$xmax[[1]], lat2 = bb$ymax[[1]]
+      )
     datasets$risk_table <- riskintroanalysis::risk_table(
       epi_units = epi_units,
       scale = c(0, 100)
@@ -39,6 +65,12 @@ server <- function(input, output, session) {
       keep_scores = TRUE
     )
   })
+
+  # Misc risks ----
+  new_misc_risks <- miscRiskServer(
+    id = "misc",
+    epi_units = reactive(datasets$epi_units)
+  )
 
   # Settings ----
   # Analysis settings
@@ -61,20 +93,6 @@ server <- function(input, output, session) {
     nav_select(id = "navbar", selected = "nav_entry_point_risk")
   })
 
-  # Maps ----
-  baseLeafletRT <- reactive({basemap()})
-  output$map_ri_summary <- renderLeaflet({
-    req(baseLeafletRT())
-    baseLeafletRT()
-  })
-  outputOptions(output, "map_ri_summary", suspendWhenHidden = FALSE)
-
-  baseLeafletER <- reactive({basemap()})
-  output$map_emission_risk <- renderLeaflet({
-    req(baseLeafletER())
-    baseLeafletER()
-  })
-  outputOptions(output, "map_emission_risk", suspendWhenHidden = FALSE)
 
   # Update maps ----
   ## Risk summary map -----
@@ -100,6 +118,7 @@ server <- function(input, output, session) {
       ll = leafletProxy("map_emission_risk")
     )
   })
+
 
   # Workspace ----
   new_workspace <- workspaceServer(

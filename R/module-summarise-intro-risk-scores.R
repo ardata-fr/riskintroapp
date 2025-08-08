@@ -48,7 +48,7 @@ summariseRiskScoresServer <- function(id, riskTable) {
       returnDataset <- reactiveVal(NULL)
 
       output$show_panel <- reactive({
-        isTruth(riskTable())
+        isTruthy(riskTable())
       })
 
       observe({
