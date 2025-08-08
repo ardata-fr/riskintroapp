@@ -89,12 +89,6 @@ ui <- function() {
         icon("arrows-to-circle")
       ))
     ),
-    nav_panel(
-      title = "Summary",
-      value = "summary_tab",
-      icon = icon("arrows-to-circle"),
-      div("Hello Summary")
-    ),
     nav_panel_hidden(
       value = "nav_animal_movement_risk",
       div("nav_animal_movement_risk")

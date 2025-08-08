@@ -107,7 +107,6 @@ miscRiskServer <- function(id, epi_units) {
 
       # Import raster ----
       observeEvent(input$open_raster, {
-        hideDropMenu(id = "dropMenu_dropmenu")
         showModal(modalDialog(
           fluidRow(column(
             width = 10, offset = 1,
@@ -130,15 +129,84 @@ miscRiskServer <- function(id, epi_units) {
         ))
       })
 
+
       # Import precalc -----
+
+
+      importData <- reactive({
+        fp <- req(input$precalc_file$datapath)
+        safely_read_delim <- safely(readr::read_delim)
+        safely_read_delim(fp)
+      })
+      observeEvent(importData(), ignoreNULL = TRUE{
+        updateSelectInput(
+          inputId= "join_by",
+          choices = colnames(importData())
+        )
+      })
+      observeEvent(importData(), ignoreNULL = TRUE{
+        updateSelectInput(
+          inputId= "join_by",
+          choices = colnames(importData())
+        )
+      })
+      observe({
+        req(importData(), input$join_by)
+        rt <- req(miscRiskTable())
+        riskintroanalysis::add_risk(
+          risk_table = rt,
+          risk_data = importData(),
+          cols = input$risk_cols,
+          scale =
+          )
+      })
+
       observeEvent(input$open_precalc, {
         hideDropMenu(id = "dropMenu_dropmenu")
         showModal(modalDialog(
           fluidRow(column(
             width = 10, offset = 1,
-
-            div("Not yet implemented")
-
+            title = "Import precalculated risk file",
+            tags$p("Import csv, txt, excel, or parqet file."),
+            tags$p("This file should be joinable to epidemioligcal units file using a unique identifier."),
+            fileInput(
+              inputId = ns("precalc_file"),
+              label = NULL,
+              multiple = TRUE,
+              accept = c(
+                ".csv", ".txt"
+              ),
+              width = "100%"
+            ),
+            textInput(
+              inputId = ns("precalc_name"),
+              label = "Risk name"
+            ),
+            selectInput(
+              inputId = ns("risk_cols"),
+              label = "Select risk columns to import",
+              choices = character(),
+              multiple = TRUE
+            ),
+            selectInput(
+              inputId = ns("join_by"),
+              label = "Select identifier column",
+              choices = character(),
+              multiple = FALSE
+            ),
+            div(
+              tags$text("Select the initial risk scale"),
+              numericInput(
+                inputId = ns("from"),
+                label = "from",
+                value = 0, width = "75px",
+              ),
+              numericInput(
+                inputId = ns("to"),
+                label = "to",
+                value = NULL, width = "75px",
+              ),
+            )
           )),
           footer = list(
             actionButton(
@@ -179,6 +247,18 @@ miscRiskServer <- function(id, epi_units) {
           ), size = "xl", easyClose = TRUE
         ))
       })
+
+
+      observeEvent(input$dropMenu, ignoreNULL = TRUE,{
+        if(!isTruthy(miscRiskTable())) {
+          hideDropMenu(id = "dropMenu_dropmenu")
+          show_alert(
+            title = "Epidemiological units not initialised",
+            text = "Epidemiological units need to be added to your workspace before these risks can be imported. You can do this in the sidebar of the Epidemiological units tab."
+          )
+        }
+      })
+
 
 
     }

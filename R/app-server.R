@@ -93,7 +93,6 @@ server <- function(input, output, session) {
     nav_select(id = "navbar", selected = "nav_entry_point_risk")
   })
 
-
   # Update maps ----
   ## Risk summary map -----
 
