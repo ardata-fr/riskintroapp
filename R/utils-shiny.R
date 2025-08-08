@@ -11,7 +11,6 @@
 #'
 #' @export
 #' @importFrom shinyWidgets show_alert
-#' @inheritParams shinyWidgets::show_alert
 popup_alert_error <- function(
     title = "Error",
     text = "The following error occured",

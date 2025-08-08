@@ -78,10 +78,14 @@ server <- function(input, output, session) {
 
   # Update maps ----
   ## Risk summary map -----
+
+  risk_table_summary <- summariseRiskScoresServer(
+    id = "summarise_risk_table",
+    riskTable = reactive(datasets$risk_table)
+  )
   observe({
     req(baseLeafletRT())
-    rt <- req(datasets$risk_table)
-    # req(has_risk(rt))
+    rt <- req(risk_table_summary())
     plot_risk_interactive(
       dataset = rt,
       ll = leafletProxy("map_ri_summary")
@@ -90,15 +94,12 @@ server <- function(input, output, session) {
   ## Emission risk map ----
   observe({
     req(baseLeafletER())
-    er <- req(risk_table_summary())
-    browser()
+    er <- req(datasets$emission_risk)
     plot_emission_risk_interactive(
       emission_risk = er,
       ll = leafletProxy("map_emission_risk")
     )
   })
-
-  risk_table_summary <- summariseRiskScoresServer("summarise_risk_table")
 
   # Workspace ----
   new_workspace <- workspaceServer(
