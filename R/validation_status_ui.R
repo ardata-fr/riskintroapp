@@ -42,4 +42,3 @@ unnest_validatation_status_details <- function(details){
   }
   details_msg
 }
-
