@@ -66,9 +66,29 @@ server <- function(input, output, session) {
     )
   })
 
-  # Misc risks ----
-  new_misc_risks <- miscRiskServer(
+  # Risk analysis modules ----
+  miscRiskServer(
     id = "misc",
+    epi_units = reactive(datasets$epi_units)
+  )
+  
+  borderRiskServer(
+    id = "border",
+    epi_units = reactive(datasets$epi_units)
+  )
+  
+  animalMobilityServer(
+    id = "animal_mobility", 
+    epi_units = reactive(datasets$epi_units)
+  )
+  
+  roadAccessRiskServer(
+    id = "road_access",
+    epi_units = reactive(datasets$epi_units)
+  )
+  
+  entryPointsServer(
+    id = "entry_points",
     epi_units = reactive(datasets$epi_units)
   )
 

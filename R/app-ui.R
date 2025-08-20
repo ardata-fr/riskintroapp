@@ -91,11 +91,11 @@ ui <- function() {
     ),
     nav_panel_hidden(
       value = "nav_animal_movement_risk",
-      div("nav_animal_movement_risk")
+      animalMobilityUI("animal_mobility")
     ),
     nav_panel_hidden(
       value = "nav_road_access_risk",
-      div("nav_road_access_risk")
+      roadAccessRiskUI("road_access")
     ),
     nav_panel_hidden(
       value = "nav_misc_risk",
@@ -103,11 +103,11 @@ ui <- function() {
     ),
     nav_panel_hidden(
       value = "nav_border_risk",
-      div("nav_border_risk")
+      borderRiskUI("border")
     ),
     nav_panel_hidden(
       value = "nav_entry_point_risk",
-      div("nav_entry_point_risk")
+      entryPointsUI("entry_points")
     ),
     nav_spacer(),
     workspaceUI("workspace"),
