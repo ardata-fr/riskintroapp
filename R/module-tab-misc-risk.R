@@ -13,7 +13,8 @@ miscRiskUI <- function(id) {
         tag = actionButton(
           inputId = ns("dropMenu"),
           label = "Import risk",
-          width = '100%'
+          width = '100%',
+          icon = icon('file-import')
         ),
         placement = "right",
         tagList(
@@ -78,6 +79,40 @@ miscRiskServer <- function(id, epi_units) {
       # miscRiskMetaData ----
       miscRiskMetaData <- reactiveVal(list())
 
+      # selectedDataset ----
+      selectedDataset <- reactive({
+        req(input$select_risk)
+        miscRiskMetaData()[[input$select_risk]]$dataset
+      })
+
+      # delete risk ----
+      observeEvent(input$delete_risk, {
+        req(input$select_risk)
+        metadata <- miscRiskMetaData()
+        metadata[[input$select_risk]] <- NULL
+        miscRiskMetaData(metadata)
+        updateSelectInput(
+          inputId = "select_risk",
+          choices = names(metadata),
+          selected = NULL
+        )
+      })
+
+      # miscRiskTable ----
+      miscRiskTable <- reactive({
+        req(epi_units())
+        req(configIsValid())
+        if (length(miscRiskMetaData()) > 0) {
+          build_misc_risk_table(
+            epi_units = epi_units(),
+            risk_list =  miscRiskMetaData()
+            )
+        } else {
+          NULL
+        }
+      })
+
+
       # Initialise maps ----
       baseMap <- reactive({basemap()})
       output$map <- renderLeaflet({
@@ -86,71 +121,44 @@ miscRiskServer <- function(id, epi_units) {
       })
       outputOptions(output, "map", suspendWhenHidden = FALSE)
 
-      # select_risk ----
+      # update map ----
       observe({
-        updateSelectInput(
-          inputId = "select_risk",
-          choices = names(miscRiskMetaData())
-        )
-      })
-      # selectedRisk ----
-      selectedRisk <- reactive({
-        req(length(miscRiskMetaData()) > 0)
-        miscRiskMetaData()[[input$select_risk]]
-      })
-
-      # delete risk ----
-      observeEvent(input$delete_risk, {
-        req(length(miscRiskMetaData()) > 0)
-        req(selectedRisk())
-        metadata <- miscRiskMetaData()
-        metadata[[selectedRisk()$name]] <- NULL
-        miscRiskMetaData(metadata)
-      })
-
-      # miscRiskTable ----
-      miscRiskTable <- reactive({
-        req(epi_units())
-        req(configIsValid())
-        browser()
-        if (length(miscRiskMetaData()) > 0) {
-          build_misc_risk_table(epi_units = epi_units(), risk_list =  miscRiskMetaData())
-        } else {
-          NULL
-        }
-      })
-
-      # Plot misk risk table ----
-      observeEvent(miscRiskTable(), {
+        req(input$select_risk)
         mrt <- req(miscRiskTable())
-        browser()
         ll <- leafletProxy(mapId = "map")
         labels <- generate_leaflet_labels(mrt)
+        pal <- leaflet::colorNumeric(
+          palette = "viridis",
+          domain = c(0, 100),
+          reverse = TRUE,
+          na.color = "lightgrey"
+        )
+        leaflet::clearShapes(ll)
         leaflet::addPolygons(
-          ll, data = mrt, label = labels
+          ll,
+          data = mrt,
+          label = labels,
+          fillColor = pal(mrt[[input$select_risk]]),
+          fillOpacity = 0.9
         )
       })
 
       # # table ----
       output$table <- renderReactable({
         mrt <- req(miscRiskTable())
-        browser()
         mrt <- sf::st_drop_geometry(mrt)
-        mrt$eu_id <- NULL
         reactable::reactable(mrt)
       })
 
       # config_is_valid ----
       configIsValid <- reactive({
         if (length(miscRiskMetaData()) > 0) {
-          sr <- req(selectedRisk())
-          status <- validate_selected_risk(sr)
+          status <- validate_selected_risk(miscRiskMetaData())
         } else {
           status <- build_config_status(
             value = FALSE,
             msg = "No miscellaneous risks have been imported yet."
           )
-          report_config_status(status)
         }
         status
       })
@@ -172,6 +180,11 @@ miscRiskServer <- function(id, epi_units) {
         metadata <- miscRiskMetaData()
         metadata[[new_precalc()$name]] <- new_precalc()
         miscRiskMetaData(metadata)
+        updateSelectInput(
+          inputId = "select_risk",
+          choices = names(metadata),
+          selected = new_precalc()$name
+        )
       })
 
 
@@ -201,46 +214,31 @@ miscRiskServer <- function(id, epi_units) {
       })
 
 
-
-
       # edit risk scaling -----
       observeEvent(input$open_risk_scaling, {
-        hideDropMenu(id = "dropMenu_dropmenu")
-        showModal(modalDialog(
-          fluidRow(column(
-            width = 10, offset = 1,
-
-            div("Not yet implemented")
-
-          )),
-          footer = list(
-            actionButton(
-              inputId = ns("apply_rescale"),
-              class = "btn-primary",
-              label = "Import",
-              disabled = TRUE),
-            actionButton(
-              inputId = ns("cancel_rescale"),
-              label = "Cancel",
-              class = "btn-default"
-            )
-          ), size = "xl", easyClose = TRUE
-        ))
+        showModal(rescaleRiskUI(id = ns("rescale_modal")))
+      })
+      new_rescaling_args <- rescaleRiskServer(
+        id = "rescale_modal",
+        dataset = selectedDataset
+      )
+      # Update rescaling_args for this dataset
+      observeEvent(new_rescaling_args(), {
+        new_args <- new_rescaling_args()
+        metadata <- miscRiskMetaData()
+        metadata[[input$select_risk]]$rescale_args <- new_args
+        miscRiskMetaData(metadata)
       })
 
-
-      # observeEvent(input$dropMenu, ignoreNULL = TRUE,{
-      #   if(!isTruthy(miscRiskTable())) {
-      #     hideDropMenu(id = "dropMenu_dropmenu")
-      #     show_alert(
-      #       title = "Epidemiological units not initialised",
-      #       text = "Epidemiological units need to be added to your workspace before these risks can be imported. You can do this in the sidebar of the Epidemiological units tab."
-      #     )
-      #   }
-      # })
-
-
-
+      observeEvent(input$dropMenu, ignoreNULL = TRUE,{
+        if(!isTruthy(epi_units())) {
+          hideDropMenu(id = "dropMenu_dropmenu")
+          show_alert(
+            title = "Epidemiological units not initialised",
+            text = "Epidemiological units need to be added to your workspace before these risks can be imported. You can do this in the sidebar of the Epidemiological units tab."
+          )
+        }
+      })
     }
   )
 }
@@ -248,49 +246,86 @@ miscRiskServer <- function(id, epi_units) {
 
 validate_selected_risk <- function(x) {
 
-  if(!isTruthy(x$dataset)) {
+  # Check validity of all misc risks
+  all_statuses <- lapply(x, function(x) {
+
+    if(!isTruthy(x$dataset)) {
+      status <- build_config_status(
+        value = FALSE,
+        msg = "A dataset not found."
+      )
+      return(status)
+    }
+
+    if(!isTruthy(x$join_by)) {
+      status <- build_config_status(
+        value = FALSE,
+        msg = "Join/identifier column not found."
+      )
+      return(status)
+    }
+
+    if(!isTruthy(x$rescale_args)) {
+      status <- build_config_status(
+        value = FALSE,
+        msg = "Rescaling parameters have not been set."
+      )
+      return(status)
+    }
+
+    if(length(x$rescale_args) == 0) {
+      status <- build_config_status(
+        value = FALSE,
+        msg = "Rescaling parameters have not been set."
+      )
+      return(status)
+    }
+
+    build_config_status(
+      value = TRUE,
+      msg = "Selected risk is properly configured."
+    )
+  })
+
+  if(any(!unlist(all_statuses))) {
+    false_statuses <- Filter(f = isFALSE, x = all_statuses)
+    messages <- sapply(false_statuses, function(x) attr(x, "comment"))
     status <- build_config_status(
       value = FALSE,
-      msg = "A dataset not found."
+      msg = paste(
+        tags$strong("Issues found"), tags$br(),
+        paste0('"', names(messages), '": ' , messages, tags$br(), collapse = "")
+      ) |>
+        HTML()
     )
-    return(status)
-  }
-  if(!isTruthy(x$risk_cols)) {
+  } else {
     status <- build_config_status(
-      value = FALSE,
-      msg = "Risk column not found."
+      value = TRUE,
+      msg = "All risks are properly configured."
     )
-    return(status)
-  }
-  if(!isTruthy(x$join_by)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Join/identifier column not found."
-    )
-    return(status)
-  }
-  if(length(x$rescaling_param) == 0) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Rescaling settings not configured."
-    )
-    return(status)
   }
 
-  build_config_status(
-    value = TRUE,
-    msg = "Selected risk is properly configured."
-  )
+  status
 }
 
+#' @importFrom riskintroanalysis rescale_risk_scores
 build_misc_risk_table <- function(epi_units, risk_list){
+
   rt <- riskintroanalysis::risk_table(epi_units, scale = c(0, 100))
   for (i in risk_list) {
+
+    rescaled_risk_data <- rescale_risk_scores(
+      dataset = i$dataset,
+      cols = i$rescale_args$cols,
+      from = i$rescale_args$from,
+      to = c(0, 100),
+      method = i$rescale_args$method,
+      inverse = i$rescale_args$inverse
+    )
+
     rt <- add_risk(
       risk_table = rt,
-      risk_data = i$dataset,
-      cols = i$risk_cols,
-      scale = c(0, 100),
+      risk_data = rescaled_risk_data,
       join_by = i$join_by
     )
   }
