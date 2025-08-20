@@ -96,6 +96,10 @@ miscRiskServer <- function(id, epi_units) {
           choices = names(metadata),
           selected = NULL
         )
+        if(length(metadata) == 0) {
+          ll <- leafletProxy(mapId = "map")
+          leaflet::clearShapes(ll)
+        }
       })
 
       # miscRiskTable ----
@@ -123,9 +127,10 @@ miscRiskServer <- function(id, epi_units) {
 
       # update map ----
       observe({
-        req(input$select_risk)
         mrt <- req(miscRiskTable())
         ll <- leafletProxy(mapId = "map")
+        leaflet::clearShapes(ll)
+        req(input$select_risk)
         labels <- generate_leaflet_labels(mrt)
         pal <- leaflet::colorNumeric(
           palette = "viridis",
@@ -190,29 +195,24 @@ miscRiskServer <- function(id, epi_units) {
 
       # Import raster ----
       observeEvent(input$open_raster, {
-        showModal(modalDialog(
-          fluidRow(column(
-            width = 10, offset = 1,
-
-            div("Not yet implemented")
-
-          )),
-          footer = list(
-            actionButton(
-              inputId = ns("apply_raster"),
-              class = "btn-primary",
-              label = "Import",
-              disabled = TRUE),
-            actionButton(
-              inputId = ns("cancel_raster"),
-              label = "Cancel",
-              class = "btn-default"
-            )
-          ),
-          size = "xl", easyClose = TRUE
-        ))
+        hideDropMenu(id = "dropMenu_dropmenu")
+        showModal(importMiscRiskRasterUI(ns("raster_import")))
       })
-
+      new_raster <- importMiscRiskRasterServer(
+        id = "raster_import",
+        riskMetaData = miscRiskMetaData,
+        epi_units = epi_units
+      )
+      observeEvent(new_raster(), ignoreNULL = TRUE, {
+        metadata <- miscRiskMetaData()
+        metadata[[new_raster()$name]] <- new_raster()
+        miscRiskMetaData(metadata)
+        updateSelectInput(
+          inputId = "select_risk",
+          choices = names(metadata),
+          selected = new_raster()$name
+        )
+      })
 
       # edit risk scaling -----
       observeEvent(input$open_risk_scaling, {
