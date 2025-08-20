@@ -4,27 +4,19 @@ importMiscRiskPrecalculatedUI <- function(id) {
   ns <- NS(id)
 
   modalDialog(
+    title = "Import precalculated risk file",
     fluidRow(column(
       width = 10, offset = 1,
-
-      title = "Import precalculated risk file",
-      tags$p("Import csv, txt, excel, or parqet file."),
+      tags$p("Import csv or txt file."),
       tags$p("This file should be joinable to epidemioligcal units file using a unique identifier."),
       fileInput(
         inputId = ns("file"),
         label = NULL,
         multiple = TRUE,
-        accept = c(
-          ".csv", ".txt"
-        ),
+        accept = c(".csv", ".txt"),
         width = "100%"
       ),
       uiOutput(ns("read_error_ui")),
-      textInput(
-        inputId = ns("name"),
-        label = "Risk name",
-        updateOn = "blur"
-      ),
       inlineComponents(
         selectInput(
           inputId = ns("risk_col"),
@@ -44,13 +36,19 @@ importMiscRiskPrecalculatedUI <- function(id) {
           width = "75px"
         )
       ),
-      selectInput(
-        inputId = ns("join_by"),
-        label = "Select identifier column",
-        choices = character(),
-        multiple = FALSE
-      ),
-
+      inlineComponents(
+        selectInput(
+          inputId = ns("join_by"),
+          label = "Select identifier column",
+          choices = character(),
+          multiple = FALSE
+        ),
+        downloadButton(
+          outputId = ns("download"),
+          label = "Download template",
+          icon = icon("download")
+        )
+      )
     )
     ),
     footer = list(
@@ -69,6 +67,7 @@ importMiscRiskPrecalculatedUI <- function(id) {
   )
 }
 
+#' @importFrom readr read_delim write_csv
 #' @importFrom shinyWidgets updateNumericRangeInput
 importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
   moduleServer(
@@ -76,6 +75,8 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
     function(input, output, session) {
       ns <- session$ns
 
+
+      # Read data -----
       read_error <- reactiveVal(NULL)
       output$read_error_ui <- renderUI({
         req(read_error())
@@ -95,6 +96,8 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
           dataset$result
         }
       })
+
+      # Update col selectors ----
       observe({
         req(importData())
         updateSelectInput(
@@ -119,13 +122,13 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
           )
       })
 
+      # configIsValid ----
       configIsValid <- reactive({
         validate_misc_risk_precalculated(
           dataset = importData(),
           risk_table = epi_units(),
           metadata = riskMetaData(),
           parameters = list(
-            name = input$name,
             join_by = input$join_by,
             risk_col = input$risk_col,
             scale = input$scale
@@ -139,27 +142,40 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
       })
 
       observe({
-        if(configIsValid()) {
+        if(isTruthy(configIsValid())) {
           shinyjs::enable("apply")
         } else {
           shinyjs::disable("apply")
         }
       })
 
+      # download template ----
+      output$download <- downloadHandler(
+        filename = function() {
+          paste("precalculated-risk-template-", Sys.Date(), ".csv", sep="")
+        },
+        content = function(file) {
+          x <- st_drop_geometry(epi_units())
+          x <- x[, c("eu_id", "eu_name")]
+          readr::write_csv(x, file)
+        }
+      )
+
+      # return values ----
       returnList <- reactiveVal(NULL)
       observeEvent(input$apply, {
         removeModal()
-
         dataset <- importData()
         attr(dataset, "scale") <- input$scale
         attr(dataset, "join_by") <- input$join_by
         attr(dataset, "risk_col") <- input$risk_col
 
         new_precalc_risk <- list(
-            name = input$name,
+            name = input$risk_col,
             type = "precalculated",
             join_by = input$join_by,
-            dataset = dataset
+            dataset = dataset,
+            rescale_args = list()
           )
         returnList(new_precalc_risk)
       })
@@ -185,16 +201,8 @@ validate_misc_risk_precalculated <- function(
     return(status)
   }
 
-
-  # name ----
-  if(!isTruthy(parameters$name)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Provide a risk name."
-    )
-    return(status)
-  }
-  if (parameters$name %in% names(metadata)) {
+  # risk col ----
+  if (parameters$risk_col %in% names(metadata)) {
     status <- build_config_status(
       value = FALSE,
       msg = "There is already a risk with this name."
@@ -202,11 +210,18 @@ validate_misc_risk_precalculated <- function(
     return(status)
   }
 
-  # risk col ----
   if(!isTruthy(parameters$risk_col)) {
     status <- build_config_status(
       value = FALSE,
       msg = "Select a risk column to import."
+    )
+    return(status)
+  }
+
+  if(!isTruthy(parameters$risk_col)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "A risk column already exists with that name."
     )
     return(status)
   }
@@ -239,6 +254,14 @@ validate_misc_risk_precalculated <- function(
     )
     return(status)
   }
+  if (any(is.na(parameters$scale))) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Scale input must be numeric."
+    )
+    return(status)
+  }
+
   if (length(parameters$scale) != 2) {
     status <- build_config_status(
       value = FALSE,
