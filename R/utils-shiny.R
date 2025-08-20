@@ -131,3 +131,45 @@ report_config_status <- function(status) {
     )
   }
 }
+
+# Function to create inline Shiny components
+inlineComponents <- function(..., gap = "10px") {
+  # Get all the components passed to the function
+  components <- list(...)
+
+  # Wrap each component in a div with inline-block style
+  wrapped_components <- lapply(components, function(comp) {
+    tags$div(
+      style = paste0("display: inline-block; margin-right: ", gap, "; vertical-align: middle;"),
+      comp
+    )
+  })
+
+  # Return a div containing all wrapped components
+  tags$div(
+    style = "display: block;",
+    wrapped_components
+  )
+}
+
+# More flexible function with additional styling options
+inlineLayout <- function(...,
+                         gap = "10px",
+                         align = "middle",
+                         wrap = FALSE) {
+  components <- list(...)
+
+  # Determine flex-wrap based on wrap parameter
+  flex_wrap <- if(wrap) "wrap" else "nowrap"
+
+  # Create the container with flexbox for better control
+  tags$div(
+    style = paste0(
+      "display: flex; ",
+      "gap: ", gap, "; ",
+      "align-items: ", align, "; ",
+      "flex-wrap: ", flex_wrap, ";"
+    ),
+    components
+  )
+}

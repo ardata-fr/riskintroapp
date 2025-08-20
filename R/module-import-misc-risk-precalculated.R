@@ -1,4 +1,5 @@
 
+#' @importFrom shinyWidgets numericRangeInput
 importMiscRiskPrecalculatedUI <- function(id) {
   ns <- NS(id)
 
@@ -24,18 +25,32 @@ importMiscRiskPrecalculatedUI <- function(id) {
         label = "Risk name",
         updateOn = "blur"
       ),
-      selectInput(
-        inputId = ns("risk_cols"),
-        label = "Select risk score columns",
-        choices = character(),
-        multiple = FALSE
+      inlineComponents(
+        selectInput(
+          inputId = ns("risk_col"),
+          label = "Select risk score columns",
+          choices = character(),
+          multiple = FALSE
+        ),
+        shinyWidgets::numericRangeInput(
+          inputId = ns("scale"),
+          label = 'Risk score scale',
+          value = c(0, 0)
+        ),
+        actionButton(
+          inputId = ns("minmax_scale"),
+          label = NULL,
+          icon = icon("arrows-left-right-to-line"),
+          width = "75px"
+        )
       ),
       selectInput(
         inputId = ns("join_by"),
         label = "Select identifier column",
         choices = character(),
         multiple = FALSE
-      )
+      ),
+
     )
     ),
     footer = list(
@@ -54,6 +69,7 @@ importMiscRiskPrecalculatedUI <- function(id) {
   )
 }
 
+#' @importFrom shinyWidgets updateNumericRangeInput
 importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
   moduleServer(
     id,
@@ -64,7 +80,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
       output$read_error_ui <- renderUI({
         req(read_error())
         alert_error(
-          text = "Unable to read file",
+          text = "Error: unable to read file",
           error = read_error()
         )
       })
@@ -86,18 +102,24 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
           choices = colnames(importData()),
           selected = character()
         )
-      })
-      observe({
-        req(importData())
         updateSelectInput(
-          inputId = "risk_cols",
+          inputId = "risk_col",
           choices = colnames(importData()),
           selected = character()
         )
       })
 
+      observeEvent(input$minmax_scale, {
+        req(importData(), input$risk_col)
+        vec <- req(importData()[[input$risk_col]])
+        req(is.numeric(vec))
+        updateNumericRangeInput(
+          inputId = "scale",
+          value = c(min(vec), max(vec))
+          )
+      })
+
       configIsValid <- reactive({
-        req(importData())
         validate_misc_risk_precalculated(
           dataset = importData(),
           risk_table = epi_units(),
@@ -105,7 +127,8 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
           parameters = list(
             name = input$name,
             join_by = input$join_by,
-            risk_cols = input$risk_cols
+            risk_col = input$risk_col,
+            scale = input$scale
           )
         )
       })
@@ -127,14 +150,17 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
       observeEvent(input$apply, {
         removeModal()
 
+        dataset <- importData()
+        attr(dataset, "scale") <- input$scale
+        attr(dataset, "join_by") <- input$join_by
+        attr(dataset, "risk_col") <- input$risk_col
+
         new_precalc_risk <- list(
-          name = input$name,
-          type = "precalculated",
-          dataset = importData(),
-          risk_cols = input$risk_cols,
-          join_by = input$join_by,
-          rescaling_param = list()   # edited later
-        )
+            name = input$name,
+            type = "precalculated",
+            join_by = input$join_by,
+            dataset = dataset
+          )
         returnList(new_precalc_risk)
       })
 
@@ -149,6 +175,8 @@ validate_misc_risk_precalculated <- function(
     metadata,
     parameters
     ) {
+
+  # dataset ----
   if(!isTruthy(dataset)) {
     status <- build_config_status(
       value = FALSE,
@@ -156,24 +184,13 @@ validate_misc_risk_precalculated <- function(
     )
     return(status)
   }
+
+
+  # name ----
   if(!isTruthy(parameters$name)) {
     status <- build_config_status(
       value = FALSE,
       msg = "Provide a risk name."
-    )
-    return(status)
-  }
-  if(!isTruthy(parameters$risk_cols)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Select a risk column to import."
-    )
-    return(status)
-  }
-  if(!isTruthy(parameters$join_by)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = 'Select the identifier column to use to join with epidemiological units table.'
     )
     return(status)
   }
@@ -185,6 +202,82 @@ validate_misc_risk_precalculated <- function(
     return(status)
   }
 
+  # risk col ----
+  if(!isTruthy(parameters$risk_col)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Select a risk column to import."
+    )
+    return(status)
+  }
+
+  risk_data <- dataset[parameters$risk_col]
+  numeric <- sapply(risk_data, is.numeric)
+  notnumeric <- numeric[!numeric]
+  if(length(notnumeric) > 0) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Selected risk column must contain numeric values."
+    )
+    return(status)
+  }
+  has_nas <- sapply(risk_data, \(x) any(is.na(x)))
+  has_nas <- has_nas[has_nas]
+  if(length(has_nas) > 0) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = paste("Risk columns (", quote_and_collapse(names(has_nas)), ") contain missing values.")
+    )
+    return(status)
+  }
+
+  # scale ----
+  if (is.null(parameters$scale)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Scale not found."
+    )
+    return(status)
+  }
+  if (length(parameters$scale) != 2) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Scale must have length 2."
+    )
+    return(status)
+  }
+  if (!all(is.numeric(parameters$scale))) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Scale must be numeric."
+    )
+    return(status)
+  }
+
+  if (parameters$scale[[1]] == parameters$scale[[2]]) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Scale values should not be equal."
+    )
+    return(status)
+  }
+
+  if (parameters$scale[[1]] > parameters$scale[[2]]) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "First scale value should be smaller than the second."
+    )
+    return(status)
+  }
+
+  # join by ----
+  if(!isTruthy(parameters$join_by)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = 'Select the identifier column to use to join with epidemiological units table.'
+    )
+    return(status)
+  }
   id_not_found <- dataset[[parameters$join_by]][!dataset[[parameters$join_by]] %in% risk_table$eu_id]
 
   if (length(id_not_found) == length(dataset[[parameters$join_by]])) {
@@ -199,27 +292,7 @@ validate_misc_risk_precalculated <- function(
       msg = paste(
         "There are values for the identifier column that do not match",
         "any epidemiological units EU_ID values. The following cannot be joined: ",
-        quote_and_collapse(id_not_found, max_out = 30))
-    )
-    return(status)
-  }
-
-  risk_data <- dataset[parameters$risk_cols]
-  numeric <- sapply(risk_data, is.numeric)
-  notnumeric <- numeric[!numeric]
-  if(length(notnumeric) > 0) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Selected risk columns must contain numeric values."
-    )
-    return(status)
-  }
-  has_nas <- sapply(risk_data, \(x) any(is.na(x)))
-  has_nas <- has_nas[has_nas]
-  if(length(has_nas) > 0) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = paste("Risk columns (", quote_and_collapse(names(has_nas)), ") contain missing values.")
+        quote_and_collapse(id_not_found, max_out = 6))
     )
     return(status)
   }
