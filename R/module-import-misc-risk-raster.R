@@ -166,7 +166,8 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
       # configIsValid ----
       configIsValid <- reactive({
         req(importRaster())
-        config_is_valid_misc_risk_raster(
+        config_is_valid(
+          "import_misc_raster",
           raster = importRaster(),
           extracted_risk = extractedRisk(),
           epi_units = epi_units(),
@@ -214,13 +215,17 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
     })
 }
 
-config_is_valid_misc_risk_raster <- function(
-    raster,
-    extracted_risk,
-    epi_units,
-    metadata,
-    parameters
-) {
+#' @export
+config_is_valid.import_misc_raster <- function(x, ...) {
+
+  x <- list(...)
+
+  raster <- x$raster
+  extracted_risk <- x$extracted_risk
+  epi_units <- x$epi_units
+  metadata <- x$metadata
+  parameters <- x$parameters
+
   # raster ----
   if(!isTruthy(raster)) {
     status <- build_config_status(

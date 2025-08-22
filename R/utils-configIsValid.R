@@ -4,6 +4,36 @@
   emission_risk_missing = "Emission scores dataset must be imported."
 )
 
+#' @title Validate Configuration
+#' @description
+#' Generic function to validate configuration based on validator type.
+#' @param x A string with the method to call
+#' @param ... parameters to validate
+#' @return A config_status object (logical with message attribute)
+#' @examples
+#' config_is_valid.test <- function(x, ...){
+#' params <- list(...)
+#' if(is.null(params$a)) {
+#'   return(FALSE)
+#' }
+#' if(is.null(params$b)) {
+#'   return(FALSE)
+#' }
+#' if(is.null(params$c)) {
+#'   return(FALSE)
+#' }
+#' TRUE
+#' }
+#'
+#' config_is_valid("test", a = 1, b = 2, c = 3)
+#'
+#' @export
+config_is_valid <- function(x, ...) {
+  params <- list(...)
+  class(params) <- x
+  UseMethod("config_is_valid", params)
+}
+
 #' @title Build a Configuration Status
 #' @description
 #' Build a configuration status from a

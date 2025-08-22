@@ -58,7 +58,8 @@ borderRiskServer <- function(id, epi_units, emission_risk_table) {
 
       # Configuration validation ----
       configIsValid <- reactive({
-        config_is_valid_border_risk(
+        config_is_valid(
+          x = "analyse_border_risk",
           epi_units = epi_units(),
           emission_risk_table = emission_risk_table(),
           shared_borders = sharedBorders(),
@@ -145,14 +146,14 @@ borderRiskServer <- function(id, epi_units, emission_risk_table) {
   )
 }
 
-
-config_is_valid_border_risk <- function(
-    epi_units,
-    emission_risk_table,
-    shared_borders,
-    border_risk_data,
-    rescaled_border_risk
-){
+#' @export
+config_is_valid.analyse_border_risk <- function(x, ...){
+  x <- list(...)
+  epi_units <- x$epi_units
+  emission_risk_table <- x$emission_risk_table
+  shared_borders <- x$shared_borders
+  border_risk_data <- x$border_risk_data
+  rescaled_border_risk <- x$rescaled_border_risk
 
   if (!isTruthy(epi_units)) {
     status <- build_config_status(
