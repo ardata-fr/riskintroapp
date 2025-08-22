@@ -137,7 +137,7 @@ rescaleRiskServer <- function(
       output$rescale_error_ui <- renderUI({
         req(rescale_error())
         alert_error(
-          text = "Error: unable to read file",
+          text = "Error: unable to rescale dataset",
           error = rescale_error()
         )
       })
@@ -150,7 +150,7 @@ rescaleRiskServer <- function(
           dataset = dataset(),
           cols = attr(dataset(), "risk_col"),
           from = attr(dataset(), "scale"),
-          to = c(0, 100),
+          to = to,
           method = input$method,
           inverse = input$inverse,
           keep_cols = TRUE,
