@@ -12,7 +12,7 @@ entryPointsUI <- function(id) {
         inputId = ns("import_entry_points"),
         label = "Import entry points",
         width = '100%',
-        icon = icon('file-import')
+        icon = icon("upload")
       ),
       actionButton(
         inputId = ns("configure_parameters"),
@@ -93,8 +93,14 @@ entryPointsServer <- function(id, epi_units, emission_risk_table) {
 
       # Import entry points ----
       observeEvent(input$import_entry_points, {
-        # TODO: Implement entry points import functionality
-        showNotification("Entry points import not yet implemented", type = "message")
+        showModal(importEntryPointsUI(id = ns("import_modal")))
+      })
+
+      imported_entry_points <- importEntryPointsServer("import_modal")
+      observeEvent(imported_entry_points(), {
+        req(imported_entry_points())
+        entryPointsData(imported_entry_points())
+        showNotification("Entry points data updated", type = "message")
       })
 
       # Configure scaling parameters modal ----

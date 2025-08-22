@@ -2,12 +2,10 @@
 #' @importFrom riskintroanalysis basemap
 #' @importFrom leaflet addPolygons addCircleMarkers
 #' @importFrom riskintroanalysis generate_leaflet_labels
-preview_map <- function(x){
+preview_map <- function(x, ll = riskintroanalysis::basemap(x)){
   if(!inherits(x, "sf")) {
     cli_abort("{.arg x} must inherit {.cls sf}")
   }
-
-  ll <- basemap(data = x)
 
   geom_type <- unique(sf::st_geometry_type(x))
 
