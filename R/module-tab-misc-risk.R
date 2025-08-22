@@ -158,7 +158,7 @@ miscRiskServer <- function(id, epi_units) {
       # config_is_valid ----
       configIsValid <- reactive({
         if (length(miscRiskMetaData()) > 0) {
-          status <- validate_selected_risk(miscRiskMetaData())
+          status <- config_is_valid_misc_risks(miscRiskMetaData())
         } else {
           status <- build_config_status(
             value = FALSE,
@@ -244,7 +244,7 @@ miscRiskServer <- function(id, epi_units) {
 }
 
 
-validate_selected_risk <- function(x) {
+config_is_valid_misc_risks <- function(x) {
 
   # Check validity of all misc risks
   all_statuses <- lapply(x, function(x) {
@@ -268,7 +268,7 @@ validate_selected_risk <- function(x) {
     if(!isTruthy(x$rescale_args)) {
       status <- build_config_status(
         value = FALSE,
-        msg = "Rescaling parameters have not been set."
+        msg = .configIsValidMsgs$rescale_missing
       )
       return(status)
     }

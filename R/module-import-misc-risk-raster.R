@@ -166,7 +166,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
       # configIsValid ----
       configIsValid <- reactive({
         req(importRaster())
-        validate_misc_risk_raster(
+        config_is_valid_misc_risk_raster(
           raster = importRaster(),
           extracted_risk = extractedRisk(),
           epi_units = epi_units(),
@@ -214,24 +214,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
     })
 }
 
-#' Validate Miscellaneous Risk Raster Import
-#'
-#' Validates raster file import parameters and extracted risk data for
-#' epidemiological risk analysis integration.
-#'
-#' @param raster Terra raster object or NULL. The imported raster data.
-#' @param extracted_risk Data frame or NULL. Risk values extracted for epidemiological units.
-#' @param epi_units sf object. Epidemiological units for validation.
-#' @param metadata List. Existing risk metadata for name conflict checking.
-#' @param parameters List containing validation parameters:
-#'   \itemize{
-#'     \item name: Risk name string
-#'     \item aggregate_fun: Aggregation function name
-#'     \item scale: Numeric vector of length 2 for scale range
-#'   }
-#'
-#' @return List with validation status containing 'value' (logical) and 'msg' (character).
-validate_misc_risk_raster <- function(
+config_is_valid_misc_risk_raster <- function(
     raster,
     extracted_risk,
     epi_units,

@@ -124,7 +124,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
 
       # configIsValid ----
       configIsValid <- reactive({
-        validate_misc_risk_precalculated(
+        config_is_valid_misc_risk_precalculated(
           dataset = importData(),
           risk_table = epi_units(),
           metadata = riskMetaData(),
@@ -185,7 +185,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
 }
 
 
-validate_misc_risk_precalculated <- function(
+config_is_valid_misc_risk_precalculated <- function(
     dataset,
     risk_table,
     metadata,
