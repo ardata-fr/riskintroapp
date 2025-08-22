@@ -1,6 +1,6 @@
 Package: riskintroapp
 Title: Analyse Risk of Introduction of Animal Diseases
-Version: 0.0.1.010
+Version: 0.0.1.011
 Authors@R: c(
     person("Eli", "Daniels", , "eli.daniels@ardata.fr", role = c("aut", "cre")),
     person("David", "Gohel", , "david.gohel@ardata.fr", role = "aut"),
@@ -36,7 +36,8 @@ Imports:
     glue,
     rlang,
     dplyr,
-    workspace
+    workspace,
+    terra
 Remotes: 
     ardata-fr/riskintroanalysis
     ardata-fr/riskintrodata

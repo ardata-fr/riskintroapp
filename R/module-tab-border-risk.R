@@ -44,7 +44,7 @@ borderRiskUI <- function(id) {
 #' @importFrom sf st_drop_geometry
 #' @importFrom leaflet renderLeaflet leafletProxy addPolygons
 #' @importFrom reactable reactable renderReactable
-#' @importFrom shiny moduleServer observeEvent reactive req showNotification
+#' @importFrom shiny moduleServer observeEvent reactive req
 #' @importFrom riskintroanalysis calc_border_lengths calc_border_risk
 borderRiskServer <- function(id, epi_units, emission_risk_table) {
   moduleServer(
