@@ -71,26 +71,27 @@ server <- function(input, output, session) {
     id = "misc",
     epi_units = reactive(datasets$epi_units)
   )
-  
+
   borderRiskServer(
     id = "border",
     epi_units = reactive(datasets$epi_units),
     emission_risk_table = reactive(datasets$emission_risk)
   )
-  
+
   animalMobilityServer(
-    id = "animal_mobility", 
+    id = "animal_mobility",
     epi_units = reactive(datasets$epi_units)
   )
-  
+
   roadAccessRiskServer(
     id = "road_access",
     epi_units = reactive(datasets$epi_units)
   )
-  
+
   entryPointsServer(
     id = "entry_points",
-    epi_units = reactive(datasets$epi_units)
+    epi_units = reactive(datasets$epi_units),
+    emission_risk_table = reactive(datasets$emission_risk)
   )
 
   # Settings ----
