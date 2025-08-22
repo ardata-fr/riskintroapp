@@ -74,7 +74,8 @@ server <- function(input, output, session) {
   
   borderRiskServer(
     id = "border",
-    epi_units = reactive(datasets$epi_units)
+    epi_units = reactive(datasets$epi_units),
+    emission_risk_table = reactive(datasets$emission_risk)
   )
   
   animalMobilityServer(
