@@ -4,12 +4,11 @@ Version: 0.0.1.013
 Authors@R: c(
     person("Eli", "Daniels", , "eli.daniels@ardata.fr", role = c("aut", "cre")),
     person("David", "Gohel", , "david.gohel@ardata.fr", role = "aut"),
-    person("CIRAD", role = "cph")
+    person("CIRAD", role = c("cph", "fnd"))
   )
-Description: The package provides an 'RShiny' application for users to
-    estimate the risk of an animal disease being introduced into a given
-    geographical region using World Animal Health Information System
-    (WAHIS) and user imported data.
+Description: 'Shiny' application for users to estimate the risk of an 
+    animal disease being introduced into a geographical area using 
+    World Animal Health Information System (WAHIS) and user data.
 License: MIT + file LICENSE
 Depends:
     R (>= 4.1.0)
@@ -40,9 +39,9 @@ Imports:
     terra,
     plotly
 Remotes: 
-    ardata-fr/riskintroanalysis
-    ardata-fr/riskintrodata
-    ardata-fr/workspace
+    ardata-fr/workspace,
+    git::https://gitlab.cirad.fr/astre/riskintro-app/riskintroanalysis.git,
+    git::https://gitlab.cirad.fr/astre/riskintro-app/riskintrodata.git
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
