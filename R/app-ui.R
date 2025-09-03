@@ -23,25 +23,26 @@ ui <- function() {
     nav_item(
       div(icon("warning"))
     ),
+    # Epidemiological units ----
     nav_panel(
       title = "Epidemiological units",
       value = "study_settings",
       icon = icon("map"),
-      page_fillable(
-        layout_sidebar(
-          sidebar = sidebar(
-            title = "Epidemiological units",
-            importEpiUnitsUI("import_epi_units"),
-            summariseRiskScoresUI("summarise_risk_table")
-          ),
-          leafletOutput(
-            outputId = "map_ri_summary",
-            width = "100%",
-            height = "85vh"
-            )
+      layout_sidebar(
+        sidebar = sidebar(
+          title = "Epidemiological units",
+          importEpiUnitsUI("import_epi_units"),
+          summariseRiskScoresUI("summarise_risk_table"),
+          exportUI()
+        ),
+        leafletOutput(
+          outputId = "map_ri_summary",
+          width = "100%",
+          height = "85vh"
         )
       )
     ),
+    # Emission risk ----
     nav_panel(
       title = "Emission risk",
       value = "emission_risk",
@@ -55,9 +56,10 @@ ui <- function() {
           outputId = "map_emission_risk",
           width = "100%",
           height = "85vh"
-          )
+        )
       )
     ),
+    # Intro risk analysis tabs ----
     nav_menu(
       title = "Introduction risks",
       value = "risk_panel_selector",
@@ -110,7 +112,10 @@ ui <- function() {
       entryPointsUI("entry_points")
     ),
     nav_spacer(),
+    # Workspace -----
     workspaceUI("workspace"),
+
+    # About ----
     nav_panel(
       title = "About",
       value = "about",

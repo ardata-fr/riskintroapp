@@ -25,6 +25,11 @@ borderRiskUI <- function(id) {
         label = "Edit risk scaling",
         width = '100%',
         icon = icon("pen-to-square")
+      ),
+      actionButton(
+        inputId = ns("open_export"),
+        label = "Export",
+        icon = icon("file-export")
       )
     ),
     navset_card_tab(
@@ -140,6 +145,14 @@ borderRiskServer <- function(id, epi_units, emission_risk_table) {
         reactable::reactable(table_data)
       })
 
+      # # Export ----
+      # observeEvent(input$open_export, {showModal(exportUI(ns("export_module")))})
+      # exportServer(
+      #   id = "export_module",
+      #   files = reactive(list(
+      #     "Border risk" = rescaledRisk()
+      #   ))
+      # )
       # Return risk data ----
       return(borderRiskData)
     }

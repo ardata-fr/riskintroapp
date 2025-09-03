@@ -140,6 +140,15 @@ server <- function(input, output, session) {
     )
   })
 
+  # Export -----
+  observeEvent(input$open_export, {showModal(exportUI("export_module"))})
+  exportServer(
+    id = "export_module",
+    files = reactive(list(
+      "Epidemiological units" = datasets$epi_units,
+      "Table of introduction risks" = datasets$risk_table
+    ))
+  )
 
   # Workspace ----
   new_workspace <- workspaceServer(
