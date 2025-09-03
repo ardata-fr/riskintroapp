@@ -60,6 +60,23 @@ importMiscRiskRasterUI <- function(id) {
           width = "75px"
         )
       ),
+      inlineComponents(
+        shinyWidgets::awesomeCheckbox(
+          inputId = ns("na_replace"),
+          value = FALSE,
+          label = "Replace values with NA"
+        ),
+        conditionalPanel(
+          condition = "input.na_replace",
+          ns = ns,
+          numericInput(
+            inputId = ns("na_replace_value"),
+            label = "Value to replace",
+            value = NULL,
+            updateOn = "blur"
+          )
+        )
+      ),
       layout_column_wrap(
         width = 1/2,
         height = 400,
@@ -109,7 +126,7 @@ importMiscRiskRasterUI <- function(id) {
 #' @return Reactive expression returning risk metadata list when import is completed.
 #'
 #' @importFrom shinyWidgets updateNumericRangeInput
-#' @importFrom terra rast values
+#' @importFrom terra rast subst
 #' @importFrom riskintroanalysis calc_road_access_risk
 #' @importFrom shiny moduleServer req reactiveVal renderUI observeEvent updateSelectInput observe removeModal
 #' @importFrom leaflet leaflet addTiles addRasterImage renderLeaflet colorNumeric
@@ -138,10 +155,21 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
         if(is_error(raster_result$error)) {
           read_error(raster_result$error)
           return(NULL)
-        } else {
-          read_error(NULL)
-          raster_result$result
         }
+        read_error(NULL)
+        raster <- raster_result$result
+
+        if (input$na_replace) {
+          req(input$na_replace_value)
+          safely_subst <- purrr::safely(terra::subst)
+          subst_result <- safely_subst(raster, input$na_replace_value, NA)
+          if(is_error(subst_result$error)) {
+            read_error(subst_result$error)
+            return(NULL)
+          }
+          raster <- subst_result$result
+        }
+        raster
       })
 
       observe({
@@ -150,16 +178,16 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
         if(length(choices) > 0) {
           updateTextInput(
             inputId = "name",
-            value = names(importRaster())[[1]],
+            value = choices[[1]],
           )
           updateSelectInput(
             inputId = "layer",
-            choices = names(importRaster())
+            choices = choices
           )
         }
       })
 
-      # Update scale based on raster values ----
+      # Update scale input ----
       observeEvent(input$minmax_scale, {
         req(input$layer)
         raster_data <- req(importRaster())
@@ -173,11 +201,12 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
 
       # Extract risk values for epidemiological units ----
       extractedRisk <- reactive({
-        req(importRaster(), epi_units(), input$aggregate_fun)
+        raster <- req(importRaster())
+        req(epi_units(), input$aggregate_fun)
         safely_augment_epi_units_with_raster <- safely(augment_epi_units_with_raster)
         result <- safely_augment_epi_units_with_raster(
           epi_units = epi_units(),
-          raster = importRaster(),
+          raster = raster,
           aggregate_fun = input$aggregate_fun,
           risk_name = input$name
         )
@@ -217,7 +246,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
         }
       })
 
-      # Raw raster map ----
+      # Raw map ----
       output$raw_map <- renderLeaflet({
         req(configIsValid())
         raster_layer <- importRaster()[[input$layer]]
@@ -231,7 +260,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
             raster_layer,
             colors = pal,
             opacity = 0.8,
-            group = "raster"
+            group = "raster",
           ) |>
           leaflet::addLegend(
             position = "bottomright",
@@ -241,7 +270,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
           )
       })
 
-      # Aggregated risk map ----
+      # Aggregated map ----
       output$aggregated_map <- renderLeaflet({
         req(configIsValid())
         extracted_risk <- extractedRisk()
@@ -263,7 +292,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
               extracted_risk,
               title_field = "eu_name",
               exclude_fields = "user_id"
-              ),
+            ),
             group = "risk"
           ) |>
           leaflet::addLegend(
@@ -312,6 +341,21 @@ config_is_valid.import_misc_raster <- function(x, ...) {
     status <- build_config_status(
       value = FALSE,
       msg = "A raster file must be imported."
+    )
+    return(status)
+  }
+  if(terra::nlyr(raster) == 0) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Raster file contains no data layers."
+    )
+    return(status)
+  }
+
+  if(!terra::hasValues(raster)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Raster has no values."
     )
     return(status)
   }
@@ -382,6 +426,40 @@ config_is_valid.import_misc_raster <- function(x, ...) {
     status <- build_config_status(
       value = FALSE,
       msg = paste("Aggregation function must be one of:", paste(valid_funs, collapse = ", "))
+    )
+    return(status)
+  }
+
+  # extracted risk data ----
+  if(!isTruthy(extracted_risk)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Risk extraction failed. Check raster data and epidemiological units."
+    )
+    return(status)
+  }
+
+  if (nrow(extracted_risk) == 0) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Aggregation resulted in no values. The raster does not overlap epidemiological units."
+    )
+    return(status)
+  }
+
+  risk_values <- extracted_risk[[parameters$name]]
+  if (all(is.na(risk_values))) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Aggregation resulted only missing values. The raster does not overlap epidemiological units."
+    )
+    return(status)
+  }
+
+  if(any(is.infinite(risk_values), na.rm = TRUE)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Extracted risk values contain infinite values."
     )
     return(status)
   }
