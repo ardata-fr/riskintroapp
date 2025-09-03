@@ -136,15 +136,19 @@ miscRiskServer <- function(id, epi_units) {
           palette = "viridis",
           domain = c(0, 100),
           reverse = TRUE,
-          na.color = "lightgrey"
+          na.color = "lightgrey",
         )
         leaflet::clearShapes(ll)
         leaflet::addPolygons(
           ll,
           data = mrt,
           label = labels,
-          fillColor = pal(mrt[[input$select_risk]]),
-          fillOpacity = 0.9
+          weight = 1,
+          opacity = 1,
+          color = "white",
+          dashArray = "3",
+          fillOpacity = 0.8,
+          fillColor = pal(mrt[[input$select_risk]])
         )
       })
 
