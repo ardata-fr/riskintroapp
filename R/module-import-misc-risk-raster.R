@@ -169,6 +169,16 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
           }
           raster <- subst_result$result
         }
+
+        if (input$scale[[1]] != input$scale[[2]]){
+          raster <- terra::clamp(
+            x = raster,
+            lower = input$scale[[1]],
+            upper = input$scale[[2]],
+            values = TRUE
+          )
+        }
+
         raster
       })
 
