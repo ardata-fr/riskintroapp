@@ -8,6 +8,11 @@ miscRiskUI <- function(id) {
     sidebar = sidebar(
       title = "Miscellaneous risks",
       uiOutput(ns("config_is_valid")),
+      selectInput(
+        inputId = ns("select_risk"),
+        label = "Select current risk",
+        choices = character(0L)
+      ),
       dropMenu(
         arrow = FALSE,
         tag = actionButton(
@@ -34,11 +39,6 @@ miscRiskUI <- function(id) {
           )
         )
       ),
-      selectInput(
-        inputId = ns("select_risk"),
-        label = "Select current risk",
-        choices = character(0L)
-      ),
       actionButton(
         inputId = ns("open_risk_scaling"),
         label = "Edit risk scaling",
@@ -47,8 +47,7 @@ miscRiskUI <- function(id) {
       actionButton(
         inputId = ns("delete_risk"),
         label = "Delete risk",
-        icon = icon("trash"),
-        class = "btn-warning"
+        icon = icon("trash")
       ),
     ),
     navset_card_tab(
@@ -85,7 +84,7 @@ miscRiskServer <- function(id, epi_units) {
         miscRiskMetaData()[[input$select_risk]]$dataset
       })
 
-      # delete risk ----
+      # delete risk button ----
       observeEvent(input$delete_risk, {
         req(input$select_risk)
         metadata <- miscRiskMetaData()
@@ -159,7 +158,7 @@ miscRiskServer <- function(id, epi_units) {
         reactable::reactable(mrt)
       })
 
-      # config_is_valid ----
+      # configIsValid ----
       configIsValid <- reactive({
         if (length(miscRiskMetaData()) > 0) {
           status <- config_is_valid_misc_risks(miscRiskMetaData())
@@ -243,8 +242,17 @@ miscRiskServer <- function(id, epi_units) {
           )
         }
       })
-    }
-  )
+
+      returnData <- reactiveVal(NULL)
+      observe({
+        mrt <- req(miscRiskTable())
+        # Remove columns that will not be needed downstream
+        mrt <- sf::st_drop_geometry(mrt)
+        mrt$eu_name <- NULL
+        returnData(mrt)
+      })
+      return(returnData)
+    })
 }
 
 

@@ -9,6 +9,8 @@
 #'
 #' @importFrom shinyWidgets numericRangeInput
 #' @importFrom shiny NS modalDialog fluidRow column tags fileInput textInput selectInput actionButton modalButton icon uiOutput
+#' @importFrom leaflet leafletOutput
+#' @importFrom bslib card card_body card_header layout_column_wrap
 #'
 #' @export
 importMiscRiskRasterUI <- function(id) {
@@ -27,21 +29,23 @@ importMiscRiskRasterUI <- function(id) {
         accept = c(".tif", ".tiff", ".grd", ".asc"),
         width = "100%"
       ),
-      textInput(
-        inputId = ns("name"),
-        label = "Risk name"
-      ),
-      selectInput(
-        inputId = ns("layer"),
-        label = "Select raster layer",
-        choices = character()
+      inlineComponents(
+        textInput(
+          inputId = ns("name"),
+          label = "Risk name"
+        ),
+        selectInput(
+          inputId = ns("layer"),
+          label = "Select raster layer",
+          choices = character()
+        )
       ),
       uiOutput(ns("read_error_ui")),
       inlineComponents(
         awesomeRadio(
           inputId = ns("aggregate_fun"),
           label = "Aggregation method",
-          choices = c("mean", "max", "min", "median", "sum"),
+          choices = c("mean", "max", "min", "sum"),
           selected = "mean"
         ),
         shinyWidgets::numericRangeInput(
@@ -55,10 +59,32 @@ importMiscRiskRasterUI <- function(id) {
           icon = icon("arrows-left-right-to-line"),
           width = "75px"
         )
+      ),
+      layout_column_wrap(
+        width = 1/2,
+        height = 400,
+        fill = FALSE,
+
+        bslib::card(
+          full_screen = FALSE,
+          bslib::card_header("Raw Raster Data"),
+          bslib::card_body(
+            class = "p-0",
+            leafletOutput(ns("raw_map"), height = "350px")
+          )
+        ),
+        bslib::card(
+          full_screen = FALSE,
+          bslib::card_header("Aggregated Risk Values"),
+          bslib::card_body(
+            class = "p-0",
+            leafletOutput(ns("aggregated_map"), height = "350px")
+          )
+        )
       )
     )),
     footer = list(
-      uiOutput(ns("config_ui")),
+      uiOutput(ns("config_is_valid")),
       actionButton(
         inputId = ns("apply"),
         class = "btn-primary",
@@ -86,6 +112,7 @@ importMiscRiskRasterUI <- function(id) {
 #' @importFrom terra rast values
 #' @importFrom riskintroanalysis calc_road_access_risk
 #' @importFrom shiny moduleServer req reactiveVal renderUI observeEvent updateSelectInput observe removeModal
+#' @importFrom leaflet leaflet addTiles addRasterImage renderLeaflet colorNumeric
 #'
 #' @export
 importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
@@ -179,18 +206,72 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
           )
         )
       })
-
-      output$config_ui <- renderUI({
-        req(!is.null(configIsValid()))
+      output$config_is_valid <- renderUI({
         report_config_status(configIsValid())
       })
-
       observe({
         if(configIsValid() && is.null(read_error())) {
           shinyjs::enable("apply")
         } else {
           shinyjs::disable("apply")
         }
+      })
+
+      # Raw raster map ----
+      output$raw_map <- renderLeaflet({
+        req(configIsValid())
+        raster_layer <- importRaster()[[input$layer]]
+        pal <- colorNumeric(
+          "viridis",
+          input$scale,
+          na.color = "transparent"
+        )
+        basemap() |>
+          addRasterImage(
+            raster_layer,
+            colors = pal,
+            opacity = 0.8,
+            group = "raster"
+          ) |>
+          leaflet::addLegend(
+            position = "bottomright",
+            pal = pal,
+            values = input$scale,
+            title = "Raw Values"
+          )
+      })
+
+      # Aggregated risk map ----
+      output$aggregated_map <- renderLeaflet({
+        req(configIsValid())
+        extracted_risk <- extractedRisk()
+        risk_values <- extracted_risk[[input$name]]
+        pal <- leaflet::colorNumeric(
+          palette = "viridis",
+          domain = input$scale,
+          reverse = TRUE,
+          na.color = "lightgrey"
+        )
+        basemap() |>
+          addPolygons(
+            data = extracted_risk,
+            fillColor = ~pal(risk_values),
+            fillOpacity = 0.7,
+            color = "white",
+            weight = 1,
+            label = generate_leaflet_labels(
+              extracted_risk,
+              title_field = "eu_name",
+              exclude_fields = "user_id"
+              ),
+            group = "risk"
+          ) |>
+          leaflet::addLegend(
+            position = "bottomright",
+            pal = pal,
+            values = risk_values,
+            title = "Aggregated Risk"
+          )
       })
 
       # Return values ----
