@@ -33,12 +33,12 @@ server <- function(input, output, session) {
     road_access = NULL,
     border_risk = NULL
   )
-
+  # Import epi units ----
   new_epi_units <- importEpiUnitsServer("import_epi_units")
   observeEvent(new_epi_units(),{
     datasets$epi_units <- new_epi_units()
   })
-  # New epi_units ----
+
   observeEvent(datasets$epi_units, {
     epi_units <- req(datasets$epi_units)
     bb <- sf::st_bbox(epi_units)
@@ -67,7 +67,8 @@ server <- function(input, output, session) {
   })
 
   # Risk analysis modules ----
-  miscRiskServer(
+  ## misc_risks ----
+  misc_risk_table <- miscRiskServer(
     id = "misc",
     epi_units = reactive(datasets$epi_units)
   )
@@ -117,10 +118,10 @@ server <- function(input, output, session) {
 
   # Update maps ----
   ## Risk summary map -----
-
-  risk_table_summary <- summariseRiskScoresServer(
+  risk_table_summary <- summariseScoresServer(
     id = "summarise_risk_table",
-    riskTable = reactive(datasets$risk_table)
+    risk_table = reactive(datasets$risk_table),
+    misc_risk_table = misc_risk_table
   )
   observe({
     req(baseLeafletRT())

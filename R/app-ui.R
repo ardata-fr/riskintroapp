@@ -32,7 +32,7 @@ ui <- function() {
         sidebar = sidebar(
           title = "Epidemiological units",
           importEpiUnitsUI("import_epi_units"),
-          summariseRiskScoresUI("summarise_risk_table"),
+          summariseScoresUI("summarise_risk_table"),
           exportUI()
         ),
         leafletOutput(
