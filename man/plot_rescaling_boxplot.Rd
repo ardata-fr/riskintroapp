@@ -33,3 +33,4 @@ The plot displays:
 \item Clear visual comparison of distribution changes
 }
 }
+\keyword{internal}

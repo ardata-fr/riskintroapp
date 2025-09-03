@@ -33,3 +33,4 @@ The plot displays:
 \item Fixed 1:1 aspect ratio for accurate visual comparison
 }
 }
+\keyword{internal}
