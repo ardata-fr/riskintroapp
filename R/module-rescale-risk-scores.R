@@ -227,7 +227,9 @@ rescaleRiskServer <- function(
 #'   \item Fixed 1:1 aspect ratio for accurate visual comparison
 #' }
 #'
-#' @importFrom ggplot2 ggplot aes geom_smooth geom_point coord_fixed scale_color_viridis_c xlab ylab theme_minimal
+#' @importFrom ggplot2
+#'  ggplot aes geom_smooth geom_point coord_fixed scale_color_viridis_c xlab ylab theme_minimal
+#' @keywords internal
 plot_rescaling_line <- function(
     dataset,
     method,
@@ -248,8 +250,8 @@ plot_rescaling_line <- function(
     keep_cols = TRUE
   )
 
-  ggplot() +
-    geom_smooth(
+  gg <- ggplot()
+  gg <- gg + geom_smooth(
       data = line_df,
       aes(
         x = .data$before,
@@ -258,21 +260,26 @@ plot_rescaling_line <- function(
       method = 'loess',
       formula = 'y ~ x',
       se = FALSE
-    ) +
-    geom_point(
+    )
+  gg <- gg + geom_point(
       data = dataset,
       aes(
         x = .data[[initial_column]],
         y = .data[[scaled_col]],
         colour = .data[[scaled_col]]
       )
-    ) +
-    coord_fixed(ratio = 1) +
-    ggplot2::scale_color_viridis_c(limits = c(0,100), direction = -1) +
-    xlab("Before rescaling") +
-    ylab("After rescaling") +
-    theme_minimal()
-
+    )
+  gg <- gg + ggplot2::scale_color_viridis_c(
+    limits = c(0,100),
+    direction = -1
+  )
+  gg <- gg + labs(
+      x = "Before rescaling",
+      y = "After rescaling"
+    )
+  gg <- gg + theme_minimal()
+  gg <- gg + theme(aspect.ratio=1)
+  gg
 }
 
 #' Plot Risk Score Boxplot Comparison
@@ -298,6 +305,7 @@ plot_rescaling_line <- function(
 #' }
 #'
 #' @importFrom ggplot2 ggplot aes geom_boxplot geom_jitter scale_fill_manual labs theme_minimal theme element_text
+#' @keywords internal
 plot_rescaling_boxplot <- function(
     dataset,
     method,
@@ -314,7 +322,7 @@ plot_rescaling_boxplot <- function(
   )
   comparison_data$type <- factor(comparison_data$type, levels = c("Before", "After"))
 
-  ggplot2::ggplot(comparison_data, ggplot2::aes(x = .data$type, y = .data$values, fill = .data$type)) +
+  gg <- ggplot2::ggplot(comparison_data, ggplot2::aes(x = .data$type, y = .data$values, fill = .data$type)) +
     ggplot2::geom_boxplot(alpha = 0.7, outlier.alpha = 0.6) +
     ggplot2::geom_jitter(width = 0.2, alpha = 0.4, size = 1) +
     ggplot2::scale_fill_manual(
@@ -331,4 +339,6 @@ plot_rescaling_boxplot <- function(
       plot.title = ggplot2::element_text(size = 12, hjust = 0.5),
       axis.text.x = ggplot2::element_text(size = 11, face = "bold")
     )
+  gg <- gg + theme(aspect.ratio=1)
+  gg
 }
