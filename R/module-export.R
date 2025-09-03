@@ -258,7 +258,6 @@ export_helper <- function(enabled_selections, file_list, file) {
     format <- enabled_selections[[1]]$format
     write_file_helper(obj, file, format)
   } else {
-    browser()
     temp_dir <- tempfile(pattern = "ri-export-")
     dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
     for (filename in names(enabled_selections)) {
