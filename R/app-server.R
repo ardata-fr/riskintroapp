@@ -14,18 +14,11 @@ server <- function(input, output, session) {
   })
   outputOptions(output, "map_ri_summary", suspendWhenHidden = FALSE)
 
-  baseLeafletER <- reactive({basemap()})
-  output$map_emission_risk <- renderLeaflet({
-    req(baseLeafletER())
-    baseLeafletER()
-  })
-  outputOptions(output, "map_emission_risk", suspendWhenHidden = FALSE)
-
   # Datasets -----
   datasets <- reactiveValues(
     epi_units = NULL,
     emission_risk_factors = NULL,
-    emission_risk = NULL,
+    emission_scores = NULL,
     entry_points = NULL,
     animal_mobility = NULL,
     risk_table = NULL,
@@ -52,18 +45,12 @@ server <- function(input, output, session) {
       scale = c(0, 100)
     )
   })
-  new_erf <- importEmissionRiskFactorsServer("import_erf")
-  observeEvent(new_erf(),{
-    datasets$emission_risk_factors <- new_erf()
-  })
 
+  # emission_scores ----
+  new_emission_scores <- emissionScoresServer(id = "emission_scores")
   observe({
-    erf <- req(datasets$emission_risk_factors)
-    datasets$emission_risk <- calc_emission_risk(
-      emission_risk_factors = erf,
-      weights = riskintrodata::emission_risk_weights,
-      keep_scores = TRUE
-    )
+    req(new_emission_scores())
+    datasets$emission_scores <- new_emission_scores()
   })
 
   # Risk analysis modules ----
@@ -76,7 +63,7 @@ server <- function(input, output, session) {
   borderRiskServer(
     id = "border",
     epi_units = reactive(datasets$epi_units),
-    emission_risk_table = reactive(datasets$emission_risk)
+    emission_risk_table = reactive(datasets$emission_scores)
   )
 
   animalMobilityServer(
@@ -92,7 +79,7 @@ server <- function(input, output, session) {
   entryPointsServer(
     id = "entry_points",
     epi_units = reactive(datasets$epi_units),
-    emission_risk_table = reactive(datasets$emission_risk)
+    emission_risk_table = reactive(datasets$emission_scores)
   )
 
   # Settings ----
@@ -129,15 +116,6 @@ server <- function(input, output, session) {
     plot_risk_interactive(
       dataset = rt,
       ll = leafletProxy("map_ri_summary")
-    )
-  })
-  ## Emission risk map ----
-  observe({
-    req(baseLeafletER())
-    er <- req(datasets$emission_risk)
-    plot_emission_risk_interactive(
-      emission_risk = er,
-      ll = leafletProxy("map_emission_risk")
     )
   })
 

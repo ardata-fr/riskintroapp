@@ -44,20 +44,10 @@ ui <- function() {
     ),
     # Emission risk ----
     nav_panel(
-      title = "Emission risk",
+      title = "Emission scores",
       value = "emission_risk",
       icon = icon("arrows-up-down-left-right"),
-      layout_sidebar(
-        sidebar = sidebar(
-          title = "Emission risks",
-          importEmissionRiskFactorsUI("import_erf")
-        ),
-        leafletOutput(
-          outputId = "map_emission_risk",
-          width = "100%",
-          height = "85vh"
-        )
-      )
+      emissionScoresUI("emission_scores")
     ),
     # Intro risk analysis tabs ----
     nav_menu(
