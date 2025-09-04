@@ -126,10 +126,12 @@ importMiscRiskRasterUI <- function(id) {
 #' @return Reactive expression returning risk metadata list when import is completed.
 #'
 #' @importFrom shinyWidgets updateNumericRangeInput
-#' @importFrom terra rast subst
+#' @importFrom terra rast subst project
 #' @importFrom riskintroanalysis calc_road_access_risk
-#' @importFrom shiny moduleServer req reactiveVal renderUI observeEvent updateSelectInput observe removeModal
-#' @importFrom leaflet leaflet addTiles addRasterImage renderLeaflet colorNumeric
+#' @importFrom shiny
+#'  moduleServer req reactiveVal renderUI observeEvent updateSelectInput observe removeModal
+#' @importFrom leaflet
+#'  leaflet addTiles addRasterImage renderLeaflet colorNumeric labelFormat
 #'
 #' @export
 importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
@@ -272,8 +274,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
             opacity = 0.8,
             group = "raster",
           ) |>
-          leaflet::addLegend(
-            position = "bottomright",
+          addLegend_decreasing(
             pal = pal,
             values = input$scale,
             title = "Raw Values"
@@ -286,15 +287,14 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
         extracted_risk <- extractedRisk()
         risk_values <- extracted_risk[[input$name]]
         pal <- leaflet::colorNumeric(
-          palette = "viridis",
+          palette = "inferno",
           domain = input$scale,
-          reverse = TRUE,
           na.color = "lightgrey"
         )
         basemap() |>
           addPolygons(
             data = extracted_risk,
-            fillColor = ~pal(risk_values),
+            fillColor = pal(risk_values),
             fillOpacity = 0.7,
             color = "white",
             weight = 1,
@@ -305,11 +305,10 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
             ),
             group = "risk"
           ) |>
-          leaflet::addLegend(
-            position = "bottomright",
+          addLegend_decreasing(
             pal = pal,
-            values = risk_values,
-            title = "Aggregated Risk"
+            values = input$scale,
+            title = "Aggregated Score"
           )
       })
 
