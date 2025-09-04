@@ -2,6 +2,7 @@
 #' @importFrom leaflet
 #'  evalFormula labelFormat invokeMethod getMapData
 #' @importFrom grDevices col2rgb
+#' @importFrom stats quantile na.omit
 addLegend_decreasing <- function (map, position = c("topright", "bottomright", "bottomleft","topleft"),
                                   pal, values, na.label = "NA", bins = 7, colors,
                                   opacity = 0.5, labels = NULL, labFormat = labelFormat(),
