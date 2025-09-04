@@ -24,16 +24,10 @@ importMiscRiskPrecalculatedUI <- function(id) {
           choices = character(),
           multiple = FALSE
         ),
-        shinyWidgets::numericRangeInput(
-          inputId = ns("scale"),
-          label = 'Risk score scale',
-          value = c(0, 0)
-        ),
-        actionButton(
-          inputId = ns("minmax_scale"),
-          label = NULL,
-          icon = icon("arrows-left-right-to-line"),
-          width = "75px"
+        textInput(
+          inputId = ns("risk_name"),
+          label = "Risk name",
+          value = character()
         )
       ),
       inlineComponents(
@@ -47,6 +41,27 @@ importMiscRiskPrecalculatedUI <- function(id) {
           outputId = ns("download"),
           label = "Download template",
           icon = icon("download")
+        )
+      ),
+      inlineComponents(
+        shinyWidgets::numericRangeInput(
+          inputId = ns("scale"),
+          label = 'Risk score scale',
+          value = c(0, 0)
+        ),
+        actionButton(
+          inputId = ns("minmax_scale"),
+          label = NULL,
+          icon = icon("arrows-left-right-to-line"),
+          width = "75px"
+        )
+      ),
+      bslib::card(
+        full_screen = FALSE,
+        bslib::card_header("Precalculated risk score"),
+        bslib::card_body(
+          class = "p-0",
+          leafletOutput(ns("map"), height = "350px")
         )
       )
     )
@@ -85,7 +100,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
           error = read_error()
         )
       })
-      importData <- reactive({
+      importRaw <- reactive({
         fp <- req(input$file$datapath)
         safely_read_delim <- safely(readr::read_delim)
         dataset <- safely_read_delim(fp, show_col_types = FALSE)
@@ -93,32 +108,95 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
           read_error(dataset$error)
         } else {
           read_error(NULL)
-          dataset$result
+          out <- dataset$result
         }
       })
 
       # Update col selectors ----
       observe({
-        req(importData())
+        req(importRaw())
         updateSelectInput(
           inputId = "join_by",
-          choices = colnames(importData()),
+          choices = colnames(importRaw()),
           selected = character()
         )
         updateSelectInput(
           inputId = "risk_col",
-          choices = colnames(importData()),
+          choices = colnames(importRaw()),
           selected = character()
+        )
+      })
+      observeEvent(input$risk_col, ignoreNULL = TRUE, ignoreInit = TRUE, {
+        updateTextInput(
+          inputId = "risk_name",
+          value = input$risk_col,
         )
       })
 
       observeEvent(input$minmax_scale, {
-        req(importData(), input$risk_col)
-        vec <- req(importData()[[input$risk_col]])
+        req(importRaw(), input$risk_col)
+        vec <- req(importRaw()[[input$risk_col]])
         req(is.numeric(vec))
         updateNumericRangeInput(
           inputId = "scale",
           value = c(min(vec), max(vec))
+          )
+      })
+
+      # importData ----
+      importData <- reactive({
+        dat <- req(importRaw())
+        req(input$risk_col)
+        req(input$scale[[1]] < input$scale[[2]]) # validate scale input
+        # clamp risk values outside of scale
+        dat[[input$risk_col]] <- terra::clamp(
+          dat[[input$risk_col]] ,
+          lower = input$scale[[1]],
+          upper = input$scale[[2]],
+          values = TRUE
+        )
+        dat
+      })
+
+
+
+      # map ----
+      output$map <- renderLeaflet({
+        req(configIsValid())
+        risk_data <- importData()
+
+        eu <- epi_units()
+
+        risk_data_sf <- dplyr::left_join(
+          x = eu,
+          y = risk_data,
+          by = c("eu_id" = input$join_by)
+        )
+
+        risk_values <- risk_data_sf[[input$risk_col]]
+        pal <- leaflet::colorNumeric(
+          palette = "inferno",
+          domain = input$scale,
+          na.color = "lightgrey"
+        )
+        basemap() |>
+          addPolygons(
+            data = risk_data_sf,
+            fillColor = pal(risk_values),
+            fillOpacity = 0.7,
+            color = "white",
+            weight = 1,
+            label = generate_leaflet_labels(
+              risk_data_sf,
+              title_field = "eu_name",
+              exclude_fields = c("user_id")
+            ),
+            group = "risk"
+          ) |>
+          addLegend_decreasing(
+            pal = pal,
+            values = input$scale,
+            title = "Aggregated Score"
           )
       })
 
@@ -172,7 +250,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
         attr(dataset, "risk_col") <- input$risk_col
 
         new_precalc_risk <- list(
-            name = input$risk_col,
+            name = input$risk_name,
             type = "precalculated",
             join_by = input$join_by,
             dataset = dataset,
