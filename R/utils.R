@@ -1,3 +1,18 @@
+#' Remove NULL Elements from List
+#'
+#' Filters out NULL elements from a list or vector, returning NULL if no non-NULL
+#' elements remain.
+#'
+#' @param x A list or vector that may contain NULL elements.
+#'
+#' @return The input with NULL elements removed, or NULL if no elements remain
+#'   after filtering.
+#'
+#' @details
+#' This utility function is commonly used in reactive contexts where lists may
+#' contain NULL values that need to be cleaned up. It's particularly useful for
+#' preparing file lists for export operations.
+#' @keywords internal
 nullify <- function(x) {
   x <- Filter(function(x) !is.null(x), x)
   if (length(x) < 1) x <- NULL

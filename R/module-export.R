@@ -1,3 +1,26 @@
+#' Export Module UI
+#'
+#' Creates the UI component for the export module, which provides a simple action button
+#' that opens the export modal dialog.
+#'
+#' @param id Character string. The module ID for namespacing. Defaults to "export_module".
+#'
+#' @return A Shiny UI element containing an action button with export icon.
+#'
+#' @details
+#' This function generates a simple action button that, when clicked, triggers the export
+#' modal dialog. The button is styled with a "file-export" icon and labeled "Export".
+#'
+#' @seealso \code{\link{exportServer}} for the corresponding server-side logic.
+#'
+#' @examples
+#' \dontrun{
+#' # In your Shiny UI
+#' fluidPage(
+#'   exportUI("my_export")
+#' )
+#' }
+#'
 #' @export
 exportUI <- function(id = "export_module") {
   ns <- NS(id)
@@ -8,16 +31,83 @@ exportUI <- function(id = "export_module") {
   )
 }
 
-#' @importFrom shinyWidgets awesomeCheckboxGroup
+#' Export Module Server
+#'
+#' Server-side logic for the export module that handles file export functionality for
+#' different data types including geospatial data, datasets, rasters, and plots.
+#'
+#' @param id Character string. The module ID for namespacing. Should match the ID used in \code{\link{exportUI}}.
+#' @param files A reactive expression that returns a named list of objects to be exported.
+#'   Supported object types include:
+#'   \itemize{
+#'     \item \code{sf} objects (geospatial data) - exported as GeoPackage (.gpkg) or Shapefile (.shp)
+#'     \item \code{data.frame} objects (datasets) - exported as Parquet (.parquet) or CSV (.csv)
+#'     \item \code{splatRaster} objects (raster data) - exported as TIFF
+#'     \item \code{ggplot} objects (plots) - exported as PNG, JPEG, or SVG
+#'   }
+#'
+#' @return A reactive expression that returns export error information (NULL if no errors).
+#'
+#' @details
+#' This function creates a comprehensive export system with the following features:
+#' \itemize{
+#'   \item Interactive modal dialog for selecting files and formats to export
+#'   \item Dynamic UI that adapts to the types of files available for export
+#'   \item Support for multiple export formats per data type
+#'   \item Single file export or bulk ZIP export when multiple files selected
+#'   \item Error handling with user-friendly error messages
+#'   \item File format validation and automatic extension handling
+#' }
+#'
+#' The export process:
+#' \enumerate{
+#'   \item User clicks export button to open modal dialog
+#'   \item UI dynamically generates checkboxes and format selectors based on available files
+#'   \item User selects which files to export and their desired formats
+#'   \item Download handler processes selections and creates output files
+#'   \item For single file: direct download with proper filename and extension
+#'   \item For multiple files: creates temporary directory, exports all files, then ZIPs them
+#' }
+#'
+#' @seealso
+#' \code{\link{exportUI}} for the corresponding UI component
+#' \code{\link{export_helper}} for the internal export processing logic
+#' \code{\link{write_file_helper}} for format-specific file writing
+#'
+#' @examples
+#' \dontrun{
+#' # In your Shiny server function
+#' files_to_export <- reactive({
+#'   list(
+#'     "my_data.csv" = my_dataframe,
+#'     "spatial_data.gpkg" = my_sf_object,
+#'     "plot.png" = my_ggplot
+#'   )
+#' })
+#'
+#' export_errors <- exportServer("my_export", files_to_export)
+#'
+#' # Monitor export errors
+#' observeEvent(export_errors(), {
+#'   if (!is.null(export_errors())) {
+#'     showNotification("Export failed!", type = "error")
+#'   }
+#' })
+#' }
+#'
+#' @importFrom shinyWidgets awesomeCheckboxGroup awesomeCheckbox
 #' @importFrom shiny
 #'  moduleServer reactiveVal reactive req isTruthy observeEvent renderUI
 #'  selectInput downloadHandler removeModal downloadButton icon tags tagList
+#'  modalDialog showModal modalButton fluidRow column conditionalPanel observe
 #' @importFrom readr write_csv
 #' @importFrom ggplot2 ggsave
 #' @importFrom utils zip
 #' @importFrom tools file_path_sans_ext
 #' @importFrom sf st_drop_geometry
 #' @importFrom shinyWidgets updateAwesomeCheckboxGroup
+#' @importFrom shinyjs enable disable
+#' @importFrom purrr safely
 #' @export
 exportServer <- function(id = "export_module", files) {
   moduleServer(
@@ -250,6 +340,36 @@ exportServer <- function(id = "export_module", files) {
   )
 }
 
+#' Export Helper Function
+#'
+#' Internal helper function that processes export selections and coordinates the actual
+#' file writing operations. Handles both single file exports and multi-file ZIP archives.
+#'
+#' @param enabled_selections A named list where each element represents a file to export.
+#'   Each element contains:
+#'   \itemize{
+#'     \item \code{type}: Character string indicating the object type ("geospatial", "dataset", "raster", "plot")
+#'     \item \code{format}: Character string specifying the export format (e.g., "gpkg", "csv", "png")
+#'   }
+#' @param file_list A named list of R objects to be exported. Names should match those in \code{enabled_selections}.
+#' @param file Character string. The output file path where the export should be written.
+#'
+#' @details
+#' This function orchestrates the export process by:
+#' \itemize{
+#'   \item For single file exports: directly calls \code{\link{write_file_helper}} with the appropriate object and format
+#'   \item For multi-file exports: creates a temporary directory, exports each file individually, then packages everything into a ZIP archive
+#' }
+#'
+#' The function uses temporary directories for multi-file exports to avoid conflicts and
+#' ensure clean packaging. The temporary directory is automatically managed and cleaned up.
+#'
+#' @return Invisibly returns the file path where the export was written.
+#'
+#' @seealso
+#' \code{\link{write_file_helper}} for the actual file writing logic
+#' \code{\link{exportServer}} for the main export server function
+#'
 #' @keywords internal
 export_helper <- function(enabled_selections, file_list, file) {
   if (length(enabled_selections) == 1) {
@@ -270,6 +390,48 @@ export_helper <- function(enabled_selections, file_list, file) {
   }
 }
 
+#' Write File Helper Function
+#'
+#' Internal helper function that handles the actual writing of different data types to files
+#' in various formats. This function serves as a unified interface for format-specific
+#' export operations.
+#'
+#' @param x The R object to be written to file. Can be:
+#'   \itemize{
+#'     \item \code{sf} object for geospatial data
+#'     \item \code{data.frame} for tabular data
+#'     \item \code{splatRaster} for raster data
+#'     \item \code{ggplot} object for plot data
+#'   }
+#' @param file Character string. The file path where the object should be written.
+#' @param format Character string. The export format specifying how the object should be written.
+#'   Supported formats:
+#'   \itemize{
+#'     \item \code{"gpkg"}, \code{"shp"}: For geospatial data (sf objects)
+#'     \item \code{"csv"}, \code{"csv2"}, \code{"txt"}, \code{"tsv"}, \code{"parquet"}: For tabular data
+#'     \item \code{"raster"}: For raster data
+#'     \item \code{"PNG"}, \code{"JPEG"}, \code{"SVG"}: For plot objects (handled by calling functions)
+#'   }
+#'
+#' @details
+#' This function acts as a dispatcher, routing different object types and formats to their
+#' appropriate writing functions:
+#' \itemize{
+#'   \item Geospatial formats (gpkg, shp) use \code{sf::write_sf()}
+#'   \item CSV formats use various \code{readr} functions (\code{write_csv()}, \code{write_csv2()}, etc.)
+#'   \item Parquet format uses \code{arrow::write_parquet()}
+#'   \item Raster format uses \code{terra::writeRaster()}
+#' }
+#'
+#' The function ensures consistent file writing behavior across all supported data types
+#' and formats, with appropriate format-specific options and error handling.
+#'
+#' @return Invisibly returns the file path where the object was written.
+#'
+#' @seealso
+#' \code{\link{export_helper}} for the export coordination logic
+#' \code{\link{exportServer}} for the main export server function
+#'
 #' @importFrom sf write_sf
 #' @importFrom readr write_csv write_csv2 write_delim write_tsv
 #' @importFrom arrow write_parquet
