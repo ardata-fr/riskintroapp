@@ -18,6 +18,7 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
   moduleServer(
     id,
     function(input, output, session) {
+      ns <- session$ns
 
       emission_risk_factors <- reactiveVal(NULL)
       emission_scores <- reactiveVal(NULL)
@@ -34,19 +35,49 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
         emission_risk_factors(new_erf())
       })
 
-      observeEvent(input$map_click, {
-        click <- input$map_click
-        lat <- click$lat
-        lng <- click$lng
-        browser()
+      observeEvent(input$map_shape_click, {
+        showModal(
+          riskFactorEditorUI(
+            id = ns("factor_editor"),
+            country_id = input$map_shape_click$id
+          )
+        )
+      })
+      new_risk_factor_profile <- riskFactorEditorServer(
+        id = "factor_editor",
+        emission_risk_factors = emission_risk_factors
+      )
+
+      observeEvent(new_risk_factor_profile(), {
+        operation <- new_risk_factor_profile()$operation
+        existing_data <- emission_risk_factors()
+
+        if (is.null(operation)) {
+          update_data <- NULL
+        } else if (operation == "upsert") {
+          new_data <- new_risk_factor_profile()$data
+          update_data <- dplyr::rows_upsert(
+            x = existing_data,
+            y = new_data,
+            by = "iso3"
+          )
+        } else if (operation == "delete") {
+          country_id <- new_risk_factor_profile()$id
+          update_data <- dplyr::filter(.data$iso3 != "id")
+        }
+        emission_risk_factors(update_data)
+      })
+
+      factor_weights <- reactive({
+        riskintrodata::emission_risk_weights
       })
 
       observe({
-        erf <- req(emission_risk_factors())
+        req(emission_risk_factors(), factor_weights())
         emission_scores(
           calc_emission_risk(
-            emission_risk_factors = erf,
-            weights = riskintrodata::emission_risk_weights,
+            emission_risk_factors = emission_risk_factors(),
+            weights = factor_weights(),
             keep_scores = TRUE
           )
         )
