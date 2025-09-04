@@ -66,7 +66,7 @@ emissionFactorWeightsUI <- function(id) {
             the total emission scores for each country."),
 
     fluidRow(
-      # Surveillance Measures Column
+      # Surveillance Measures Column ---------
       column(6,
         tags$div(
           style = "border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-bottom: 15px;",
@@ -82,7 +82,7 @@ emissionFactorWeightsUI <- function(id) {
             sliderInput(
               inputId = ns("wt_disease_notification"),
               label = NULL,
-              min = 0, max = 3, step = 0.25,
+              min = 0, max = 2, step = 0.25,
               value = 0.25
             )
           ),
@@ -94,7 +94,7 @@ emissionFactorWeightsUI <- function(id) {
             sliderInput(
               inputId = ns("wt_targeted_surveillance"),
               label = NULL,
-              min = 0, max = 3, step = 0.25,
+              min = 0, max = 2, step = 0.25,
               value = 0.50
             )
           ),
@@ -106,7 +106,7 @@ emissionFactorWeightsUI <- function(id) {
             sliderInput(
               inputId = ns("wt_general_surveillance"),
               label = NULL,
-              min = 0, max = 3, step = 0.25,
+              min = 0, max = 2, step = 0.25,
               value = 0.50
             )
           ),
@@ -118,7 +118,7 @@ emissionFactorWeightsUI <- function(id) {
             sliderInput(
               inputId = ns("wt_screening"),
               label = NULL,
-              min = 0, max = 3, step = 0.25,
+              min = 0, max = 2, step = 0.25,
               value = 0.75
             )
           ),
@@ -130,13 +130,13 @@ emissionFactorWeightsUI <- function(id) {
             tags$strong(
               id = ns("surveillance_total"),
               style = "font-size: 1.1em;",
-              "2.0 / 2.0"
+              "2.0 / 2"
             )
           )
         )
       ),
 
-      # Control Measures Column
+      # Control Measures Column -------
       column(6,
         tags$div(
           style = "border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-bottom: 15px;",
@@ -212,7 +212,7 @@ emissionFactorWeightsUI <- function(id) {
             tags$strong(
               id = ns("control_total"),
               style = "font-size: 1.1em;",
-              "3.0 / 3.0"
+              "3.0 / 3"
             )
           )
         )
@@ -226,7 +226,7 @@ emissionFactorWeightsUI <- function(id) {
         column(6, tags$h5("Overall Total:", style = "margin: 0;")),
         column(6, tags$h4(
           style = "margin: 0; text-align: right; font-weight: bold;",
-          tags$span(id = ns("overall_total"), "5.0"), " / 5.0"
+          tags$span(id = ns("overall_total"), "5.0"), " / 5"
         ))
       )
     ),
@@ -332,14 +332,14 @@ emissionFactorWeightsServer <- function(id, current_weights) {
       # Update surveillance total
       session$sendCustomMessage("updateSubtotal", list(
         id = ns("surveillance_total"),
-        value = sprintf("%.2f / 2.0", surveillance_total()),
+        value = sprintf("%.2f / 2", surveillance_total()),
         valid = abs(surveillance_total() - 2.0) < 0.001
       ))
 
       # Update control total
       session$sendCustomMessage("updateSubtotal", list(
         id = ns("control_total"),
-        value = sprintf("%.2f / 3.0", control_total()),
+        value = sprintf("%.2f / 3", control_total()),
         valid = abs(control_total() - 3.0) < 0.001
       ))
 

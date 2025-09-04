@@ -120,7 +120,7 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
       observe({
         req(emission_risk_factors(), factor_weights())
         emission_scores(
-          calc_emission_risk(
+          riskintroanalysis::calc_emission_risk(
             emission_risk_factors = emission_risk_factors(),
             weights = factor_weights(),
             keep_scores = TRUE

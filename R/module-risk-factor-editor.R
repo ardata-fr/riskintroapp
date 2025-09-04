@@ -7,6 +7,26 @@ riskFactorEditorUI <- function(id, country_id) {
     title = sprintf("Edit emission risk factors for %s (%s)", riskintrodata::iso3_to_name(country_id), country_id),
     size = "xl",
     easyClose = TRUE,
+    # CSS for colored table headers
+    tags$style(HTML("
+      .surveillance-header th {
+        color: #28a745 !important;
+        font-weight: bold !important;
+      }
+      .control-header th {
+        color: #007bff !important;
+        font-weight: bold !important;
+      }
+      .commerce-header th {
+        color: #fd7e14 !important;
+        font-weight: bold !important;
+      }
+      .epi-header th {
+        color: #6f42c1 !important;
+        font-weight: bold !important;
+      }
+    ")),
+
     # JavaScript for updating scores
     tags$script(HTML("
       Shiny.addCustomMessageHandler('updateScore', function(message) {
@@ -23,7 +43,7 @@ riskFactorEditorUI <- function(id, country_id) {
       style = "margin-bottom: 20px; border: 1px solid #dee2e6;",
       tags$thead(
         tags$tr(
-          style = "background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;",
+          class = "surveillance-header",
           tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", "Surveillance Measures"),
           tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "No measure"),
           tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", "Weight"),
@@ -102,7 +122,7 @@ riskFactorEditorUI <- function(id, country_id) {
       style = "margin-bottom: 20px; border: 1px solid #dee2e6;",
       tags$thead(
         tags$tr(
-          style = "background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;",
+          class = "control-header",
           tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", "Control Measures"),
           tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "No measure"),
           tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", "Weight"),
@@ -189,7 +209,7 @@ riskFactorEditorUI <- function(id, country_id) {
       style = "margin-bottom: 20px; border: 1px solid #dee2e6;",
       tags$thead(
         tags$tr(
-          style = "background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;",
+          class = "commerce-header",
           tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", "Animal Commerce"),
           tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "Trade Present"),
           tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", " "),
@@ -242,7 +262,7 @@ riskFactorEditorUI <- function(id, country_id) {
       style = "margin-bottom: 20px; border: 1px solid #dee2e6;",
       tags$thead(
         tags$tr(
-          style = "background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;",
+          class = "epi-header",
           tags$th(style = "width: 30%; padding: 8px; font-weight: bold;", "Epidemiological Status"),
           tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "Status"),
           tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "Date (if past)"),
