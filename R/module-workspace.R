@@ -127,7 +127,7 @@ workspaceServer <- function(id, datasets, settings) {
       )
     })
 
-    new_workspace <- reactiveVal(NULL)
+    updated_workspace <- reactiveVal(NULL)
     observeEvent(input$modal_load_file, {
       safely_load_workspace <- purrr::safely(load_workspace)
       result <- safely_load_workspace(input$modal_load_file$datapath)
@@ -170,10 +170,10 @@ workspaceServer <- function(id, datasets, settings) {
           do.call(tagList, validate_msg)
         ))
       }
-      new_workspace(list(datasets = validated_datasets,
+      updated_workspace(list(datasets = validated_datasets,
                          settings = result$settings))
     })
 
-    new_workspace
+    updated_workspace
   })
 }

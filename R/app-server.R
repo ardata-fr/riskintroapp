@@ -26,6 +26,30 @@ server <- function(input, output, session) {
     road_access = NULL,
     border_risk = NULL
   )
+
+  # Workspace ----
+  updated_workspace <- workspaceServer(
+    id = "workspace",
+    settings = list(),
+    datasets = datasets # Used for saving workspace
+  )
+  ## Load ----
+  observeEvent(updated_workspace(), ignoreInit = TRUE, {
+    new_datasets <- updated_workspace()$datasets
+    to_update <- intersect(names(new_datasets), names(datasets))
+    for (name in to_update){
+      datasets[[name]] <- new_datasets[[name]]
+    }
+    to_delete <- setdiff(names(datasets), names(new_datasets))
+    # delete if not already NULL
+    for (name in to_delete){
+      if (isTruthy(datasets[[name]])){
+        datasets[[name]] <- NULL
+      }
+    }
+    settings(updated_workspace()$settings)
+  })
+
   # Import epi units ----
   new_epi_units <- importEpiUnitsServer("import_epi_units")
   observeEvent(new_epi_units(),{
@@ -47,7 +71,11 @@ server <- function(input, output, session) {
   })
 
   # emission_scores ----
-  new_emission_scores <- emissionScoresServer(id = "emission_scores")
+  new_emission_scores <- emissionScoresServer(
+    id = "emission_scores",
+    updated_workspace = updated_workspace,
+    settings = reactive(list())
+  )
   observe({
     req(new_emission_scores())
     datasets$emission_scores <- new_emission_scores()
@@ -129,26 +157,5 @@ server <- function(input, output, session) {
     ))
   )
 
-  # Workspace ----
-  new_workspace <- workspaceServer(
-    id = "workspace",
-    settings = list(),
-    datasets = datasets # Used for saving workspace
-  )
-  ## Load ----
-  observeEvent(new_workspace(),{
-    new_datasets <- new_workspace()$datasets
-    to_update <- intersect(names(new_datasets), names(datasets))
-    for (name in to_update){
-      datasets[[name]] <- new_datasets[[name]]
-    }
-    to_delete <- setdiff(names(datasets), names(new_datasets))
-    # delete if not already NULL
-    for (name in to_delete){
-      if (isTruthy(datasets[[name]])){
-        datasets[[name]] <- NULL
-      }
-    }
-    settings(new_workspace()$settings)
-  })
+
 }

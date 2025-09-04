@@ -13,7 +13,8 @@ emissionScoresUI <- function(id) {
   )
 }
 
-emissionScoresServer <- function(id) {
+emissionScoresServer <- function(id, updated_workspace, settings) {
+
   moduleServer(
     id,
     function(input, output, session) {
@@ -21,9 +22,23 @@ emissionScoresServer <- function(id) {
       emission_risk_factors <- reactiveVal(NULL)
       emission_scores <- reactiveVal(NULL)
 
+      # update_workspace -----
+      observeEvent(updated_workspace(), ignoreInit = TRUE, ignoreNULL = TRUE, {
+        ws <- updated_workspace()
+        emission_risk_factors(ws$datasets$emission_risk_factors)
+      })
+
+
       new_erf <- importEmissionRiskFactorsServer("import_erf")
       observeEvent(new_erf(),{
         emission_risk_factors(new_erf())
+      })
+
+      observeEvent(input$map_click, {
+        click <- input$map_click
+        lat <- click$lat
+        lng <- click$lng
+        browser()
       })
 
       observe({
