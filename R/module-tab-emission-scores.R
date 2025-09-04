@@ -5,10 +5,24 @@ emissionScoresUI <- function(id) {
       title = "Emission risks",
       importEmissionRiskFactorsUI(ns("import_erf"))
     ),
-    leafletOutput(
-      outputId = ns("map"),
-      width = "100%",
-      height = "85vh"
+    navset_card_tab(
+      id = ns("panel_ui"),
+      nav_panel(
+        title = "View map",
+        leafletOutput(
+          outputId = ns("map"),
+          width = "100%",
+          height = "80vh"
+        )
+      ),
+      nav_panel(
+        title = "View factors",
+        reactableOutput(outputId = ns("factors_table"))
+      ),
+      nav_panel(
+        title = "View scores",
+        reactableOutput(outputId = ns("scores_table"))
+      )
     )
   )
 }
@@ -35,6 +49,7 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
         emission_risk_factors(new_erf())
       })
 
+      country_id <- reactiveVal(NULL)
       observeEvent(input$map_shape_click, {
         showModal(
           riskFactorEditorUI(
@@ -42,13 +57,16 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
             country_id = input$map_shape_click$id
           )
         )
+        country_id(input$map_shape_click$id)
       })
       new_risk_factor_profile <- riskFactorEditorServer(
         id = "factor_editor",
-        emission_risk_factors = emission_risk_factors
+        emission_risk_factors = emission_risk_factors,
+        country_id = country_id
       )
 
       observeEvent(new_risk_factor_profile(), {
+        country_id(NULL)
         operation <- new_risk_factor_profile()$operation
         existing_data <- emission_risk_factors()
 
@@ -62,8 +80,7 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
             by = "iso3"
           )
         } else if (operation == "delete") {
-          country_id <- new_risk_factor_profile()$id
-          update_data <- dplyr::filter(.data$iso3 != "id")
+          update_data <- dplyr::filter(.data$iso3 != !!new_risk_factor_profile()$id)
         }
         emission_risk_factors(update_data)
       })
@@ -83,6 +100,7 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
         )
       })
 
+      ## map ----
       baseLeaflet <- reactive({basemap()})
       output$map <- renderLeaflet({
         req(baseLeaflet())
@@ -90,13 +108,38 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
       })
       outputOptions(output, "map", suspendWhenHidden = FALSE)
 
-      ## Emission risk map ----
       observe({
         req(baseLeaflet())
         er <- req(emission_scores())
         plot_emission_risk_interactive(
           emission_risk = er,
           ll = leafletProxy("map")
+        )
+      })
+
+      # factors_table --------
+      output$factors_table <- renderReactable({
+        req(emission_risk_factors())
+        reactable(
+          emission_risk_factors(),
+          searchable = TRUE,
+          filterable = TRUE,
+          showPageSizeOptions = TRUE,
+          defaultPageSize = 25,
+          striped = TRUE
+        )
+      })
+
+      # scores_table --------
+      output$scores_table <- renderReactable({
+        req(emission_scores())
+        reactable(
+          emission_scores(),
+          searchable = TRUE,
+          filterable = TRUE,
+          showPageSizeOptions = TRUE,
+          defaultPageSize = 25,
+          striped = TRUE
         )
       })
 
