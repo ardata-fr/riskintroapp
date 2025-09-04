@@ -3,7 +3,17 @@ emissionScoresUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       title = "Emission risks",
-      importEmissionRiskFactorsUI(ns("import_erf"))
+      importEmissionRiskFactorsUI(ns("import_erf")),
+
+      tags$hr(),
+
+      # weights ----
+      actionButton(
+        inputId = ns("edit_weights"),
+        label = "Edit Factor Weights",
+        icon = icon("scale-balanced"),
+        style = "margin-bottom: 10px;"
+      )
     ),
     navset_card_tab(
       id = ns("panel_ui"),
@@ -69,7 +79,6 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
         country_id(NULL)
         operation <- new_risk_factor_profile()$operation
         existing_data <- emission_risk_factors()
-
         if (is.null(operation)) {
           update_data <- NULL
         } else if (operation == "upsert") {
@@ -80,13 +89,32 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
             by = "iso3"
           )
         } else if (operation == "delete") {
-          update_data <- dplyr::filter(.data$iso3 != !!new_risk_factor_profile()$id)
+          update_data <- dplyr::filter(
+            existing_data ,
+            .data$iso3 != !!new_risk_factor_profile()$id
+          )
         }
         emission_risk_factors(update_data)
       })
 
+      # Factor weights management ----
+      current_weights <- reactiveVal(riskintrodata::get_erf_weights())
+
       factor_weights <- reactive({
-        riskintrodata::emission_risk_weights
+        current_weights()
+      })
+
+      # Handle weights editor
+      observeEvent(input$edit_weights, {
+        showModal(emissionFactorWeightsUI(ns("weights_editor")))
+      })
+
+      weights_result <- emissionFactorWeightsServer("weights_editor", current_weights)
+      observeEvent(weights_result(), {
+        new_weights <- weights_result()
+        if (!is.null(new_weights)) {
+          current_weights(new_weights)
+        }
       })
 
       observe({

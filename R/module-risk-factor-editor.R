@@ -567,7 +567,7 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
     observeEvent(input$delete, {
       # Return special delete signal
       returnList(list(
-        action = "delete",
+        operation = "delete",
         id = country_id(),
         data = NULL
       ))

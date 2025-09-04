@@ -16,7 +16,8 @@ importEmissionRiskFactorsUI <- function(id) {
     tag = actionButton(
       inputId = ns("dropMenu"),
       label = "Import",
-      width = '100%'
+      width = '100%',
+      icon = icon('file-import')
     ),
     placement = "right",
     tagList(
