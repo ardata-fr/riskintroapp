@@ -1,5 +1,64 @@
 
+#' Risk Factor Editor Modal UI
+#'
+#' Creates a modal dialog interface for editing emission risk factors for a specific country.
+#' The UI displays organized tables for surveillance, control, commerce, and epidemiological factors
+#' with real-time risk score calculations.
+#'
+#' @description
+#' This UI function generates a modal dialog with four main sections:
+#' - **Surveillance Measures** (2/12 points): Disease notification, targeted surveillance,
+#'   general surveillance, and screening programs
+#' - **Control Measures** (3/12 points): Border precautions, emergency slaughter,
+#'   selective culling, movement zoning, and vaccination programs
+#' - **Commerce** (0-4/12 points): Legal and illegal animal trade status
+#' - **Epidemiological Status** (0-3/12 points): Time since last outbreak
+#'
+#' The interface shows real-time risk score calculations and validates that the total
+#' score matches the emission risk algorithm from [riskintroanalysis::calc_emission_risk()].
+#'
+#' @param id Character string. The namespace identifier for this module instance.
+#' @param country_id Character string. The ISO3 country code (e.g., "USA", "FRA") for the
+#'   country being edited.
+#'
+#' @return A [shiny::modalDialog()] object containing the risk factor editing interface
+#'   with organized tables, real-time scoring, and action buttons.
+#'
+#' @section Risk Factor Categories:
+#' The risk factors are organized by category with specific point contributions:
+#'
+#' **Surveillance Measures (2/12 total)**:
+#' - Disease notification system
+#' - Targeted surveillance
+#' - General surveillance
+#' - Screening programs
+#'
+#' **Control Measures (3/12 total)**:
+#' - Border precautions
+#' - Emergency slaughter
+#' - Selective culling & disposal
+#' - Movement zoning
+#' - Official vaccination programs
+#'
+#' **Commerce (0-4/12 total)**:
+#' - No trade: 0 points
+#' - Legal trade only: 1 point
+#' - Illegal trade only: 3 points
+#' - Both legal and illegal: 4 points
+#'
+#' **Epidemiological Status (0-3/12 total)**:
+#' - No outbreaks (>5 years): 0 points
+#' - Time-based decay for recent outbreaks
+#' - Current outbreak: 3 points
+#'
+#' @family risk-factor-editor
+#' @seealso [riskFactorEditorServer()] for the corresponding server logic
+#' @seealso [riskintroanalysis::calc_emission_risk()] for the risk calculation algorithm
+#'
+#' @importFrom shiny NS modalDialog tags fluidRow column actionButton conditionalPanel dateInput
+#' @importFrom shinyWidgets prettySwitch radioGroupButtons
 #' @importFrom riskintrodata iso3_to_name
+#' @export
 riskFactorEditorUI <- function(id, country_id) {
   ns <- NS(id)
 
@@ -331,10 +390,55 @@ riskFactorEditorUI <- function(id, country_id) {
   )
 }
 
+#' Risk Factor Editor Server Logic
+#'
+#' Handles the server-side logic for the emission risk factor editor modal.
+#' Manages data population, real-time score calculations, input validation, and data persistence.
+#'
+#' @param id Character string. The namespace identifier matching the UI function.
+#' @param emission_risk_factors Reactive expression returning the current emission risk factors dataset.
+#'   Should have the same structure as [riskintrodata::get_wahis_erf()].
+#' @param country_id Reactive expression returning the ISO3 country code being edited.
+#'
+#' @return A reactive expression that returns updated data when Apply is clicked,
+#'   or delete operation when Delete is clicked, or NULL when Cancel is clicked.
+#'
+#' @section Data Format:
+#' The server handles conversion between data storage format and UI format:
+#'
+#' **Storage format (in dataset)**:
+#' - `0` = measure is in place (no risk)
+#' - `1` = no measure in place (risk present)
+#' - `NA` = unknown status (treated as risk present)
+#'
+#' **UI format (prettySwitch)**:
+#' - `FALSE` = measure in place (switch OFF = no risk)
+#' - `TRUE` = no measure in place (switch ON = risk present)
+#'
+#' @section Real-time Calculations:
+#' The interface provides live feedback as users adjust inputs:
+#' - Individual factor scores update immediately
+#' - Subtotals for each category (surveillance, control, commerce, epidemiological)
+#' - Grand total emission score out of 12
+#' - Uses [riskintroanalysis::calc_emission_risk()] for consistency with actual calculations
+#'
+#' @section Return Values:
+#' The server returns a list with the following structure:
+#' - **Apply operation**: `list(operation = "upsert", id = country_id, data = updated_row)`
+#' - **Delete operation**: `list(operation = "delete", id = country_id, data = NULL)`
+#' - **Cancel operation**: Returns `NULL`
+#'
+#' @family risk-factor-editor
+#' @seealso [riskFactorEditorUI()] for the corresponding UI function
+#' @seealso [riskintroanalysis::calc_emission_risk()] for risk calculation details
+#' @seealso [riskintrodata::get_erf_weights()] for emission factor weights
+#'
+#' @importFrom shiny moduleServer req reactive observe observeEvent removeModal
 #' @importFrom shinyWidgets updatePrettySwitch updateRadioGroupButtons
-#' @importFrom shiny updateDateInput moduleServer req reactive observe
+#' @importFrom shiny updateDateInput
 #' @importFrom dplyr filter if_else
-#' @importFrom riskintrodata iso3_to_name
+#' @importFrom riskintrodata iso3_to_name get_erf_weights
+#' @export
 riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
 
   # Risk factor column definitions
@@ -549,10 +653,17 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
     # Reactive value to store the updated row data
     returnList <- reactiveVal(NULL)
 
+    # Counter ensures that each time time apply, cancel or delete are clicked
+    # that the return value of this module changes, **even if** the data has not
+    # changed. Required for reactivety, otherwise clicking the same country after
+    # having just edited it without changing the data would not reopen the editor
+    # modal.
+    counter <- reactiveVal(1L)
+
     # Handle Apply button
     observeEvent(input$apply, {
-      new_row <- edit_row()
 
+      new_row <- edit_row()
       # Gather factor inputs
       for (factor in all_risk_factors) {
         new_row[[factor]] <- input[[factor]] %||% FALSE
@@ -569,28 +680,39 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
       # Update data source
       new_row$data_source <- paste0("User ", Sys.info()[["user"]], " - ", Sys.Date())
 
-      # Store the updated row and close modal
-      returnList(list(
+      counter(counter() + 1)
+      res <- list(
         operation = "upsert",
         id = country_id(),
-        data = new_row
-      ))
+        data = new_row,
+        counter = counter()
+      )
+      returnList(res)
       removeModal()
     })
 
     # Handle Cancel button
     observeEvent(input$cancel, {
+      counter(counter() + 1)
+      res <- list(
+        operation = NULL,
+        counter = counter()
+      )
+      returnList(res)
       removeModal()
     })
 
     # Handle Delete button
     observeEvent(input$delete, {
+      counter(counter() + 1)
       # Return special delete signal
-      returnList(list(
+      res <- list(
         operation = "delete",
         id = country_id(),
-        data = NULL
-      ))
+        data = NULL,
+        counter = counter()
+      )
+      returnList(res)
       removeModal()
     })
 

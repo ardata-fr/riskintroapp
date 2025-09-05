@@ -13,7 +13,11 @@ emissionScoresUI <- function(id) {
         label = "Edit Factor Weights",
         icon = icon("scale-balanced"),
         style = "margin-bottom: 10px;"
-      )
+      ),
+      # joker manager -----
+      jokerManagerUI(
+        id = ns("joker")
+      ),
     ),
     navset_card_tab(
       id = ns("panel_ui"),
@@ -61,14 +65,18 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
 
       country_id <- reactiveVal(NULL)
       observeEvent(input$map_shape_click, {
-        showModal(
-          riskFactorEditorUI(
-            id = ns("factor_editor"),
-            country_id = input$map_shape_click$id
-          )
-        )
         country_id(input$map_shape_click$id)
       })
+
+      observeEvent(country_id(), {
+          showModal(
+            riskFactorEditorUI(
+              id = ns("factor_editor"),
+              country_id = country_id()
+            )
+          )
+      })
+
       new_risk_factor_profile <- riskFactorEditorServer(
         id = "factor_editor",
         emission_risk_factors = emission_risk_factors,
@@ -80,7 +88,7 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
         operation <- new_risk_factor_profile()$operation
         existing_data <- emission_risk_factors()
         if (is.null(operation)) {
-          update_data <- NULL
+          # Do nothing
         } else if (operation == "upsert") {
           new_data <- new_risk_factor_profile()$data
           update_data <- dplyr::rows_upsert(
@@ -88,47 +96,57 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
             y = new_data,
             by = "iso3"
           )
+          emission_risk_factors(update_data)
         } else if (operation == "delete") {
           update_data <- dplyr::filter(
             existing_data ,
             .data$iso3 != !!new_risk_factor_profile()$id
           )
+          emission_risk_factors(update_data)
         }
-        emission_risk_factors(update_data)
       })
 
       # Factor weights management ----
-      current_weights <- reactiveVal(riskintrodata::get_erf_weights())
-
-      factor_weights <- reactive({
-        current_weights()
-      })
-
-      # Handle weights editor
       observeEvent(input$edit_weights, {
         showModal(emissionFactorWeightsUI(ns("weights_editor")))
       })
-
-      weights_result <- emissionFactorWeightsServer("weights_editor", current_weights)
-      observeEvent(weights_result(), {
-        new_weights <- weights_result()
-        if (!is.null(new_weights)) {
-          current_weights(new_weights)
-        }
-      })
-
+      current_weights <- emissionFactorWeightsServer("weights_editor")
       observe({
-        req(emission_risk_factors(), factor_weights())
+        req(emission_risk_factors(), current_weights())
         emission_scores(
           riskintroanalysis::calc_emission_risk(
             emission_risk_factors = emission_risk_factors(),
-            weights = factor_weights(),
+            weights = current_weights(),
             keep_scores = TRUE
           )
         )
       })
 
-      ## map ----
+      # jokers -----
+      new_joker_operation <- jokerManagerServer(
+        id = "joker",
+        emission_risk_factors = emission_risk_factors
+      )
+      observeEvent(new_joker_operation(), {
+        operation <- new_joker_operation()
+
+        if (is.null(operation$operation)) {
+          update_data <- NULL
+        } else if (operation$operation == "upsert") {
+          new_data <- operation$data
+          update_data <- dplyr::rows_upsert(
+            x = emission_risk_factors(),
+            y = new_data,
+            by = "iso3"
+          )
+          emission_risk_factors(update_data)
+
+        } else if (operation$operation == "open_editor") {
+          country_id(operation$id)
+        }
+      })
+
+      # map ----
       baseLeaflet <- reactive({basemap()})
       output$map <- renderLeaflet({
         req(baseLeaflet())
