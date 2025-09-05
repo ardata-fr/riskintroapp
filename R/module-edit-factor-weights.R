@@ -273,7 +273,7 @@ emissionFactorWeightsUI <- function(id) {
 #' @importFrom shiny moduleServer req reactive observe updateSliderInput
 #' @importFrom shinyjs enable disable
 #' @export
-emissionFactorWeightsServer <- function(id) {
+emissionFactorWeightsServer <- function(id, current_weights) {
 
   # Weight factor names
   surveillance_factors <- c("disease_notification", "targeted_surveillance",
@@ -282,13 +282,8 @@ emissionFactorWeightsServer <- function(id) {
                       "selective_killing_and_disposal", "zoning",
                       "official_vaccination")
 
-  # Get default weights from riskintrodata
-  default_weights <- riskintrodata::get_erf_weights()
-
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
-
 
     # Real-time weight calculations
     surveillance_total <- reactive({
@@ -353,7 +348,7 @@ emissionFactorWeightsServer <- function(id) {
     })
 
     # Return value for the updated weights
-    returnValue <- reactiveVal(NULL)
+    returnValue <- reactiveVal(riskintrodata::emission_risk_weights)
 
     # Handle Apply button
     observeEvent(input$apply, {

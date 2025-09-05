@@ -20,6 +20,7 @@
 #' @param id Character string. The namespace identifier for this module instance.
 #' @param country_id Character string. The ISO3 country code (e.g., "USA", "FRA") for the
 #'   country being edited.
+#' @param current_weights List. The current emission risk factor weights for display in the UI.
 #'
 #' @return A [shiny::modalDialog()] object containing the risk factor editing interface
 #'   with organized tables, real-time scoring, and action buttons.
@@ -59,8 +60,9 @@
 #' @importFrom shinyWidgets prettySwitch radioGroupButtons
 #' @importFrom riskintrodata iso3_to_name
 #' @export
-riskFactorEditorUI <- function(id, country_id) {
+riskFactorEditorUI <- function(id, country_id, current_weights) {
   ns <- NS(id)
+  weights <- current_weights
 
   modalDialog(
     title = sprintf("Edit emission risk factors for %s (%s)", riskintrodata::iso3_to_name(country_id), country_id),
@@ -119,7 +121,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;", "0.25"),
+          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
+                  tags$span(id = ns("weight_disease_notification"), as.character(weights$disease_notification))),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
                   tags$span(id = ns("score_disease_notification"), "0.25"))
         ),
@@ -132,7 +135,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;", "0.50"),
+          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
+                  tags$span(id = ns("weight_targeted_surveillance"), as.character(weights$targeted_surveillance))),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
                   tags$span(id = ns("score_targeted_surveillance"), "0.50"))
         ),
@@ -145,7 +149,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;", "0.50"),
+          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
+                  tags$span(id = ns("weight_general_surveillance"), as.character(weights$general_surveillance))),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
                   tags$span(id = ns("score_general_surveillance"), "0.50"))
         ),
@@ -158,7 +163,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;", "0.75"),
+          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
+                  tags$span(id = ns("weight_screening"), as.character(weights$screening))),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
                   tags$span(id = ns("score_screening"), "0.75"))
         ),
@@ -197,7 +203,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "width: 10%; text-align: center; vertical-align: middle; font-weight: bold;", "1.0"),
+          tags$td(style = "width: 10%; text-align: center; vertical-align: middle; font-weight: bold;",
+                  tags$span(id = ns("weight_precautions_at_the_borders"), as.character(weights$precautions_at_the_borders))),
           tags$td(style = "width: 10%; text-align: center; vertical-align: middle; font-weight: bold;",
                   tags$span(id = ns("score_precautions_at_the_borders"), "1.0"))
         ),
@@ -209,7 +216,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;", "0.5"),
+          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
+                  tags$span(id = ns("weight_slaughter"), as.character(weights$slaughter))),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
                   tags$span(id = ns("score_slaughter"), "0.5"))
         ),
@@ -221,7 +229,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;", "0.5"),
+          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
+                  tags$span(id = ns("weight_selective_killing_and_disposal"), as.character(weights$selective_killing_and_disposal))),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
                   tags$span(id = ns("score_selective_killing_and_disposal"), "0.5"))
         ),
@@ -233,7 +242,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;", "0.75"),
+          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
+                  tags$span(id = ns("weight_zoning"), as.character(weights$zoning))),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
                   tags$span(id = ns("score_zoning"), "0.75"))
         ),
@@ -245,7 +255,8 @@ riskFactorEditorUI <- function(id, country_id) {
               status = "danger", fill = TRUE, inline = TRUE
             )
           ),
-          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;", "0.25"),
+          tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
+                  tags$span(id = ns("weight_official_vaccination"), as.character(weights$official_vaccination))),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
                   tags$span(id = ns("score_official_vaccination"), "0.25"))
         ),
@@ -440,7 +451,7 @@ riskFactorEditorUI <- function(id, country_id) {
 #' @importFrom dplyr filter if_else
 #' @importFrom riskintrodata iso3_to_name get_erf_weights
 #' @export
-riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
+riskFactorEditorServer <- function(id, emission_risk_factors, country_id, current_weights) {
 
   # Risk factor column definitions
   surveillance_factors <- c("disease_notification", "targeted_surveillance",
@@ -483,9 +494,6 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
       }
     })
 
-    # Get weights from riskintrodata
-    weights <- riskintrodata::get_erf_weights()
-
     # calculate real-time scores using riskintroanalysis::calc_emission_risk ----
     current_scores <- reactive({
 
@@ -504,7 +512,11 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
         "past" = input$outbreak_date %||% as.Date("1900-01-01")
       )
 
-      result <- riskintroanalysis::calc_emission_risk(temp_row, keep_scores = TRUE)
+      result <- riskintroanalysis::calc_emission_risk(
+        temp_row,
+        weights = current_weights(),
+        keep_scores = TRUE
+      )
 
       return(result)
     })
@@ -530,46 +542,47 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
       current_scores()$emission_risk[1]
     })
 
+
     # display real-time scores ----
     observe({
       # Individual surveillance scores
       session$sendCustomMessage("updateScore", list(
         id = ns("score_disease_notification"),
-        value = if (input$disease_notification %||% FALSE) weights$disease_notification else 0
+        value = if (input$disease_notification %||% FALSE) current_weights()$disease_notification else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_targeted_surveillance"),
-        value = if (input$targeted_surveillance %||% FALSE) weights$targeted_surveillance else 0
+        value = if (input$targeted_surveillance %||% FALSE) current_weights()$targeted_surveillance else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_general_surveillance"),
-        value = if (input$general_surveillance %||% FALSE) weights$general_surveillance else 0
+        value = if (input$general_surveillance %||% FALSE) current_weights()$general_surveillance else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_screening"),
-        value = if (input$screening %||% FALSE) weights$screening else 0
+        value = if (input$screening %||% FALSE) current_weights()$screening else 0
       ))
 
       # Individual control scores
       session$sendCustomMessage("updateScore", list(
         id = ns("score_precautions_at_the_borders"),
-        value = if (input$precautions_at_the_borders %||% FALSE) weights$precautions_at_the_borders else 0
+        value = if (input$precautions_at_the_borders %||% FALSE) current_weights()$precautions_at_the_borders else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_slaughter"),
-        value = if (input$slaughter %||% FALSE) weights$slaughter else 0
+        value = if (input$slaughter %||% FALSE) current_weights()$slaughter else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_selective_killing_and_disposal"),
-        value = if (input$selective_killing_and_disposal %||% FALSE) weights$selective_killing_and_disposal else 0
+        value = if (input$selective_killing_and_disposal %||% FALSE) current_weights()$selective_killing_and_disposal else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_zoning"),
-        value = if (input$zoning %||% FALSE) weights$zoning else 0
+        value = if (input$zoning %||% FALSE) current_weights()$zoning else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_official_vaccination"),
-        value = if (input$official_vaccination %||% FALSE) weights$official_vaccination else 0
+        value = if (input$official_vaccination %||% FALSE) current_weights()$official_vaccination else 0
       ))
 
       # Commerce scores

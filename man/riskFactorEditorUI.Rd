@@ -4,13 +4,15 @@
 \alias{riskFactorEditorUI}
 \title{Risk Factor Editor Modal UI}
 \usage{
-riskFactorEditorUI(id, country_id)
+riskFactorEditorUI(id, country_id, current_weights)
 }
 \arguments{
 \item{id}{Character string. The namespace identifier for this module instance.}
 
 \item{country_id}{Character string. The ISO3 country code (e.g., "USA", "FRA") for the
 country being edited.}
+
+\item{current_weights}{List. The current emission risk factor weights for display in the UI.}
 }
 \value{
 A \code{\link[shiny:modalDialog]{shiny::modalDialog()}} object containing the risk factor editing interface

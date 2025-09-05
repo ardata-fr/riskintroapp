@@ -55,6 +55,8 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
       observeEvent(updated_workspace(), ignoreInit = TRUE, ignoreNULL = TRUE, {
         ws <- updated_workspace()
         emission_risk_factors(ws$datasets$emission_risk_factors)
+        # browser()
+        # current_weights()
       })
 
 
@@ -72,7 +74,8 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
           showModal(
             riskFactorEditorUI(
               id = ns("factor_editor"),
-              country_id = country_id()
+              country_id = country_id(),
+              current_weights = current_weights()
             )
           )
       })
@@ -80,7 +83,8 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
       new_risk_factor_profile <- riskFactorEditorServer(
         id = "factor_editor",
         emission_risk_factors = emission_risk_factors,
-        country_id = country_id
+        country_id = country_id,
+        current_weights = current_weights
       )
 
       observeEvent(new_risk_factor_profile(), {
@@ -110,7 +114,12 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
       observeEvent(input$edit_weights, {
         showModal(emissionFactorWeightsUI(ns("weights_editor")))
       })
-      current_weights <- emissionFactorWeightsServer("weights_editor")
+
+      current_weights <- emissionFactorWeightsServer(
+        id = "weights_editor",
+        current_weights = current_weights
+        )
+
       observe({
         req(emission_risk_factors(), current_weights())
         emission_scores(

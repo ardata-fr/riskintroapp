@@ -4,7 +4,7 @@
 \alias{riskFactorEditorServer}
 \title{Risk Factor Editor Server Logic}
 \usage{
-riskFactorEditorServer(id, emission_risk_factors, country_id)
+riskFactorEditorServer(id, emission_risk_factors, country_id, current_weights)
 }
 \arguments{
 \item{id}{Character string. The namespace identifier matching the UI function.}

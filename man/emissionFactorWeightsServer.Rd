@@ -4,7 +4,7 @@
 \alias{emissionFactorWeightsServer}
 \title{Emission Factor Weights Editor Server Logic}
 \usage{
-emissionFactorWeightsServer(id)
+emissionFactorWeightsServer(id, current_weights)
 }
 \arguments{
 \item{id}{Character string. The namespace identifier matching the UI function.}
