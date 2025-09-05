@@ -148,13 +148,18 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
         dat <- req(importRaw())
         req(input$risk_col)
         req(input$scale[[1]] < input$scale[[2]]) # validate scale input
+
         # clamp risk values outside of scale
-        dat[[input$risk_col]] <- terra::clamp(
+        dat[[input$risk_name]] <- terra::clamp(
           dat[[input$risk_col]] ,
           lower = input$scale[[1]],
           upper = input$scale[[2]],
           values = TRUE
         )
+        # Also rename the risk col with the new name provided by user
+        if (input$risk_col != input$risk_name){
+          dat[[input$risk_col]] <- NULL
+        }
         dat
       })
 
@@ -173,7 +178,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
           by = c("eu_id" = input$join_by)
         )
 
-        risk_values <- risk_data_sf[[input$risk_col]]
+        risk_values <- risk_data_sf[[input$risk_name]]
         pal <- leaflet::colorNumeric(
           palette = "inferno",
           domain = input$scale,
@@ -204,22 +209,21 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
       configIsValid <- reactive({
         config_is_valid(
           x = "import_precalcuated_risk",
+          import_success = isTruthy(importRaw()),
           dataset = importData(),
           risk_table = epi_units(),
           metadata = riskMetaData(),
           parameters = list(
             join_by = input$join_by,
             risk_col = input$risk_col,
-            scale = input$scale
+            scale = input$scale,
+            risk_name = input$risk_name
           )
         )
       })
-
       output$config_ui <- renderUI({
-        req(!is.null(configIsValid()))
         report_config_status(configIsValid())
       })
-
       observe({
         if(isTruthy(configIsValid())) {
           shinyjs::enable("apply")
@@ -247,12 +251,17 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
         dataset <- importData()
         attr(dataset, "scale") <- input$scale
         attr(dataset, "join_by") <- input$join_by
-        attr(dataset, "risk_col") <- input$risk_col
+        attr(dataset, "risk_col") <- input$risk_name
 
+        # some values are repeated here, it is useful to include them in the
+        # the metadata so that it can be repopulated when loading data from
+        # a workspace
         new_precalc_risk <- list(
             name = input$risk_name,
             type = "precalculated",
             join_by = input$join_by,
+            initial_scale = input$scale,
+            risk_col = input$risk_name,
             dataset = dataset,
             rescale_args = list()
           )
@@ -266,11 +275,20 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
 #' @export
 config_is_valid.import_precalcuated_risk <- function(x, ...) {
   params <- list(...)
+
+  import_success <- params$import_success
   dataset <- params$dataset
   risk_table <- params$risk_table
   metadata <- params$metadata
   parameters <- params$parameters
 
+  if(!isTruthy(import_success)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "A dataset must be imported."
+    )
+    return(status)
+  }
   # dataset ----
   if(!isTruthy(dataset)) {
     status <- build_config_status(
@@ -280,8 +298,24 @@ config_is_valid.import_precalcuated_risk <- function(x, ...) {
     return(status)
   }
 
-  # risk col ----
-  if (parameters$risk_col %in% names(metadata)) {
+  # risk_name ----
+  if(!isTruthy(parameters$risk_name)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Provide a risk name."
+    )
+    return(status)
+  }
+
+  if (!is_valid_name(parameters$risk_name)) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "Risk name contains special characters other than '_' and spaces."
+    )
+    return(status)
+  }
+
+  if (parameters$risk_name %in% names(metadata)) {
     status <- build_config_status(
       value = FALSE,
       msg = "There is already a risk with this name."
@@ -289,6 +323,16 @@ config_is_valid.import_precalcuated_risk <- function(x, ...) {
     return(status)
   }
 
+  if (parameters$risk_name %in% c('epi_units', "emission_risk_factors", "overall_risk")) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "This risk name is reserved."
+    )
+    return(status)
+  }
+
+
+  # risk col ----
   if(!isTruthy(parameters$risk_col)) {
     status <- build_config_status(
       value = FALSE,
@@ -297,30 +341,20 @@ config_is_valid.import_precalcuated_risk <- function(x, ...) {
     return(status)
   }
 
-  if(!isTruthy(parameters$risk_col)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "A risk column already exists with that name."
-    )
-    return(status)
-  }
+  risk_data <- dataset[[parameters$risk_name]]
 
-  risk_data <- dataset[parameters$risk_col]
-  numeric <- sapply(risk_data, is.numeric)
-  notnumeric <- numeric[!numeric]
-  if(length(notnumeric) > 0) {
+  if(!is.numeric(risk_data)) {
     status <- build_config_status(
       value = FALSE,
       msg = "Selected risk column must contain numeric values."
     )
     return(status)
   }
-  has_nas <- sapply(risk_data, \(x) any(is.na(x)))
-  has_nas <- has_nas[has_nas]
-  if(length(has_nas) > 0) {
+
+  if(any(is.na(risk_data))) {
     status <- build_config_status(
       value = FALSE,
-      msg = paste("Risk columns (", quote_and_collapse(names(has_nas)), ") contain missing values.")
+      msg = paste("Risk column contains missing values.")
     )
     return(status)
   }
@@ -380,12 +414,21 @@ config_is_valid.import_precalcuated_risk <- function(x, ...) {
     )
     return(status)
   }
+
+  if(parameters$join_by == parameters$risk_col) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = 'The join by column and the risk column cannot be the same.'
+    )
+    return(status)
+  }
+
   id_not_found <- dataset[[parameters$join_by]][!dataset[[parameters$join_by]] %in% risk_table$eu_id]
 
   if (length(id_not_found) == length(dataset[[parameters$join_by]])) {
     status <- build_config_status(
       value = FALSE,
-      msg = "None of the values for the identifier column match the epidemiological units EU_ID column. The datasets cannot be joined."
+      msg = "No matching rows found between epidemiological units and imported dataset."
     )
     return(status)
   } else if (length(id_not_found) > 0) {
