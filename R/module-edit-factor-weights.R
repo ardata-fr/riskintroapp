@@ -37,6 +37,9 @@
 emissionFactorWeightsUI <- function(id) {
   ns <- NS(id)
 
+  # Get default weights from riskintrodata
+  default_weights <- riskintrodata::get_erf_weights()
+
   modalDialog(
     title = "Edit emission factor weights",
     size = "l",
@@ -80,10 +83,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 15px;",
             tags$label(class = "control-label", "Disease notification system"),
             sliderInput(
-              inputId = ns("wt_disease_notification"),
+              inputId = ns("disease_notification"),
               label = NULL,
               min = 0, max = 2, step = 0.25,
-              value = 0.25
+              value = default_weights$disease_notification
             )
           ),
 
@@ -92,10 +95,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 15px;",
             tags$label(class = "control-label", "Targeted surveillance"),
             sliderInput(
-              inputId = ns("wt_targeted_surveillance"),
+              inputId = ns("targeted_surveillance"),
               label = NULL,
               min = 0, max = 2, step = 0.25,
-              value = 0.50
+              value = default_weights$targeted_surveillance
             )
           ),
 
@@ -104,10 +107,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 15px;",
             tags$label(class = "control-label", "General surveillance"),
             sliderInput(
-              inputId = ns("wt_general_surveillance"),
+              inputId = ns("general_surveillance"),
               label = NULL,
               min = 0, max = 2, step = 0.25,
-              value = 0.50
+              value = default_weights$general_surveillance
             )
           ),
 
@@ -116,10 +119,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 20px;",
             tags$label(class = "control-label", "Screening programs"),
             sliderInput(
-              inputId = ns("wt_screening"),
+              inputId = ns("screening"),
               label = NULL,
               min = 0, max = 2, step = 0.25,
-              value = 0.75
+              value = default_weights$screening
             )
           ),
 
@@ -150,10 +153,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 15px;",
             tags$label(class = "control-label", "Border precautions"),
             sliderInput(
-              inputId = ns("wt_precautions_at_the_borders"),
+              inputId = ns("precautions_at_the_borders"),
               label = NULL,
               min = 0, max = 3, step = 0.25,
-              value = 1.0
+              value = default_weights$precautions_at_the_borders
             )
           ),
 
@@ -162,10 +165,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 15px;",
             tags$label(class = "control-label", "Emergency slaughter"),
             sliderInput(
-              inputId = ns("wt_slaughter"),
+              inputId = ns("slaughter"),
               label = NULL,
               min = 0, max = 3, step = 0.25,
-              value = 0.50
+              value = default_weights$slaughter
             )
           ),
 
@@ -174,10 +177,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 15px;",
             tags$label(class = "control-label", "Selective culling & disposal"),
             sliderInput(
-              inputId = ns("wt_selective_killing_and_disposal"),
+              inputId = ns("selective_killing_and_disposal"),
               label = NULL,
               min = 0, max = 3, step = 0.25,
-              value = 0.50
+              value = default_weights$selective_killing_and_disposal
             )
           ),
 
@@ -186,10 +189,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 15px;",
             tags$label(class = "control-label", "Movement zoning"),
             sliderInput(
-              inputId = ns("wt_zoning"),
+              inputId = ns("zoning"),
               label = NULL,
               min = 0, max = 3, step = 0.25,
-              value = 0.75
+              value = default_weights$zoning
             )
           ),
 
@@ -198,10 +201,10 @@ emissionFactorWeightsUI <- function(id) {
             style = "margin-bottom: 20px;",
             tags$label(class = "control-label", "Official vaccination programs"),
             sliderInput(
-              inputId = ns("wt_official_vaccination"),
+              inputId = ns("official_vaccination"),
               label = NULL,
               min = 0, max = 3, step = 0.25,
-              value = 0.25
+              value = default_weights$official_vaccination
             )
           ),
 
@@ -270,7 +273,7 @@ emissionFactorWeightsUI <- function(id) {
 #' @importFrom shiny moduleServer req reactive observe updateSliderInput
 #' @importFrom shinyjs enable disable
 #' @export
-emissionFactorWeightsServer <- function(id, current_weights) {
+emissionFactorWeightsServer <- function(id) {
 
   # Weight factor names
   surveillance_factors <- c("disease_notification", "targeted_surveillance",
@@ -279,40 +282,31 @@ emissionFactorWeightsServer <- function(id, current_weights) {
                       "selective_killing_and_disposal", "zoning",
                       "official_vaccination")
 
+  # Get default weights from riskintrodata
+  default_weights <- riskintrodata::get_erf_weights()
+
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # Initialize sliders with current weights
-    observe({
-      weights <- current_weights()
-      req(weights)
 
-      # Update all sliders
-      for (factor in surveillance_factors) {
-        updateSliderInput(session, paste0("wt_", factor), value = weights[[factor]])
-      }
-      for (factor in control_factors) {
-        updateSliderInput(session, paste0("wt_", factor), value = weights[[factor]])
-      }
-    })
 
     # Real-time weight calculations
     surveillance_total <- reactive({
       sum(
-        input$wt_disease_notification %||% 0.25,
-        input$wt_targeted_surveillance %||% 0.50,
-        input$wt_general_surveillance %||% 0.50,
-        input$wt_screening %||% 0.75
+        input$disease_notification,
+        input$targeted_surveillance,
+        input$general_surveillance,
+        input$screening
       )
     })
 
     control_total <- reactive({
       sum(
-        input$wt_precautions_at_the_borders %||% 1.0,
-        input$wt_slaughter %||% 0.50,
-        input$wt_selective_killing_and_disposal %||% 0.50,
-        input$wt_zoning %||% 0.75,
-        input$wt_official_vaccination %||% 0.25
+        input$precautions_at_the_borders,
+        input$slaughter,
+        input$selective_killing_and_disposal,
+        input$zoning,
+        input$official_vaccination
       )
     })
 
@@ -367,15 +361,15 @@ emissionFactorWeightsServer <- function(id, current_weights) {
 
       # Create updated weights list
       new_weights <- list(
-        disease_notification = input$wt_disease_notification,
-        targeted_surveillance = input$wt_targeted_surveillance,
-        general_surveillance = input$wt_general_surveillance,
-        screening = input$wt_screening,
-        precautions_at_the_borders = input$wt_precautions_at_the_borders,
-        slaughter = input$wt_slaughter,
-        selective_killing_and_disposal = input$wt_selective_killing_and_disposal,
-        zoning = input$wt_zoning,
-        official_vaccination = input$wt_official_vaccination
+        disease_notification = input$disease_notification,
+        targeted_surveillance = input$targeted_surveillance,
+        general_surveillance = input$general_surveillance,
+        screening = input$screening,
+        precautions_at_the_borders = input$precautions_at_the_borders,
+        slaughter = input$slaughter,
+        selective_killing_and_disposal = input$selective_killing_and_disposal,
+        zoning = input$zoning,
+        official_vaccination = input$official_vaccination
       )
 
       returnValue(new_weights)
@@ -387,10 +381,10 @@ emissionFactorWeightsServer <- function(id, current_weights) {
       default_weights <- riskintrodata::get_erf_weights()
 
       for (factor in surveillance_factors) {
-        updateSliderInput(session, paste0("wt_", factor), value = default_weights[[factor]])
+        updateSliderInput(session, factor, value = default_weights[[factor]])
       }
       for (factor in control_factors) {
-        updateSliderInput(session, paste0("wt_", factor), value = default_weights[[factor]])
+        updateSliderInput(session, factor, value = default_weights[[factor]])
       }
     })
 
