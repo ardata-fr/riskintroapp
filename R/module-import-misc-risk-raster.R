@@ -324,6 +324,8 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
           name = input$name,
           type = "raster",
           join_by = "eu_id",
+          initial_scale = input$scale,
+          risk_col = input$risk_col,
           dataset = dataset,
           rescale_args = list()
         )
@@ -384,6 +386,16 @@ config_is_valid.import_misc_raster <- function(x, ...) {
     )
     return(status)
   }
+
+
+  if (parameters$name %in% c('epi_units', "emission_risk_factors", "overall_risk")) {
+    status <- build_config_status(
+      value = FALSE,
+      msg = "This risk name is reserved."
+    )
+    return(status)
+  }
+
 
   # scale ----
   if (is.null(parameters$scale)) {
