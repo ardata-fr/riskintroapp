@@ -31,7 +31,8 @@ server <- function(input, output, session) {
   updated_workspace <- workspaceServer(
     id = "workspace",
     settings = list(),
-    datasets = datasets # Used for saving workspace
+    datasets = datasets,
+    misc_risks = misc_risk_meta
   )
   ## Load ----
   observeEvent(updated_workspace(), ignoreInit = TRUE, {
@@ -83,10 +84,18 @@ server <- function(input, output, session) {
 
   # Risk analysis modules ----
   ## misc_risks ----
-  misc_risk_table <- miscRiskServer(
+  misc_risk_config <- miscRiskServer(
     id = "misc",
-    epi_units = reactive(datasets$epi_units)
+    epi_units = reactive(datasets$epi_units),
+    updated_workspace = updated_workspace
   )
+  misc_risk_table <- reactiveVal(NULL)
+  misc_risk_meta <- reactiveVal(NULL)
+  observeEvent(misc_risk_config(), {
+    conf <- misc_risk_config()
+    misc_risk_table(conf$misc_risk_table)
+    misc_risk_meta(conf$misk_risk_meta)
+  })
 
   borderRiskServer(
     id = "border",

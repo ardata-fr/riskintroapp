@@ -1,3 +1,4 @@
+.input_datasets <- c("epi_units", "emission_risk_factors")
 
 #' Workspace Management Module UI
 #'
@@ -46,7 +47,7 @@ workspaceUI <- function(id) {
 #' @export
 #' @importFrom shiny
 #'  downloadButton modalButton downloadHandler reactiveValuesToList
-workspaceServer <- function(id, datasets, settings) {
+workspaceServer <- function(id, datasets, settings, misc_risks) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -82,19 +83,28 @@ workspaceServer <- function(id, datasets, settings) {
         paste0(tools::file_path_sans_ext(trimws(input$modal_save_name)), ".zip")
       },
       content = function(file) {
-        input_datasets <- c("epi_units", "emission_risk_factors")
+
         to_save <- reactiveValuesToList(datasets)
 
+
+
         # only save input datasets
-        to_save <- to_save[names(to_save) %in% input_datasets]
+        to_save <- to_save[names(to_save) %in% .input_datasets]
         to_save <- nullify(to_save)
 
+        misc_risk_data <- lapply(misc_risks(), function(x) {x$dataset})
+        misc_risk_settings <- lapply(misc_risks(), function(x) {x[!names(x) %in% "dataset"]})
+
+        to_save <- append(to_save, misc_risk_data)
         safely_save_workspace <- purrr::safely(save_workspace)
         save_result <- safely_save_workspace(
           file = file,
           datasets = to_save,
-          settings = settings
+          settings = list(
+            other_settings = settings,
+            misc_risks = misc_risk_settings
           )
+        )
         removeModal()
         if (isTruthy(save_result$error)) {
           popup_alert_error(
@@ -139,13 +149,15 @@ workspaceServer <- function(id, datasets, settings) {
         )
         return()
       }
-      new_datasets <- result$result$datasets
+
+      # Validate input datasets ---------
+      inputs_to_validate <- result$result$datasets[.input_datasets]
       validated_datasets <- list()
       validate_msg <- list()
       safely_validate_dataset <- safely(validate_dataset)
-      for (name in names(new_datasets)) {
+      for (name in names(inputs_to_validate)) {
         validation_status <- safely_validate_dataset(
-          x = new_datasets[[name]], table_name = name
+          x = inputs_to_validate[[name]], table_name = name
         )
         if(is_error(validation_status$error)){
           popup_alert_error(
@@ -170,8 +182,25 @@ workspaceServer <- function(id, datasets, settings) {
           do.call(tagList, validate_msg)
         ))
       }
-      updated_workspace(list(datasets = validated_datasets,
-                         settings = result$settings))
+
+      # misc_data ---------
+      misc_settings <- result$result$settings$misc_risks
+      misc_dataset_names <- names(misc_settings)
+      # add datasets into misc risk settings
+      for (name in misc_dataset_names) {
+        curr_dataset <- result$result$datasets[[name]]
+        curr_settings <- misc_settings[[name]]
+        attr(curr_dataset, "scale") <- curr_settings$initial_scale
+        attr(curr_dataset, "join_by") <- curr_settings$join_by
+        attr(curr_dataset, "risk_col") <- curr_settings$risk_col
+        misc_settings[[name]]$dataset <- curr_dataset
+      }
+      out <- list(
+        datasets = validated_datasets,
+        settings = result$settings,
+        misc_settings = misc_settings
+      )
+      updated_workspace(out)
     })
 
     updated_workspace

@@ -4,7 +4,7 @@
 \alias{workspaceServer}
 \title{Workspace Management Module Server}
 \usage{
-workspaceServer(id, datasets, settings)
+workspaceServer(id, datasets, settings, misc_risks)
 }
 \arguments{
 \item{id}{Character string. The namespace id for the module.}

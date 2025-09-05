@@ -69,7 +69,7 @@ miscRiskUI <- function(id) {
 #'  renderLeaflet leafletProxy addPolygons
 #' @importFrom reactable
 #'  reactable renderReactable
-miscRiskServer <- function(id, epi_units) {
+miscRiskServer <- function(id, epi_units, updated_workspace) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -77,6 +77,16 @@ miscRiskServer <- function(id, epi_units) {
 
       # miscRiskMetaData ----
       miscRiskMetaData <- reactiveVal(list())
+
+      observeEvent(updated_workspace(), {
+        ws <- updated_workspace()
+        miscRiskMetaData(ws$misc_settings)
+        updateSelectInput(
+          inputId = "select_risk",
+          choices = names(ws$misc_settings),
+          selected = names(ws$misc_settings)[[1]]
+        )
+      })
 
       # selectedDataset ----
       selectedDataset <- reactive({
@@ -98,20 +108,6 @@ miscRiskServer <- function(id, epi_units) {
         if(length(metadata) == 0) {
           ll <- leafletProxy(mapId = "map")
           leaflet::clearShapes(ll)
-        }
-      })
-
-      # miscRiskTable ----
-      miscRiskTable <- reactive({
-        req(epi_units())
-        req(configIsValid())
-        if (length(miscRiskMetaData()) > 0) {
-          build_misc_risk_table(
-            epi_units = epi_units(),
-            risk_list =  miscRiskMetaData()
-            )
-        } else {
-          NULL
         }
       })
 
@@ -243,13 +239,37 @@ miscRiskServer <- function(id, epi_units) {
         }
       })
 
-      returnData <- reactiveVal(NULL)
-      observe({
+      # miscRiskTable ----
+      miscRiskTable <- reactive({
+        req(epi_units())
+        req(configIsValid())
+        if (length(miscRiskMetaData()) > 0) {
+          build_misc_risk_table(
+            epi_units = epi_units(),
+            risk_list =  miscRiskMetaData()
+          )
+        } else {
+          NULL
+        }
+      })
+
+      miscRiskTableReturn <- reactive({
         mrt <- req(miscRiskTable())
         # Remove columns that will not be needed downstream
         mrt <- sf::st_drop_geometry(mrt)
         mrt$eu_name <- NULL
-        returnData(mrt)
+        mrt
+      })
+
+      returnData <- reactiveVal(NULL)
+      observe({
+        out <- list(
+          # return meta data even if config is not valid
+          # so that imported data can be saved to workspace
+          misc_risk_table = if(configIsValid()) miscRiskTableReturn() else NULL,
+          misk_risk_meta = miscRiskMetaData()
+        )
+        returnData(out)
       })
       return(returnData)
     })
