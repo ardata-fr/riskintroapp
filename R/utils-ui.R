@@ -48,6 +48,7 @@ app_header <- function() {
         });
       ")),
     tags$style(".dropdown-menu {z-index: 10000;}"),
+    tags$style(".sidebar {overflow: visible !important;}"),
     tags$style(HTML("
           #navbar-title {
             margin: 0 !important;

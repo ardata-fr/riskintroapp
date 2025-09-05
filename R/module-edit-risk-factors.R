@@ -352,7 +352,8 @@ riskFactorEditorUI <- function(id, country_id) {
               dateInput(
                 inputId = ns("outbreak_date"),
                 label = NULL,
-                value = NULL
+                value = NULL,
+                format = "dd-mm-yyyy"
               )
             )
           ),
@@ -469,13 +470,15 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
         existing_row[1, ] # Take first row if multiple, although it should never happen
       } else {
         # Return template_row if no existing data - will replace with values
-        new_row <- emission_risk_factors()[1,]
-        new_row[
-          ,
-          !colnames(new_row) %in% c("disease", "animal_category", "species")
-        ] <- NA
-        new_row$iso3 <- target_country
-        new_row$country <- riskintrodata::iso3_to_name(target_country)
+
+        study_settings <- emission_risk_factors()[1,c("disease", "animal_category", "species")]
+        new_row <- riskintrodata::erf_row(
+          iso3 = target_country,
+          country = riskintrodata::iso3_to_name(target_country),
+          disease = study_settings$disease,
+          animal_category = study_settings$animal_category,
+          species = study_settings$species
+        )
         new_row
       }
     })
@@ -485,23 +488,22 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
 
     # calculate real-time scores using riskintroanalysis::calc_emission_risk ----
     current_scores <- reactive({
+
       # Create a temporary data frame with current input values
       temp_row <- edit_row()
 
-      # Update with current input values (convert UI TRUE/FALSE to data 0/1)
+      # Update with current input values
       for (factor in all_risk_factors) {
         temp_row[[factor]] <- if (input[[factor]] %||% FALSE) 1 else 0
       }
-
       # Handle outbreak status
       temp_row$last_outbreak_end_date <- switch(
-        input$outbreak_status %||% "none",
+        input$outbreak_status %||% "current",
         "none" = as.Date("1900-01-01"),
         "current" = as.Date("2999-01-01"),
         "past" = input$outbreak_date %||% as.Date("1900-01-01")
       )
 
-      # Use calc_emission_risk to get all scores consistently
       result <- riskintroanalysis::calc_emission_risk(temp_row, keep_scores = TRUE)
 
       return(result)
@@ -616,7 +618,7 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
     observe({
       country_data <- edit_row()
 
-      # Convert data values (0/1/NA) to UI logic (TRUE/FALSE)
+      # UI  : F = measure in place (good), T = no measure (risk), NA is converted to F
       # Data: 0 = measure in place (good), 1 = no measure (risk), NA = unknown (risk)
 
       for (factor in c(surveillance_factors, control_factors, commerce_factors)) {
@@ -648,6 +650,7 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id) {
       }
 
     })
+
 
     # Gather inputs -----------
     # Reactive value to store the updated row data
