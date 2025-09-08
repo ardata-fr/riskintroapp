@@ -31,7 +31,11 @@ ui <- function() {
       layout_sidebar(
         sidebar = sidebar(
           title = "Epidemiological units",
-          importEpiUnitsUI("import_epi_units"),
+          actionButton(
+            inputId = "import_epi_units",
+            label = "Import epidemiological units",
+            icon = icon("upload")
+          ),
           summariseScoresUI("summarise_risk_table"),
           exportUI()
         ),

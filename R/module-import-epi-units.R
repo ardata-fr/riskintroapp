@@ -8,11 +8,63 @@
 #' @export
 #' @importFrom shiny NS actionButton
 importEpiUnitsUI <- function(id) {
-  ns <- shiny::NS(id)
-  actionButton(
-    inputId = ns("do_import_epi_units"),
-    label = "Import",
-    width = "100%"
+  ns <- NS(id)
+
+  modalDialog(
+    title = "Import epidemiological units",
+    size = "l",
+    easyClose = TRUE,
+    fade = TRUE,
+    fluidRow(column(
+      width = 10, offset = 1,
+      tags$p("Import a geospatial file with Browse..."),
+      tags$p("For shapefiles (shp), make sure to select all the neccessary files."),
+      fileInput(
+        inputId = ns("file"),
+        label = NULL,
+        multiple = TRUE,
+        accept = c(
+          ".shp",
+          ".dbf",
+          ".sbn",
+          ".sbx",
+          ".shx",
+          ".prj",
+          ".gpkg",
+          ".geojson",
+          ".qmd",
+          ".cpg"
+        ),
+        width = "100%"
+      ),
+      uiOutput(ns("import_error")),
+      navset_card_tab(
+        id = ns("panel_ui"),
+        nav_panel(
+          title = "Map view",
+          leafletOutput(outputId = ns("map_preview"))
+        ),
+        nav_panel(
+          title = "Table view",
+          reactableOutput(outputId = ns("table_preview"))
+        )
+      ),
+      uiOutput(ns("dragula")),
+      uiOutput(ns("dataset_validation"))
+    )),
+    footer = list(
+      uiOutput(ns("config_is_valid")),
+      actionButton(
+        inputId = ns("apply"),
+        class = "btn-primary",
+        label = "Import",
+        disabled = TRUE),
+      actionButton(
+        inputId = ns("cancel"),
+        label = "Cancel",
+        class = "btn-default"
+      )
+    )
   )
 }
 
@@ -47,10 +99,8 @@ importEpiUnitsServer <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # File import ----
     importTable <- reactiveVal(NULL)
-    validationStatus <- reactiveVal(NULL)
-    returnDataset <- reactiveVal(NULL)
-
     observeEvent(input$file, {
       file <- input$file
       # Handling shapefiles differently because they are made up of multiple files
@@ -65,22 +115,34 @@ importEpiUnitsServer <- function(id) {
       importTable(polygon)
     })
 
+    # import_error ----
     output$import_error <- renderUI({
       req(importTable())
-      req(isTruthy(importTable()$error))
-      shinyWidgets::alert(
-        HTML(paste("Unable to import file:", tags$br(), importTable()$error)),
-        status = "danger"
-      )
+      if (is_error(importTable()$error)) {
+        alert_error(
+          text = "Error while reading file:",
+          error = importTable()$error
+        )
+      } else {
+        alert(
+          status = "success",
+          sprintf("File geometry found in column: \"%s\"",  attr(importTable()$result, "sf_column"))
+        )
+      }
     })
+
+    # Map ----
     output$map_preview <- renderLeaflet({
       req(importTable(), !isTruthy(importTable()$error))
       preview_map(importTable()$result)
     })
+    # Table ----
     output$table_preview <- renderReactable({
       req(importTable(), !isTruthy(importTable()$error))
       reactable(importTable()$result)
     })
+
+    # Dragula UI ----
     output$dragula <- renderUI({
       req(importTable())
       req(importTable()$result)
@@ -115,7 +177,8 @@ importEpiUnitsServer <- function(id) {
       )
     })
 
-    observe({
+    # configIsValid ----
+    configIsValid <- reactive({
       req(importTable())
       dataset <- req()
       mapping <- req(input$col_mapping)
@@ -123,95 +186,59 @@ importEpiUnitsServer <- function(id) {
       args <- append(
         args,list(x = importTable()$result,
                   table_name = "epi_units"))
-      validation_status <- do.call(validate_dataset, args)
-      validationStatus(validation_status)
-    })
 
-    output$validation_error <- renderUI({
-      validation_status_ui(validationStatus())
-    })
-
-    # Modal UI ----
-    observeEvent(input$do_import_epi_units, {
-      showModal(modalDialog(
-        width = 10, offset = 1,
-        title = "Import epidemiological units",
-        size = "l",
-        easyClose = TRUE,
-        fade = TRUE,
-        fluidRow(column(
-          width = 10, offset = 1,
-          tags$p("Import a geospatial file with Browse..."),
-          tags$p("For shapefiles (shp), make sure to select all the neccessary files."),
-          fileInput(
-            inputId = ns("file"),
-            label = NULL,
-            multiple = TRUE,
-            accept = c(
-              ".shp",
-              ".dbf",
-              ".sbn",
-              ".sbx",
-              ".shx",
-              ".prj",
-              ".gpkg",
-              ".geojson",
-              ".qmd",
-              ".cpg"
-            ),
-            width = "100%"
-          ),
-          uiOutput(ns("import_error")),
-          navset_card_tab(
-            id = ns("panel_ui"),
-            nav_panel(
-              title = "Map view",
-              leafletOutput(outputId = ns("map_preview"))
-            ),
-            nav_panel(
-              title = "Table view",
-              reactableOutput(outputId = ns("table_preview"))
-            )
-          ),
-          uiOutput(ns("dragula")),
-          uiOutput(ns("validation_error"))
-        )),
-      footer = list(
-        actionButton(
-          inputId = ns("apply"),
-          class = "btn-primary",
-          label = "Import",
-          disabled = TRUE),
-        actionButton(
-          inputId = ns("cancel"),
-          label = "Cancel",
-          class = "btn-default"
+      safely_validate_dataset <- safely(validate_dataset)
+      res <- do.call(safely_validate_dataset, args)
+      # catch all in case of errors
+      if (is_error(res$error)) {
+        status <- build_config_status(
+          value = FALSE,
+          msg = res$error
         )
-      )
-      ))
-
-      apply_btn_observer <<- observe({
-        if (is_dataset_valid(validationStatus())) {
-          shinyjs::enable("apply")
-        } else {
-          disable(id = "apply")
-        }
-      })
+        res$status <- status
+      } else if (is_dataset_valid(res$result)) {
+        status <- build_config_status(
+          value = TRUE,
+          msg = "Import configuration is valid."
+        )
+        res$status <- status
+      } else {
+        status <- build_config_status(
+          value = FALSE,
+          msg = "Dataset is not valid, see above."
+        )
+        res$status <- status
+      }
+      res
     })
+
+    output$dataset_validation <- renderUI({
+      browser()
+      validation_status_ui(configIsValid()$result)
+    })
+
+    output$config_is_valid <- renderUI({
+      report_config_status(configIsValid()$status)
+    })
+
+    observe({
+      if (configIsValid()$status) {
+        shinyjs::enable("apply")
+      } else {
+        disable(id = "apply")
+      }
+    })
+
+    # returnDataset ----
+    returnDataset <- reactiveVal(NULL)
+
     observeEvent(input$apply,{
       removeModal()
-      if (!is.null(apply_btn_observer)) {
-        apply_btn_observer$destroy()
-        apply_btn_observer <- NULL
-      }
-      returnDataset(extract_dataset(validationStatus()))
+      returnDataset(extract_dataset(configIsValid()$result))
     })
+
     observeEvent(input$cancel,{
       removeModal()
-      if (!is.null(apply_btn_observer)) {
-        apply_btn_observer$destroy()
-        apply_btn_observer <- NULL
-      }
     })
 
     returnDataset
