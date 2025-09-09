@@ -1,33 +1,33 @@
 #' @importFrom shinyWidgets alert panel list_group
+#' @importFrom shiny tagList
 validation_status_ui <- function(status){
-  args <- list()
-
   if(is.null(status)) return(NULL)
-
   if(is_dataset_valid(status)) {
-    return(
-      shinyWidgets::alert(
-        tags$text("Dataset has been validated."),
-        status = "success"
-      ))
+    panel_status <- "success"
   } else {
-    details <- status$validate_rules$details
-    details <- details[!details$valid, ]
-    details_msg <- unnest_validatation_status_details(details)
-    args$val_rules <- shinyWidgets::panel(
-      heading = status$validate_rules$msg,
-      extra = do.call(list_group, details_msg),
-      status = "danger"
-    )
+    panel_status <- "danger"
   }
-  if (length(args) > 0) do.call(tagList, args) else NULL
+  details <- status$validate_rules$details
+  details <- details[!details$valid, ]
+  # When data set is valud, details_msg is an empty list()
+  # the UI will show only the title saying dataset is valid.
+  details_msg <- unnest_validatation_status_details(details)
+  args <- list()
+  args$val_rules <- shinyWidgets::panel(
+    heading = status$validate_rules$msg,
+    extra = do.call(list_group, details_msg),
+    status = panel_status
+  )
+  do.call(tagList, args)
 }
 
 unnest_validatation_status_details <- function(details){
   details_msg <- list()
   for (i in seq_len(nrow(details))) {
     r <- details[i, ]
-    if (length(unlist((r$value))) > 1) {
+    if (r$vectorised_check) {
+      # Vectorised checks get precise messages detailing which values are invalid
+      # and where
       details_msg[[i]] <- tagList(
         tags$text(tags$strong(r$msg)),
         tags$ul(
@@ -36,7 +36,7 @@ unnest_validatation_status_details <- function(details){
         )
       )
     } else {
-      # short msg (no example values, no 'lines at')
+      # Non-vectorised checks get short msg that applies to the whole column
       details_msg[[i]] <- tagList(tags$text(tags$strong(r$msg)))
     }
   }

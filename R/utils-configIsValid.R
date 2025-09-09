@@ -97,7 +97,7 @@ is_non_empty_single_logical <- function(x) {
 #' Render a simple Shiny-friendly UI element that shows
 #' a green checkmark with the message if valid, or a red cross
 #' with the message if invalid.
-#' @param status an object created by [build_config_status()]
+#' @param status an object created by `build_config_status`
 #' @return a shiny::tagList containing an icon and message
 #' @examples
 #' status <- build_config_status(TRUE, "All good")

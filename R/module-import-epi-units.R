@@ -148,11 +148,14 @@ importEpiUnitsServer <- function(id) {
       req(importTable()$result)
       dataset <- req(importTable()$result)
       sources <- colnames(dataset)
+      # remove geometry as an option, it is handled automatically
+      sources <- sources[sources != attr(dataset, "sf_column")]
       spec <- riskintrodata:::.spec_epi_units
       required <- map(spec, \(x) x[["required"]])
       optional <- names(required)[!unlist(required)]
       optional_label <- paste(optional, "(optional)")
       required <- names(required)[unlist(required)]
+      # remove geometry as an option, it is handled automatically
       required <- required[required != "geometry"]
       targetsLabels <- c(required, optional_label)
       targetsIds <- c(required, optional)
@@ -213,7 +216,6 @@ importEpiUnitsServer <- function(id) {
     })
 
     output$dataset_validation <- renderUI({
-      browser()
       validation_status_ui(configIsValid()$result)
     })
 
