@@ -8,11 +8,11 @@ server <- function(input, output, session) {
 
   # Initialise maps ----
   baseLeafletRT <- reactive({basemap()})
-  output$map_ri_summary <- renderLeaflet({
+  output$map <- renderLeaflet({
     req(baseLeafletRT())
     baseLeafletRT()
   })
-  outputOptions(output, "map_ri_summary", suspendWhenHidden = FALSE)
+  outputOptions(output, "map", suspendWhenHidden = FALSE)
 
   # Datasets -----
   datasets <- reactiveValues(

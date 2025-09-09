@@ -38,11 +38,11 @@ ui <- function() {
           ),
           tags$hr(),
           summariseScoresUI("summarise_risk_table"),
-          tags$hr(),
+
           exportUI()
         ),
         leafletOutput(
-          outputId = "map_ri_summary",
+          outputId = "map",
           width = "100%",
           height = "85vh"
         )

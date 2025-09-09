@@ -4,7 +4,7 @@
 \alias{importEpiUnitsServer}
 \title{Epidemiological Units Import Module Server}
 \usage{
-importEpiUnitsServer(id)
+importEpiUnitsServer(id, is_overwriting)
 }
 \arguments{
 \item{id}{Character string. The namespace id for the module.}
