@@ -545,7 +545,7 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
 
     # display real-time scores ----
     observe({
-      # Individual surveillance scores
+      ## Individual scores ----
       session$sendCustomMessage("updateScore", list(
         id = ns("score_disease_notification"),
         value = if (input$disease_notification %||% FALSE) current_weights()$disease_notification else 0
@@ -562,8 +562,6 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
         id = ns("score_screening"),
         value = if (input$screening %||% FALSE) current_weights()$screening else 0
       ))
-
-      # Individual control scores
       session$sendCustomMessage("updateScore", list(
         id = ns("score_precautions_at_the_borders"),
         value = if (input$precautions_at_the_borders %||% FALSE) current_weights()$precautions_at_the_borders else 0
@@ -584,8 +582,6 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
         id = ns("score_official_vaccination"),
         value = if (input$official_vaccination %||% FALSE) current_weights()$official_vaccination else 0
       ))
-
-      # Commerce scores
       session$sendCustomMessage("updateScore", list(
         id = ns("score_commerce_legal"),
         value = paste0(if (input$commerce_legal %||% FALSE) 1 else 0, "/1")
@@ -594,14 +590,12 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
         id = ns("score_commerce_illegal"),
         value = paste0(if (input$commerce_illegal %||% FALSE) 3 else 0, "/3")
       ))
-
-      # Outbreak score (rounded to 1 decimal)
       session$sendCustomMessage("updateScore", list(
         id = ns("score_outbreak"),
         value = paste0(round(outbreak_score(), 1), "/3")
       ))
 
-      # Subtotals
+      ## Subtotals ----
       session$sendCustomMessage("updateScore", list(
         id = ns("surveillance_subtotal"),
         value = round(surveillance_score(), 2)
@@ -612,11 +606,11 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("commerce_subtotal"),
-        value = round(commerce_score(), 1)
+        value = round(commerce_score())
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("epi_subtotal"),
-        value = round(outbreak_score(), 1)
+        value = round(outbreak_score(), 2)
       ))
 
       # Grand total
