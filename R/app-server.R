@@ -131,20 +131,20 @@ server <- function(input, output, session) {
   settings <- reactiveVal(list())
 
   # nav_panel navigation ----
-  observeEvent(input$nav_border_risk, {
-    nav_select(id = "navbar", selected = "nav_border_risk")
-  })
-  observeEvent(input$nav_animal_movement_risk, {
-    nav_select(id = "navbar", selected = "nav_animal_movement_risk")
-  })
-  observeEvent(input$nav_road_access_risk, {
-    nav_select(id = "navbar", selected = "nav_road_access_risk")
-  })
+  # observeEvent(input$nav_border_risk, {
+  #   nav_select(id = "navbar", selected = "nav_border_risk")
+  # })
+  # observeEvent(input$nav_animal_movement_risk, {
+  #   nav_select(id = "navbar", selected = "nav_animal_movement_risk")
+  # })
+  # observeEvent(input$nav_road_access_risk, {
+  #   nav_select(id = "navbar", selected = "nav_road_access_risk")
+  # })
+  # observeEvent(input$nav_entry_point_risk, {
+  #   nav_select(id = "navbar", selected = "nav_entry_point_risk")
+  # })
   observeEvent(input$nav_misc_risk, {
     nav_select(id = "navbar", selected = "nav_misc_risk")
-  })
-  observeEvent(input$nav_entry_point_risk, {
-    nav_select(id = "navbar", selected = "nav_entry_point_risk")
   })
 
   # Update maps ----
