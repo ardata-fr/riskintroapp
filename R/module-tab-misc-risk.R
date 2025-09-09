@@ -126,25 +126,20 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
         ll <- leafletProxy(mapId = "map")
         leaflet::clearShapes(ll)
         req(input$select_risk)
-        labels <- generate_leaflet_labels(mrt)
-        pal <- leaflet::colorNumeric(
-          palette = "viridis",
-          domain = c(0, 100),
-          reverse = TRUE,
-          na.color = "lightgrey",
-        )
+        pal <- riskintroanalysis::scorePalette(scale = c(0, 100))
         leaflet::clearShapes(ll)
         leaflet::addPolygons(
           ll,
           data = mrt,
-          label = labels,
+          label = generate_leaflet_labels(mrt),
           weight = 1,
           opacity = 1,
           color = "white",
           dashArray = "3",
           fillOpacity = 0.8,
           fillColor = pal(mrt[[input$select_risk]])
-        )
+        ) |>
+          addScoreLegend(title = input$select_risk)
       })
 
       # # table ----
@@ -313,11 +308,24 @@ config_is_valid_misc_risks <- function(x) {
       return(status)
     }
 
+    for (i in seq_along(x$rescale_args)) {
+      this_arg <- x$rescale_args[i]
+      if(is.null(this_arg[[1]]) || length(this_arg[[1]]) == 0) {
+        status <- build_config_status(
+          value = FALSE,
+          msg = sprintf("Rescaling parmeter \"%s\" is missing.", names(this_arg))
+        )
+        return(status)
+      }
+    }
+
     build_config_status(
       value = TRUE,
       msg = "Selected risk is properly configured."
     )
   })
+
+
 
   if(any(!unlist(all_statuses))) {
     false_statuses <- Filter(f = isFALSE, x = all_statuses)
