@@ -36,7 +36,9 @@ ui <- function() {
             label = "Import epidemiological units",
             icon = icon("upload")
           ),
+          tags$hr(),
           summariseScoresUI("summarise_risk_table"),
+          tags$hr(),
           exportUI()
         ),
         leafletOutput(

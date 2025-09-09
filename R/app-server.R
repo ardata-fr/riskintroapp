@@ -56,7 +56,10 @@ server <- function(input, output, session) {
   observeEvent(input$import_epi_units,{
     showModal(importEpiUnitsUI(id = "import_epi_units"))
   })
-  new_epi_units <- importEpiUnitsServer(id = "import_epi_units")
+  new_epi_units <- importEpiUnitsServer(
+    id = "import_epi_units",
+    is_overwriting = reactive(isTruthy(datasets$epi_units)))
+
   observeEvent(new_epi_units(),{
     datasets$epi_units <- new_epi_units()
   })

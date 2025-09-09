@@ -13,7 +13,7 @@ importEpiUnitsUI <- function(id) {
   modalDialog(
     title = "Import epidemiological units",
     size = "l",
-    easyClose = TRUE,
+    easyClose = FALSE,
     fade = TRUE,
     fluidRow(column(
       width = 10, offset = 1,
@@ -95,7 +95,7 @@ importEpiUnitsUI <- function(id) {
 #'  leafletOutput renderLeaflet
 #' @importFrom riskintrodata
 #'  validate_dataset is_dataset_valid extract_dataset
-importEpiUnitsServer <- function(id) {
+importEpiUnitsServer <- function(id, is_overwriting) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -117,6 +117,11 @@ importEpiUnitsServer <- function(id) {
 
     # import_error ----
     output$import_error <- renderUI({
+      if (is_overwriting() && is.null(importTable())) {
+        return(alert(
+            status = "warning", "Importing a new dataset will overwrite the existing one."
+          ))
+      }
       req(importTable())
       if (is_error(importTable()$error)) {
         alert_error(
@@ -237,10 +242,12 @@ importEpiUnitsServer <- function(id) {
     observeEvent(input$apply,{
       removeModal()
       returnDataset(extract_dataset(configIsValid()$result))
+      importTable(NULL)
     })
 
     observeEvent(input$cancel,{
       removeModal()
+      importTable(NULL)
     })
 
     returnDataset
