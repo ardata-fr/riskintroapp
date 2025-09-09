@@ -106,8 +106,8 @@ importEmissionRiskFactorsServer <- function(id) {
           fluidRow(
             column(
               width = 10, offset = 1,
-              tags$h3("Select filters for your study"),
-              tags$text("INSERT LABEL HERE"),
+              tags$h3("Import WAHIS data"),
+              tags$text("Filter settings for your study."),
               shinyWidgets::panel(
                 select_group_ui(
                   id = ns("my_filters"),
