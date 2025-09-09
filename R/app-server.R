@@ -68,14 +68,10 @@ server <- function(input, output, session) {
     epi_units <- req(datasets$epi_units)
     bb <- sf::st_bbox(epi_units)
     leaflet::flyToBounds(
-      map = leafletProxy("map_ri_summary"),
+      map = leafletProxy("map"),
       lng1 = bb$xmin[[1]], lat1 = bb$ymin[[1]],
       lng2 = bb$xmax[[1]], lat2 = bb$ymax[[1]]
       )
-    datasets$risk_table <- riskintroanalysis::risk_table(
-      epi_units = epi_units,
-      scale = c(0, 100)
-    )
   })
 
   # emission_scores ----
@@ -147,19 +143,18 @@ server <- function(input, output, session) {
     nav_select(id = "navbar", selected = "nav_misc_risk")
   })
 
-  # Update maps ----
-  ## Risk summary map -----
+  # Risk summary map -----
   risk_table_summary <- summariseScoresServer(
     id = "summarise_risk_table",
-    risk_table = reactive(datasets$risk_table),
+    epi_units = reactive(datasets$epi_units),
     misc_risk_table = misc_risk_table
   )
   observe({
     req(baseLeafletRT())
-    rt <- req(risk_table_summary())
+    req(risk_table_summary())
     plot_risk_interactive(
-      dataset = rt,
-      ll = leafletProxy("map_ri_summary")
+      dataset = risk_table_summary(),
+      ll = leafletProxy("map")
     )
   })
 
