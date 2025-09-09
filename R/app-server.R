@@ -164,7 +164,8 @@ server <- function(input, output, session) {
     id = "export_module",
     files = reactive(list(
       "Epidemiological units" = datasets$epi_units,
-      "Table of introduction risks" = datasets$risk_table
+      "Epidemiological units with all introduction scores" = risk_table_summary(),
+      "Intoduction scores table" = sf::st_drop_geometry(risk_table_summary())
     ))
   )
 
