@@ -262,11 +262,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
       output$raw_map <- renderLeaflet({
         req(configIsValid())
         raster_layer <- importRaster()[[input$layer]]
-        pal <- colorNumeric(
-          "viridis",
-          input$scale,
-          na.color = "transparent"
-        )
+        pal <- riskintroanalysis::riskPalette(scale = input$scale)
         basemap() |>
           addRasterImage(
             raster_layer,
@@ -274,10 +270,9 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
             opacity = 0.8,
             group = "raster",
           ) |>
-          addLegend_decreasing(
-            pal = pal,
-            values = input$scale,
-            title = "Raw Values"
+          addRiskLegend(
+            scale = input$scale,
+            title = "Raw values"
           )
       })
 
@@ -286,11 +281,8 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
         req(configIsValid())
         extracted_risk <- extractedRisk()
         risk_values <- extracted_risk[[input$name]]
-        pal <- leaflet::colorNumeric(
-          palette = "inferno",
-          domain = input$scale,
-          na.color = "lightgrey"
-        )
+        pal <- riskintroanalysis::scorePalette(scale = input$scale)
+
         basemap() |>
           addPolygons(
             data = extracted_risk,
@@ -305,10 +297,9 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
             ),
             group = "risk"
           ) |>
-          addLegend_decreasing(
-            pal = pal,
-            values = input$scale,
-            title = "Aggregated Score"
+          addRiskLegend(
+            scale = input$scale,
+            title = "Aggregated risk"
           )
       })
 
@@ -327,7 +318,13 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
           initial_scale = input$scale,
           risk_col = input$risk_col,
           dataset = dataset,
-          rescale_args = list()
+          rescale_args = list(
+            cols = input$name,
+            from = input$scale,
+            to = c(0, 100),
+            method = "linear",
+            inverse = FALSE
+          )
         )
         returnList(new_raster_risk)
       })

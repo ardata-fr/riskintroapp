@@ -179,11 +179,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
         )
 
         risk_values <- risk_data_sf[[input$risk_name]]
-        pal <- leaflet::colorNumeric(
-          palette = "inferno",
-          domain = input$scale,
-          na.color = "lightgrey"
-        )
+        pal <- riskintroanalysis::riskPalette(scale = input$scale)
         basemap() |>
           addPolygons(
             data = risk_data_sf,
@@ -198,9 +194,8 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
             ),
             group = "risk"
           ) |>
-          addLegend_decreasing(
-            pal = pal,
-            values = input$scale,
+          riskintroanalysis::addRiskLegend(
+            scale = input$scale,
             title = "Aggregated Score"
           )
       })
@@ -263,7 +258,13 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
             initial_scale = input$scale,
             risk_col = input$risk_name,
             dataset = dataset,
-            rescale_args = list()
+            rescale_args = list(
+              cols = input$risk_name,
+              from = input$scale,
+              to = c(0, 100),
+              method = "linear",
+              inverse = FALSE
+            )
           )
         returnList(new_precalc_risk)
       })
