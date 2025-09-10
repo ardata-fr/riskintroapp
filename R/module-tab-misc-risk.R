@@ -146,7 +146,14 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
       output$table <- renderReactable({
         mrt <- req(miscRiskTable())
         mrt <- sf::st_drop_geometry(mrt)
-        reactable::reactable(mrt)
+        mrt <- dplyr::mutate(mrt, across(where(is.numeric), \(x) round(x, 3)))
+        reactable::reactable(
+          mrt,
+          searchable = TRUE,
+          filterable = TRUE,
+          showPageSizeOptions = TRUE,
+          defaultPageSize = 100,
+          striped = TRUE)
       })
 
       # configIsValid ----
