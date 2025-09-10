@@ -223,7 +223,6 @@ exportServer <- function(id = "export_module", files) {
       output$dataset_selection_ui <- renderUI({
         datasets_info <- file_types()
         datasets_info <- unlist(datasets_info)
-
         if(length(datasets_info) == 0) {
           return(p("No files available"))
         }
@@ -386,7 +385,7 @@ export_helper <- function(enabled_selections, file_list, file) {
       temp_file <- file.path(temp_dir, paste0(tools::file_path_sans_ext(filename), ".", format))
       write_file_helper(obj, temp_file, format)
     }
-    workspace::pack_folder(temp_dir, file)
+    workspace:::pack_folder(temp_dir, file)
   }
 }
 
