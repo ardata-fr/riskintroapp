@@ -51,7 +51,7 @@ borderRiskUI <- function(id) {
 #' @importFrom reactable reactable renderReactable
 #' @importFrom shiny moduleServer observeEvent reactive req
 #' @importFrom riskintroanalysis calc_border_lengths calc_border_risk
-borderRiskServer <- function(id, epi_units, emission_risk_table) {
+borderRiskServer <- function(id, epi_units, emission_scores) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -66,7 +66,7 @@ borderRiskServer <- function(id, epi_units, emission_risk_table) {
         config_is_valid(
           x = "analyse_border_risk",
           epi_units = epi_units(),
-          emission_risk_table = emission_risk_table(),
+          emission_risk_table = emission_scores(),
           shared_borders = sharedBorders(),
           border_risk_data = borderRiskData(),
           rescaled_border_risk = rescaledRisk()
@@ -99,7 +99,7 @@ borderRiskServer <- function(id, epi_units, emission_risk_table) {
         result <- safely_calc_risk(
           epi_units = epi_units(),
           shared_borders = shared_borders$result,
-          emission_risk = emission_risk_table()
+          emission_risk = emission_scores()
         )
         borderRiskData(result)
       })
@@ -145,14 +145,6 @@ borderRiskServer <- function(id, epi_units, emission_risk_table) {
         reactable::reactable(table_data)
       })
 
-      # # Export ----
-      # observeEvent(input$open_export, {showModal(exportUI(ns("export_module")))})
-      # exportServer(
-      #   id = "export_module",
-      #   files = reactive(list(
-      #     "Border risk" = rescaledRisk()
-      #   ))
-      # )
       # Return risk data ----
       return(borderRiskData)
     }

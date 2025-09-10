@@ -84,11 +84,7 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
         paste0(tools::file_path_sans_ext(trimws(input$modal_save_name)), ".zip")
       },
       content = function(file) {
-
-        to_save <- reactiveValuesToList(datasets)
-
-
-
+        to_save <- datasets()
         # only save input datasets
         to_save <- to_save[names(to_save) %in% .input_datasets]
         to_save <- nullify(to_save)
@@ -140,6 +136,8 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
 
     updated_workspace <- reactiveVal(NULL)
     observeEvent(input$modal_load_file, {
+
+      browser()
       safely_load_workspace <- purrr::safely(load_workspace)
       result <- safely_load_workspace(input$modal_load_file$datapath)
       removeModal()
@@ -152,7 +150,7 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
       }
 
       # Validate input datasets ---------
-      inputs_to_validate <- result$result$datasets[.input_datasets]
+      inputs_to_validate <- nullify(result$result$datasets[.input_datasets])
       validated_datasets <- list()
       validate_msg <- list()
       safely_validate_dataset <- safely(validate_dataset)

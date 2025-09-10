@@ -52,7 +52,7 @@ entryPointsUI <- function(id) {
 #' @importFrom reactable reactable renderReactable
 #' @importFrom shiny moduleServer observeEvent reactive req showModal removeModal
 #' @importFrom riskintroanalysis calc_entry_point_risk
-entryPointsServer <- function(id, epi_units, emission_risk_table) {
+entryPointsServer <- function(id, epi_units, emission_scores ) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -72,7 +72,7 @@ entryPointsServer <- function(id, epi_units, emission_risk_table) {
         config_is_valid(
           x = "analyse_entry_points_risk",
           epi_units = epi_units(),
-          emission_risk_table = emission_risk_table(),
+          emission_risk_table = emission_scores(),
           entry_points_data = entryPointsData(),
           entry_points_risk_data = entryPointsRiskData(),
           rescaled_entry_points_risk = rescaledRisk()
@@ -117,13 +117,13 @@ entryPointsServer <- function(id, epi_units, emission_risk_table) {
 
       # Calculate entry points risk
       observeEvent(input$calculate_risk, {
-        req(entryPointsData(), epi_units(), emission_risk_table())
+        req(entryPointsData(), epi_units(), emission_scores())
 
         safely_calc_risk <- safely(calc_entry_point_risk)
         result <- safely_calc_risk(
           entry_points = entryPointsData(),
           epi_units = epi_units(),
-          emission_risk = emission_risk_table()
+          emission_risk = emission_scores ()
           # Note: Current calc_entry_point_risk doesn't accept scaling parameters
           # These would need to be implemented in a future version of the function
         )

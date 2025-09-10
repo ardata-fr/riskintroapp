@@ -7,48 +7,33 @@
 server <- function(input, output, session) {
 
   # Initialise maps ----
-  baseLeafletRT <- reactive({basemap()})
+  baseLeaflet <- reactive({basemap()})
   output$map <- renderLeaflet({
-    req(baseLeafletRT())
-    baseLeafletRT()
+    req(baseLeaflet())
+    baseLeaflet()
   })
   outputOptions(output, "map", suspendWhenHidden = FALSE)
 
   # Datasets -----
-  datasets <- reactiveValues(
-    epi_units = NULL,
-    emission_risk_factors = NULL,
-    emission_scores = NULL,
-    entry_points = NULL,
-    animal_mobility = NULL,
-    risk_table = NULL,
-    shared_borders = NULL,
-    road_access = NULL,
-    border_risk = NULL
-  )
+
+  epi_units <- reactiveVal(NULL)
+  emission_risk_factors <- reactiveVal(NULL)
 
   # Workspace ----
   updated_workspace <- workspaceServer(
     id = "workspace",
     settings = list(),
-    datasets = datasets,
+    datasets = reactive(list(
+      epi_units = epi_units(),
+      emission_risk_factors = emission_risk_factors()
+    )),
     misc_risks = misc_risk_meta
   )
+
   ## Load ----
   observeEvent(updated_workspace(), ignoreInit = TRUE, {
     new_datasets <- updated_workspace()$datasets
-    to_update <- intersect(names(new_datasets), names(datasets))
-    for (name in to_update){
-      datasets[[name]] <- new_datasets[[name]]
-    }
-    to_delete <- setdiff(names(datasets), names(new_datasets))
-    # delete if not already NULL
-    for (name in to_delete){
-      if (isTruthy(datasets[[name]])){
-        datasets[[name]] <- NULL
-      }
-    }
-    settings(updated_workspace()$settings)
+    epi_units(new_datasets$epi_units)
   })
 
   # Import epi units ----
@@ -58,14 +43,14 @@ server <- function(input, output, session) {
   })
   new_epi_units <- importEpiUnitsServer(
     id = "import_epi_units",
-    is_overwriting = reactive(isTruthy(datasets$epi_units)))
+    is_overwriting = reactive(isTruthy(epi_units())))
 
   observeEvent(new_epi_units(),{
-    datasets$epi_units <- new_epi_units()
+    epi_units(new_epi_units())
   })
 
-  observeEvent(datasets$epi_units, {
-    epi_units <- req(datasets$epi_units)
+  observeEvent(epi_units(), {
+    epi_units <- req(epi_units())
     bb <- sf::st_bbox(epi_units)
     leaflet::flyToBounds(
       map = leafletProxy("map"),
@@ -75,21 +60,19 @@ server <- function(input, output, session) {
   })
 
   # emission_scores ----
-  new_emission_scores <- emissionScoresServer(
+  emission_risk_factors <- reactiveVal(NULL)
+  emission_scores <- emissionScoresServer(
     id = "emission_scores",
+    emission_risk_factors = emission_risk_factors,
     updated_workspace = updated_workspace,
     settings = reactive(list())
   )
-  observe({
-    req(new_emission_scores())
-    datasets$emission_scores <- new_emission_scores()
-  })
 
   # Risk analysis modules ----
   ## misc_risks ----
   misc_risk_config <- miscRiskServer(
     id = "misc",
-    epi_units = reactive(datasets$epi_units),
+    epi_units = epi_units,
     updated_workspace = updated_workspace
   )
   misc_risk_table <- reactiveVal(NULL)
@@ -100,31 +83,39 @@ server <- function(input, output, session) {
     misc_risk_meta(conf$misk_risk_meta)
   })
 
-  borderRiskServer(
+  border_risk <- borderRiskServer(
     id = "border",
-    epi_units = reactive(datasets$epi_units),
-    emission_risk_table = reactive(datasets$emission_scores)
+    epi_units = epi_units,
+    emission_scores = emission_scores
   )
 
-  animalMobilityServer(
+  animal_mobility <- animalMobilityServer(
     id = "animal_mobility",
-    epi_units = reactive(datasets$epi_units)
+    epi_units = epi_units,
+    emission_scores = emission_scores
   )
 
-  roadAccessRiskServer(
+  road_access <- roadAccessRiskServer(
     id = "road_access",
-    epi_units = reactive(datasets$epi_units)
+    epi_units = epi_units
   )
 
-  entryPointsServer(
+  entry_points <- entryPointsServer(
     id = "entry_points",
-    epi_units = reactive(datasets$epi_units),
-    emission_risk_table = reactive(datasets$emission_scores)
+    epi_units = epi_units,
+    emission_scores = emission_scores
   )
 
-  # Settings ----
-  # Analysis settings
-  settings <- reactiveVal(list())
+  core_risks <- reactive(list(
+    border_risk = border_risk,
+    animal_mobility = animal_mobility,
+    road_access = road_access,
+    entry_points = entry_points
+  ))
+
+  observe({
+    core_risks()
+  })
 
   # nav_panel navigation ----
   # observeEvent(input$nav_border_risk, {
@@ -133,9 +124,9 @@ server <- function(input, output, session) {
   # observeEvent(input$nav_animal_movement_risk, {
   #   nav_select(id = "navbar", selected = "nav_animal_movement_risk")
   # })
-  # observeEvent(input$nav_road_access_risk, {
-  #   nav_select(id = "navbar", selected = "nav_road_access_risk")
-  # })
+  observeEvent(input$nav_road_access_risk, {
+    nav_select(id = "navbar", selected = "nav_road_access_risk")
+  })
   # observeEvent(input$nav_entry_point_risk, {
   #   nav_select(id = "navbar", selected = "nav_entry_point_risk")
   # })
@@ -146,11 +137,11 @@ server <- function(input, output, session) {
   # Risk summary map -----
   risk_table_summary <- summariseScoresServer(
     id = "summarise_risk_table",
-    epi_units = reactive(datasets$epi_units),
+    epi_units = epi_units,
     misc_risk_table = misc_risk_table
   )
   observe({
-    req(baseLeafletRT())
+    req(baseLeaflet())
     req(risk_table_summary())
     plot_risk_interactive(
       dataset = risk_table_summary(),
@@ -159,11 +150,13 @@ server <- function(input, output, session) {
   })
 
   # Export -----
-  observeEvent(input$open_export, {showModal(exportUI("export_module"))})
+  observeEvent(input$open_export, {
+    showModal(exportUI("export_module"))
+    })
   exportServer(
     id = "export_module",
     files = reactive(list(
-      "Epidemiological units" = datasets$epi_units,
+      "Epidemiological units" = epi_units(),
       "Epidemiological units with all introduction scores" = risk_table_summary(),
       "Intoduction scores table" = sf::st_drop_geometry(risk_table_summary())
     ))

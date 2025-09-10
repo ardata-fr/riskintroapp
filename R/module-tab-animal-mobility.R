@@ -35,7 +35,7 @@ animalMobilityUI <- function(id) {
   )
 }
 
-animalMobilityServer <- function(id, epi_units) {
+animalMobilityServer <- function(id, epi_units, emission_scores) {
   moduleServer(
     id,
     function(input, output, session) {
