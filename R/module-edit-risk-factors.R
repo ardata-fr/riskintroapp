@@ -411,7 +411,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
 #' @param emission_risk_factors Reactive expression returning the current emission risk factors dataset.
 #'   Should have the same structure as [riskintrodata::get_wahis_erf()].
 #' @param country_id Reactive expression returning the ISO3 country code being edited.
-#'
+#' @param current_weights reactive value containing list of emission risk factor weights.
 #' @return A reactive expression that returns updated data when Apply is clicked,
 #'   or delete operation when Delete is clicked, or NULL when Cancel is clicked.
 #'

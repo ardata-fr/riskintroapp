@@ -52,6 +52,7 @@ jokerManagerUI <- function(id) {
 }
 
 #' @importFrom shinyWidgets show_alert
+#' @importFrom stats setNames
 jokerManagerServer <- function(id, emission_risk_factors) {
 
   moduleServer(id, function(input, output, session) {

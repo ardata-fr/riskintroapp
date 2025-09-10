@@ -69,6 +69,7 @@ miscRiskUI <- function(id) {
 #'  renderLeaflet leafletProxy addPolygons
 #' @importFrom reactable
 #'  reactable renderReactable
+#' @importFrom dplyr across where
 miscRiskServer <- function(id, epi_units, updated_workspace) {
   moduleServer(
     id,

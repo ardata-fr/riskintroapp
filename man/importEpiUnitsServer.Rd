@@ -8,6 +8,8 @@ importEpiUnitsServer(id, is_overwriting)
 }
 \arguments{
 \item{id}{Character string. The namespace id for the module.}
+
+\item{is_overwriting}{reactive logical. Does the dataset being imported already exist?}
 }
 \value{
 A reactive function returning the validated epidemiological units dataset.

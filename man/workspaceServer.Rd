@@ -12,6 +12,8 @@ workspaceServer(id, datasets, settings, misc_risks)
 \item{datasets}{Reactive values containing analysis datasets.}
 
 \item{settings}{Analysis settings to include in workspace.}
+
+\item{misc_risks}{Reactive value containing miscellaneous risks table.}
 }
 \value{
 A reactive function returning loaded workspace data.

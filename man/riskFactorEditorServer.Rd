@@ -13,6 +13,8 @@ riskFactorEditorServer(id, emission_risk_factors, country_id, current_weights)
 Should have the same structure as \code{\link[riskintrodata:get_wahis_erf]{riskintrodata::get_wahis_erf()}}.}
 
 \item{country_id}{Reactive expression returning the ISO3 country code being edited.}
+
+\item{current_weights}{reactive value containing list of emission risk factor weights.}
 }
 \value{
 A reactive expression that returns updated data when Apply is clicked,

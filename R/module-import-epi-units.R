@@ -77,6 +77,7 @@ importEpiUnitsUI <- function(id) {
 #' - Data validation and error reporting
 #'
 #' @param id Character string. The namespace id for the module.
+#' @param is_overwriting reactive logical. Does the dataset being imported already exist?
 #' @return A reactive function returning the validated epidemiological units dataset.
 #'
 #' @export
