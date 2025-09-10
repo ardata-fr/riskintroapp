@@ -44,14 +44,14 @@ alert_error <- function(text = "Error:", error, status = "danger") {
 }
 
 # Function to create inline Shiny components
-inlineComponents <- function(..., gap = "10px") {
+inlineComponents <- function(..., gap = "10px", valign = "middle") {
   # Get all the components passed to the function
   components <- list(...)
 
   # Wrap each component in a div with inline-block style
   wrapped_components <- lapply(components, function(comp) {
     tags$div(
-      style = paste0("display: inline-block; margin-right: ", gap, "; vertical-align: top;"),
+      style = paste0("display: inline-block; margin-right: ", gap, "; vertical-align:", valign,";"),
       comp
     )
   })
