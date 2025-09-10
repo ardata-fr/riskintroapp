@@ -38,13 +38,3 @@ aboutUI <- function(id = "about") {
   )
 }
 
-#' @title About Module Server
-#' @description
-#' Module for displaying information about the application.
-#' @param id The module id.
-#' @noRd
-aboutServer <- function(id = "about") {
-  moduleServer(id, function(input, output, session) {
-
-  })
-}
