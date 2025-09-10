@@ -482,13 +482,14 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
       } else {
         # Return template_row if no existing data - will replace with values
 
-        study_settings <- emission_risk_factors()[1,c("disease", "animal_category", "species")]
+        study_settings <- attr(emission_risk_factors(), "study_settings")
         new_row <- riskintrodata::erf_row(
           iso3 = target_country,
           country = riskintrodata::iso3_to_name(target_country),
-          disease = study_settings$disease,
-          animal_category = study_settings$animal_category,
-          species = study_settings$species
+          disease = study_settings[["disease"]],
+          animal_category = study_settings[["animal_category"]],
+          species = study_settings[["species"]]
+          # all other values take default high risk
         )
         new_row
       }

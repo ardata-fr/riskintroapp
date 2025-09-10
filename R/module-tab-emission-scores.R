@@ -55,8 +55,6 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
       observeEvent(updated_workspace(), ignoreInit = TRUE, ignoreNULL = TRUE, {
         ws <- updated_workspace()
         emission_risk_factors(ws$datasets$emission_risk_factors)
-        # browser()
-        # current_weights()
       })
 
 
@@ -180,7 +178,7 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
           searchable = TRUE,
           filterable = TRUE,
           showPageSizeOptions = TRUE,
-          defaultPageSize = 25,
+          defaultPageSize = 100,
           striped = TRUE
         )
       })
@@ -193,7 +191,7 @@ emissionScoresServer <- function(id, updated_workspace, settings) {
           searchable = TRUE,
           filterable = TRUE,
           showPageSizeOptions = TRUE,
-          defaultPageSize = 25,
+          defaultPageSize = 100,
           striped = TRUE
         )
       })

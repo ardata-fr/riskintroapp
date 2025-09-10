@@ -268,7 +268,6 @@ importEmissionRiskFactorsServer <- function(id) {
             label = "Species",
             value = "",
             placeholder = "Species name",
-            icon = icon("paw"),
             updateOn = "blur"
           ),
           radioButtons(
