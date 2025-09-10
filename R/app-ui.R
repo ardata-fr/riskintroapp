@@ -115,7 +115,8 @@ ui <- function() {
     nav_panel(
       title = "About",
       value = "about",
-      icon = icon("circle-info")
+      icon = icon("circle-info"),
+      aboutUI()
     )
   )
 
