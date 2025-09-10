@@ -203,15 +203,22 @@ importEmissionRiskFactorsServer <- function(id) {
               fluidRow(column(
                 width = 10, offset = 1,
                 tags$h3("Import file"),
-                fileInput(
-                  inputId = ns("file"),
-                  label = NULL,
-                  multiple = FALSE,
-                  accept = c("csv", "txt", "tsv"),
-                  width = NULL,
-                  buttonLabel = "Browse...",
-                  placeholder = "No file selected"
+                inlineComponents(
+                  fileInput(
+                    inputId = ns("file"),
+                    label = NULL,
+                    multiple = FALSE,
+                    accept = c("csv", "txt", "tsv"),
+                    width = "400px",
+                    buttonLabel = "Browse...",
+                    placeholder = "No file selected"
+                  ),
+                  downloadButton(
+                    outputId = ns("downloadData"),
+                    label = "Download template"
+                  )
                 ),
+
                 verbatimTextOutput(outputId = ns("import_validation")),
                 reactable::reactableOutput(outputId = ns("import_reactable")),
                 uiOutput(outputId = ns("existing_dataset_warning"))
@@ -250,6 +257,14 @@ importEmissionRiskFactorsServer <- function(id) {
         }
         returnDataset(importDataset())
       })
+
+      output$downloadData <- downloadHandler(
+        filename = function() {
+          "emission-risk-factors-template.csv"
+        },
+        content = function(file) {
+          readr::write_csv(riskintrodata::wahis_emission_risk_factors[0,], file)
+        })
 
       # MANUAL ENTRY ----
       observeEvent(input$manual_open, {

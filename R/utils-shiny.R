@@ -51,7 +51,7 @@ inlineComponents <- function(..., gap = "10px") {
   # Wrap each component in a div with inline-block style
   wrapped_components <- lapply(components, function(comp) {
     tags$div(
-      style = paste0("display: inline-block; margin-right: ", gap, "; vertical-align: middle;"),
+      style = paste0("display: inline-block; margin-right: ", gap, "; vertical-align: top;"),
       comp
     )
   })
