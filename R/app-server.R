@@ -6,7 +6,7 @@
 #' @import riskintrodata
 server <- function(input, output, session) {
 
-  # Initialise maps ----
+  # init map ----
   baseLeaflet <- reactive({basemap()})
   output$map <- renderLeaflet({
     req(baseLeaflet())
@@ -25,7 +25,8 @@ server <- function(input, output, session) {
     settings = list(),
     datasets = reactive(list(
       epi_units = epi_units(),
-      emission_risk_factors = emission_risk_factors()
+      emission_risk_factors = emission_risk_factors(),
+      input_raster = input_raster()
     )),
     misc_risks = misc_risk_meta
   )
@@ -34,6 +35,7 @@ server <- function(input, output, session) {
   observeEvent(updated_workspace(), ignoreInit = TRUE, {
     new_datasets <- updated_workspace()$datasets
     epi_units(new_datasets$epi_units)
+    input_raster(new_datasets$input_raster)
   })
 
   # Import epi units ----
@@ -68,7 +70,7 @@ server <- function(input, output, session) {
     settings = reactive(list())
   )
 
-  # Risk analysis modules ----
+  # risk tables ----
   ## misc_risks ----
   misc_risk_config <- miscRiskServer(
     id = "misc",
@@ -95,9 +97,11 @@ server <- function(input, output, session) {
     emission_scores = emission_scores
   )
 
+  input_raster <- reactiveVal(NULL)
   road_access <- roadAccessRiskServer(
     id = "road_access",
-    epi_units = epi_units
+    epi_units = epi_units,
+    input_raster = input_raster
   )
 
   entry_points <- entryPointsServer(
@@ -106,15 +110,22 @@ server <- function(input, output, session) {
     emission_scores = emission_scores
   )
 
-  core_risks <- reactive(list(
-    border_risk = border_risk,
-    animal_mobility = animal_mobility,
-    road_access = road_access,
-    entry_points = entry_points
-  ))
-
-  observe({
-    core_risks()
+  core_risks <- reactive({
+    if(
+      isTruthy(border_risk()) ||
+      isTruthy(animal_mobility()) ||
+      isTruthy(road_access()) ||
+      isTruthy(entry_points())
+    ) {
+      list(
+        border_risk = border_risk(),
+        animal_mobility = animal_mobility(),
+        road_access = road_access(),
+        entry_points = entry_points()
+      )
+    } else {
+      NULL
+    }
   })
 
   # nav_panel navigation ----
@@ -138,7 +149,8 @@ server <- function(input, output, session) {
   risk_table_summary <- summariseScoresServer(
     id = "summarise_risk_table",
     epi_units = epi_units,
-    misc_risk_table = misc_risk_table
+    misc_risk_table = misc_risk_table,
+    core_risks = core_risks
   )
   observe({
     req(baseLeaflet())
@@ -161,6 +173,4 @@ server <- function(input, output, session) {
       "Intoduction scores table" = sf::st_drop_geometry(risk_table_summary())
     ))
   )
-
-
 }

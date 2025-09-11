@@ -1,4 +1,3 @@
-.input_datasets <- c("epi_units", "emission_risk_factors")
 
 #' Workspace Management Module UI
 #'
@@ -86,7 +85,6 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
       content = function(file) {
         to_save <- datasets()
         # only save input datasets
-        to_save <- to_save[names(to_save) %in% .input_datasets]
         to_save <- nullify(to_save)
 
         misc_risk_data <- lapply(misc_risks(), function(x) {x$dataset})
@@ -136,8 +134,6 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
 
     updated_workspace <- reactiveVal(NULL)
     observeEvent(input$modal_load_file, {
-
-      browser()
       safely_load_workspace <- purrr::safely(load_workspace)
       result <- safely_load_workspace(input$modal_load_file$datapath)
       removeModal()
@@ -148,9 +144,10 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
         )
         return()
       }
-
+      datasets <- result$result$datasets
+      tablenames_to_validate <- c("animal_mobility", "epi_units", "entry_points", "emission_risk_factors")
       # Validate input datasets ---------
-      inputs_to_validate <- nullify(result$result$datasets[.input_datasets])
+      inputs_to_validate <- nullify(datasets[names(datasets) %in% tablenames_to_validate])
       validated_datasets <- list()
       validate_msg <- list()
       safely_validate_dataset <- safely(validate_dataset)
@@ -181,6 +178,9 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
           do.call(tagList, validate_msg)
         ))
       }
+
+      # input_raster ----
+      validated_datasets$input_raster <- datasets$input_raster
 
       # misc_data ---------
       misc_settings <- result$result$settings$misc_risks
