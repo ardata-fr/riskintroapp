@@ -158,7 +158,7 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
           status <- build_config_status(
             value = FALSE,
             msg = "Error while calculating animal mobility risk:",
-            error = animalMobilityRiskData()$error
+            error = riskScores()$error
           )
           return(status)
         }
