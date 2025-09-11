@@ -25,12 +25,12 @@ ui <- function() {
     ),
     # Epidemiological units ----
     nav_panel(
-      title = "Epidemiological units",
+      title = "Introduction risk",
       value = "study_settings",
       icon = icon("map"),
       layout_sidebar(
         sidebar = sidebar(
-          title = "Epidemiological units",
+          title = "Introduction risk",
           actionButton(
             inputId = "import_epi_units",
             label = "Import epidemiological units",
