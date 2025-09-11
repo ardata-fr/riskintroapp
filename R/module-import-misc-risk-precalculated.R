@@ -201,7 +201,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
       })
 
       # configIsValid ----
-      configIsValid <- reactive({
+      configIsValid <- reactive(label = paste0("configIsValid-import-", id),{
         config_is_valid(
           x = "import_precalcuated_risk",
           import_success = isTruthy(importRaw()),

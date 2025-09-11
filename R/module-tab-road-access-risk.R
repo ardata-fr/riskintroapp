@@ -147,7 +147,7 @@ roadAccessRiskServer <- function(id, input_raster, epi_units) {
       })
 
       # configIsValid ----
-      configIsValid <- reactive({
+      configIsValid <- reactive(label = paste0("configIsValid-", id), {
         if (!isTruthy(epi_units())) {
           status <- build_config_status(
             value = FALSE,

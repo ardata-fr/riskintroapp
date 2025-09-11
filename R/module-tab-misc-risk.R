@@ -158,7 +158,7 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
       })
 
       # configIsValid ----
-      configIsValid <- reactive({
+      configIsValid <- reactive(label = paste0("configIsValid-import-", id), {
         if (length(miscRiskMetaData()) > 0) {
           status <- config_is_valid_misc_risks(miscRiskMetaData())
         } else {

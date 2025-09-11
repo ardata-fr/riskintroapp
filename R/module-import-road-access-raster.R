@@ -83,7 +83,7 @@ importRoadAccessServer <- function(id) {
       })
 
       # configIsValid ----
-      configIsValid <- reactive({
+      configIsValid <- reactive(label = paste0("configIsValid-import-", id), {
 
         if (!isTruthy(importData())) {
           status <- build_config_status(

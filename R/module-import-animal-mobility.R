@@ -216,7 +216,7 @@ importAnimalMobilityServer <- function(id, is_overwriting = reactive(FALSE)) {
     })
 
     # configIsValid ----
-    configIsValid <- reactive({
+    configIsValid <- reactive(label = paste0("configIsValid-import-", id), {
       req(importTable())
       dataset <- importTable()$result
       mapping <- req(input$col_mapping)

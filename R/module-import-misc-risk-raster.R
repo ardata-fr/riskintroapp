@@ -232,7 +232,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
       })
 
       # configIsValid ----
-      configIsValid <- reactive({
+      configIsValid <- reactive(label = paste0("configIsValid-import-", id), {
         req(importRaster())
         config_is_valid(
           "import_misc_raster",

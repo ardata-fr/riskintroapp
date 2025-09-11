@@ -121,7 +121,7 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
       })
 
       # configIsValid ----
-      configIsValid <- reactive({
+      configIsValid <- reactive(label = paste0("configIsValid-", id), {
         if (!isTruthy(epi_units())) {
           status <- build_config_status(
             value = FALSE,

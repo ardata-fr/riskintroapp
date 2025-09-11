@@ -187,7 +187,7 @@ importEpiUnitsServer <- function(id, is_overwriting) {
     })
 
     # configIsValid ----
-    configIsValid <- reactive({
+    configIsValid <- reactive(label = paste0("configIsValid-import-", id), {
       req(importTable())
       dataset <- req()
       mapping <- req(input$col_mapping)
