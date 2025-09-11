@@ -40,14 +40,13 @@ borderRiskUI <- function(id) {
 #' @importFrom reactable reactable renderReactable
 #' @importFrom shiny moduleServer observeEvent reactive req
 #' @importFrom riskintroanalysis calc_border_lengths calc_border_risk
-borderRiskServer <- function(id, epi_units, emission_scores) {
+borderRiskServer <- function(id, input_data, epi_units, emission_scores) {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
 
       # Data storage ----
-      sharedBorders <- reactiveVal(NULL)
       riskScores <- reactiveVal(NULL)
 
       # Risk scaling arguments ----
@@ -74,20 +73,19 @@ borderRiskServer <- function(id, epi_units, emission_scores) {
           return(status)
         }
 
-        if (!isTruthy(sharedBorders())) {
+        if (!isTruthy(input_data())) {
           status <- build_config_status(
             value = FALSE,
-            msg = "Shared borders has not been calculated,
-            click the button below to start."
+            msg = "Shared borders has not been calculated, click the button above to start."
           )
           return(status)
         }
 
-        if (is_error(sharedBorders()$error)) {
+        if (is_error(input_data()$error)) {
           status <- build_config_status(
             value = FALSE,
             msg = "There was an error calculating shared borders:",
-            error = sharedBorders()$error
+            error = input_data()$error
           )
           return(status)
         }
@@ -139,18 +137,18 @@ borderRiskServer <- function(id, epi_units, emission_scores) {
       observeEvent(input$calculate_border_lengths, {
         safely_calc_borders <- safely(calc_border_lengths)
         result <- safely_calc_borders(epi_units = epi_units())
-        sharedBorders(result)
+        input_data(result)
       })
 
       # calc_* ----
       observe({
-        req(sharedBorders(), !is_error(sharedBorders()$error))
+        req(input_data(), !is_error(input_data()$error))
         req(epi_units(), emission_scores())
 
         safely_calc_risk <- safely(calc_border_risk)
         result <- safely_calc_risk(
           epi_units = epi_units(),
-          shared_borders = sharedBorders()$result,
+          shared_borders = input_data()$result,
           emission_risk = emission_scores()
         )
         riskScores(result)
