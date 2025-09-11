@@ -1,6 +1,6 @@
 Package: riskintroapp
 Title: Analyse Risk of Introduction of Animal Diseases
-Version: 0.0.2.015
+Version: 0.0.2.016
 Authors@R: c(
     person("Eli", "Daniels", , "eli.daniels@ardata.fr", role = c("aut", "cre")),
     person("David", "Gohel", , "david.gohel@ardata.fr", role = "aut"),
@@ -38,7 +38,8 @@ Imports:
     dplyr,
     workspace,
     terra,
-    plotly
+    plotly,
+    mirai
 Remotes: 
     ardata-fr/workspace,
     git::https://gitlab.cirad.fr/astre/riskintro-app/riskintroanalysis.git,
