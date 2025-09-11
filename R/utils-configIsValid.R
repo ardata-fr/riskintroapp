@@ -46,7 +46,7 @@ config_is_valid <- function(x, ...) {
 #' @examples
 #' build_config_status(value = TRUE, msg = "something is wrong")
 #' @noRd
-build_config_status <- function(value, msg) {
+build_config_status <- function(value, msg, error = NULL) {
   if (!is_non_empty_single_logical(value)) {
     value <- FALSE
   }
@@ -55,6 +55,9 @@ build_config_status <- function(value, msg) {
   }
   x <- value
   attr(x, "comment") <- msg
+  if (!is.null(error)) {
+    attr(x, "error") <- get_error_message(error)
+  }
   x
 }
 
@@ -103,21 +106,35 @@ is_non_empty_single_logical <- function(x) {
 #' status <- build_config_status(TRUE, "All good")
 #' report_config_status(status)
 #' @noRd
+#' @importFrom shinyWidgets panel
 report_config_status <- function(status) {
-
   if (is.null(status)) return(NULL)
   stopifnot(is.logical(status), length(status) == 1L)
 
   msg <- attr(status, "comment") %||% ""
+  error <- attr(status, "error")
+
   if (isTRUE(status)) {
-    shiny::div(
-      shiny::icon("check-circle", style = "color: green;"),
+    shinyWidgets::panel(
+      status = "success",
+      shiny::icon("circle-check", style = "color: green;"),
       shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;")
     )
   } else {
-    shiny::div(
-      shiny::icon("times-circle", style = "color: red;"),
-      shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;")
+    shinyWidgets::panel(
+      status = "danger",
+      shiny::icon("circle-xmark", style = "color: red;"),
+      shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;"),
+      if (!is.null(error)) error_box(error)
     )
   }
 }
+
+error_box <- function(error) {
+  shiny::div(
+  error,
+  style = "margin-left: 5px; margin-right:
+  5px; background-color: #d3d3d3; font-family:
+  monospace; padding: 2px 4px; border-radius: 3px;")
+}
+

@@ -7,39 +7,13 @@ importRoadAccessUI <- function(id) {
       tags$p("Import raster file (.tif, .tiff, .grd, .asc) containing risk values."),
       tags$p("Risk values will be extracted for each epidemiological unit using zonal statistics."),
 
-      panel(inlineComponents(valign = "top",
-        shinyWidgets::radioGroupButtons(
-          inputId = ns("import_type"),
-          label = "How to import?",
-          choices = list(
-            "Download" = "download",
-            "Import raster" = "file"
-          ),
-          status = "outline-secondary",
-          direction = "vertical",
-          selected = "download"
-        ),
-
-        conditionalPanel(
-          condition = "input.import_type == 'download'",
-          ns = ns,
-          actionButton(
-            inputId = ns("download_button"),
-            label = "Start download"
-          )
-        ),
-        conditionalPanel(
-          condition = "input.import_type == 'file'",
-          ns = ns,
-          fileInput(
-            inputId = ns("file"),
-            label = NULL,
-            multiple = FALSE,
-            accept = c(".tif", ".tiff", ".grd", ".asc"),
-            width = "100%"
-          )
-        )
-      )),
+      fileInput(
+        inputId = ns("file"),
+        label = NULL,
+        multiple = FALSE,
+        accept = c(".tif", ".tiff", ".grd", ".asc"),
+        width = "100%"
+      ),
       uiOutput(ns("error")),
 
       bslib::card(
@@ -92,27 +66,6 @@ importRoadAccessServer <- function(id) {
 
       # importData ----
       importData <- reactiveVal(NULL)
-
-      # download_button ----
-      observeEvent(input$download_button ,{
-        importData(NULL)
-        safe_download <- safely(riskintrodata::download_road_access_raster)
-        url <- safe_download()
-
-        if (is_error(url$error)) {
-          importError(url$error)
-          return()
-        }
-
-        raster <- safely_rast(url$result)
-
-        if (is_error(raster$error)) {
-          importError(raster$error)
-          return()
-        }
-        importError(NULL)
-        importData(raster$result)
-      })
 
       # file ----
       observeEvent(input$file, {

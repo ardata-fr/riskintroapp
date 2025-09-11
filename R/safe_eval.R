@@ -127,6 +127,7 @@ safe_eval <- function(
 #' @importFrom stringr str_squish str_trim str_extract str_locate fixed
 #' str_sub
 get_error_message <- function(x) {
+  if (is.character(x)) return(paste("Error:", x))
   if (inherits(x, "try-error")) {
     x <- attr(x, "condition")
   }
