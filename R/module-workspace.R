@@ -146,8 +146,20 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
       }
       datasets <- result$result$datasets
       tablenames_to_validate <- c("animal_mobility", "epi_units", "entry_points", "emission_risk_factors")
+      input_dataset_mapping <- c(
+        "animal_mobility_input" = "animal_mobility",
+        "entry_points_input" = "entry_points"
+      )
+      
       # Validate input datasets ---------
       inputs_to_validate <- nullify(datasets[names(datasets) %in% tablenames_to_validate])
+      # Add input datasets with proper validation names
+      for (input_name in names(input_dataset_mapping)) {
+        if (input_name %in% names(datasets) && !is.null(datasets[[input_name]])) {
+          validation_name <- input_dataset_mapping[[input_name]]
+          inputs_to_validate[[validation_name]] <- datasets[[input_name]]
+        }
+      }
       validated_datasets <- list()
       validate_msg <- list()
       safely_validate_dataset <- safely(validate_dataset)
@@ -179,8 +191,11 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
         ))
       }
 
-      # input_raster ----
+      # Non-validated datasets ----
       validated_datasets$input_raster <- datasets$input_raster
+      validated_datasets$animal_mobility_input <- datasets$animal_mobility_input
+      validated_datasets$entry_points_input <- datasets$entry_points_input
+      validated_datasets$border_input <- datasets$border_input
 
       # misc_data ---------
       misc_settings <- result$result$settings$misc_risks

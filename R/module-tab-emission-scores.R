@@ -50,12 +50,7 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
 
       emission_scores <- reactiveVal(NULL)
 
-      # update_workspace -----
-      observeEvent(updated_workspace(), ignoreInit = TRUE, ignoreNULL = TRUE, {
-        ws <- updated_workspace()
-        emission_risk_factors(ws$datasets$emission_risk_factors)
-      })
-
+      # import ----
       new_erf <- importEmissionRiskFactorsServer("import_erf")
       observeEvent(new_erf(),{
         emission_risk_factors(new_erf())

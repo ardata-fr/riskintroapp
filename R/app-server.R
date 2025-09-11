@@ -26,7 +26,10 @@ server <- function(input, output, session) {
     datasets = reactive(list(
       epi_units = epi_units(),
       emission_risk_factors = emission_risk_factors(),
-      input_raster = input_raster()
+      input_raster = input_raster(),
+      animal_mobility_input = animal_mobility_input(),
+      entry_points_input = entry_points_input(),
+      border_input = border_input()
     )),
     misc_risks = misc_risk_meta
   )
@@ -35,7 +38,11 @@ server <- function(input, output, session) {
   observeEvent(updated_workspace(), ignoreInit = TRUE, {
     new_datasets <- updated_workspace()$datasets
     epi_units(new_datasets$epi_units)
+    emission_risk_factors(new_datasets$emission_risk_factors)
     input_raster(new_datasets$input_raster)
+    animal_mobility_input(new_datasets$animal_mobility_input)
+    entry_points_input(new_datasets$entry_points_input)
+    border_input(new_datasets$border_input)
   })
 
   # Import epi units ----
@@ -66,12 +73,10 @@ server <- function(input, output, session) {
   emission_scores <- emissionScoresServer(
     id = "emission_scores",
     emission_risk_factors = emission_risk_factors,
-    updated_workspace = updated_workspace,
     settings = reactive(list())
   )
 
   # risk tables ----
-  ## misc_risks ----
   misc_risk_config <- miscRiskServer(
     id = "misc",
     epi_units = epi_units,
@@ -85,14 +90,18 @@ server <- function(input, output, session) {
     misc_risk_meta(conf$misk_risk_meta)
   })
 
+  border_input <- reactiveVal()
   border_risk <- borderRiskServer(
     id = "border",
+    input_data = border_input,
     epi_units = epi_units,
     emission_scores = emission_scores
   )
 
+  animal_mobility_input <- reactiveVal()
   animal_mobility <- animalMobilityServer(
     id = "animal_mobility",
+    input_data = animal_mobility_input,
     epi_units = epi_units,
     emission_scores = emission_scores
   )
@@ -104,8 +113,10 @@ server <- function(input, output, session) {
     input_raster = input_raster
   )
 
+  entry_points_input <- reactiveVal()
   entry_points <- entryPointsServer(
     id = "entry_points",
+    input_data = entry_points_input,
     epi_units = epi_units,
     emission_scores = emission_scores
   )
@@ -129,24 +140,24 @@ server <- function(input, output, session) {
   })
 
   # nav_panel navigation ----
-  # observeEvent(input$nav_border_risk, {
-  #   nav_select(id = "navbar", selected = "nav_border_risk")
-  # })
-  # observeEvent(input$nav_animal_movement_risk, {
-  #   nav_select(id = "navbar", selected = "nav_animal_movement_risk")
-  # })
+  observeEvent(input$nav_border_risk, {
+    nav_select(id = "navbar", selected = "nav_border_risk")
+  })
+  observeEvent(input$nav_animal_movement_risk, {
+    nav_select(id = "navbar", selected = "nav_animal_movement_risk")
+  })
   observeEvent(input$nav_road_access_risk, {
     nav_select(id = "navbar", selected = "nav_road_access_risk")
   })
-  # observeEvent(input$nav_entry_point_risk, {
-  #   nav_select(id = "navbar", selected = "nav_entry_point_risk")
-  # })
+  observeEvent(input$nav_entry_point_risk, {
+    nav_select(id = "navbar", selected = "nav_entry_point_risk")
+  })
   observeEvent(input$nav_misc_risk, {
     nav_select(id = "navbar", selected = "nav_misc_risk")
   })
 
-  # Risk summary map -----
-  risk_table_summary <- summariseScoresServer(
+  # intro_risk -----
+  intro_risk <- summariseScoresServer(
     id = "summarise_risk_table",
     epi_units = epi_units,
     misc_risk_table = misc_risk_table,
@@ -154,14 +165,14 @@ server <- function(input, output, session) {
   )
   observe({
     req(baseLeaflet())
-    req(risk_table_summary())
+    req(intro_risk())
     plot_risk_interactive(
-      dataset = risk_table_summary(),
+      dataset = intro_risk(),
       ll = leafletProxy("map")
     )
   })
 
-  # Export -----
+  # export -----
   observeEvent(input$open_export, {
     showModal(exportUI("export_module"))
     })
@@ -169,8 +180,12 @@ server <- function(input, output, session) {
     id = "export_module",
     files = reactive(list(
       "Epidemiological units" = epi_units(),
-      "Epidemiological units with all introduction scores" = risk_table_summary(),
-      "Intoduction scores table" = sf::st_drop_geometry(risk_table_summary())
+      "Epidemiological units with all introduction scores" = intro_risk(),
+      "Intoduction scores table" = sf::st_drop_geometry(intro_risk()),
+      "Animal mobility input data" = animal_mobility_input(),
+      "Entry points input data" = entry_points_input(),
+      "Shared borders data" = border_input(),
+      "Road access raster data" = input_raster()
     ))
   )
 }
