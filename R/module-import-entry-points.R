@@ -102,7 +102,7 @@ importEntryPointsUI <- function(id) {
 #' @importFrom shiny
 #'  moduleServer reactiveVal observeEvent renderUI req
 #'  isTruthy observe showModal modalDialog fluidRow column fileInput uiOutput
-#'  actionButton removeModal showNotification HTML tags
+#'  actionButton removeModal HTML tags
 #' @importFrom leaflet
 #'  leafletOutput renderLeaflet addCircleMarkers addTiles setView fitBounds
 #' @importFrom sf st_as_sf st_geometry_type st_drop_geometry st_bbox
@@ -208,7 +208,6 @@ importEntryPointsServer <- function(id) {
       safely_validate_dataset <- safely(validate_dataset)
       validation_status <- do.call(safely_validate_dataset, args)
       if (is_error(validation_status$error)){
-        shiny::showNotification("'validate_dataset' has thrown an error!")
         return(NULL)
         } else {
         validation_status$result
@@ -224,18 +223,47 @@ importEntryPointsServer <- function(id) {
       extract_dataset(validationStatus())
     })
 
-
     # configIsValid ----
-    configIsValid <- reactive({
-      config_is_valid(
-        "import_entry_points",
-        import_table = importTable(),
-        dataset_validation_status = validationStatus(),
-        validated_dataset = validatedDataset()
+    configIsValid <- reactive(label = paste0("configIsValid-import-", id), {
+      if (!isTruthy(importTable())) {
+        status <- build_config_status(
+          value = FALSE,
+          msg = "No dataset has been imported."
+        )
+        return(status)
+      }
+
+      if (!isTruthy(validationStatus())) {
+        status <- build_config_status(
+          value = FALSE,
+          msg = "Dataset validation has not run yet."
+        )
+        return(status)
+      }
+
+      if (!is_dataset_valid(validationStatus())) {
+        status <- build_config_status(
+          value = FALSE,
+          msg = "Dataset has not been validated."
+        )
+        return(status)
+      }
+
+      if (!isTruthy(validatedDataset())) {
+        status <- build_config_status(
+          value = FALSE,
+          msg = "Validated dataset not found."
+        )
+        return(status)
+      }
+
+      build_config_status(
+        value = TRUE,
+        msg = "Configuration is valid."
       )
     })
 
-    output$config_is_valid <- reactive({
+    output$config_is_valid <- renderUI({
       report_config_status(configIsValid())
     })
 
@@ -268,75 +296,22 @@ importEntryPointsServer <- function(id) {
     # Import confirmation ----
     importedDataset <- reactiveVal(NULL)
     observeEvent(input$import_data, {
-
+      req(validatedDataset())
+      importedDataset(validatedDataset())
+      removeModal()
     })
 
     # Cancel import ----
     observeEvent(input$cancel_import, {
       # Reset internal state
       importTable(NULL)
+      removeModal()
     })
 
     # Return validated dataset ----
     return(importedDataset)
   })
 }
-
-#' @export
-config_is_valid.import_entry_points <- function(x, ...){
-
-  x <- list(...)
-  import_table <- x$import_table
-  dataset_validation_status <- x$dataset_validation_status
-  validated_dataset <- x$validated_dataset
-
-  if (!isTruthy(import_table)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "No dataset has been imported."
-    )
-    return(status)
-  }
-
-  if (!isTruthy(dataset_validation_status)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Dataset validation has not run yet."
-    )
-    return(status)
-  }
-
-  if (!is_dataset_valid(dataset_validation_status)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Dataset is has not been validated."
-    )
-    return(status)
-  }
-
-  if (!is_dataset_valid(dataset_validation_status)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Dataset is has not been validated."
-    )
-    return(status)
-  }
-
-  if (!isTruthy(validated_dataset)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Validated dataset not found."
-    )
-    return(status)
-  }
-
-  build_config_status(
-    value = TRUE,
-    msg = "Configuration is valid."
-  )
-}
-
-
 
 # Helper functions ----
 
