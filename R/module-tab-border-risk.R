@@ -1,35 +1,24 @@
-#' @importFrom bslib layout_sidebar sidebar
+#' @importFrom bslib layout_sidebar sidebar navset_card_tab nav_panel
 #' @importFrom reactable reactableOutput
 #' @importFrom leaflet leafletOutput
-#' @importFrom shiny NS actionButton icon uiOutput
+#' @importFrom shiny NS actionButton icon uiOutput tags
 borderRiskUI <- function(id) {
   ns <- NS(id)
   layout_sidebar(
     sidebar = sidebar(
       title = "Border risk",
       uiOutput(ns("config_is_valid")),
+      tags$br(),
       actionButton(
         inputId = ns("calculate_border_lengths"),
         label = "Calculate shared borders",
-        width = '100%',
         icon = icon("map")
       ),
-      actionButton(
-        inputId = ns("calculate_risk"),
-        label = "Calculate border risk",
-        width = '100%',
-        icon = icon("calculator")
-      ),
+      tags$br(),
       actionButton(
         inputId = ns("open_risk_scaling"),
         label = "Edit risk scaling",
-        width = '100%',
         icon = icon("pen-to-square")
-      ),
-      actionButton(
-        inputId = ns("open_export"),
-        label = "Export",
-        icon = icon("file-export")
       )
     ),
     navset_card_tab(
@@ -59,17 +48,78 @@ borderRiskServer <- function(id, epi_units, emission_scores) {
 
       # Data storage ----
       sharedBorders <- reactiveVal(NULL)
-      borderRiskData <- reactiveVal(NULL)
+      riskScores <- reactiveVal(NULL)
 
-      # Configuration validation ----
+      # Risk scaling arguments ----
+      rescaling_args <- reactiveVal(list(
+        method = "linear",
+        inverse = FALSE
+      ))
+
+      # configIsValid ----
       configIsValid <- reactive({
-        config_is_valid(
-          x = "analyse_border_risk",
-          epi_units = epi_units(),
-          emission_risk_table = emission_scores(),
-          shared_borders = sharedBorders(),
-          border_risk_data = borderRiskData(),
-          rescaled_border_risk = rescaledRisk()
+        if (!isTruthy(epi_units())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Epidemiological units dataset must be imported."
+          )
+          return(status)
+        }
+
+        if (!isTruthy(emission_scores())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Emission risk scores must be calculated."
+          )
+          return(status)
+        }
+
+        if (!isTruthy(sharedBorders())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Shared borders has not been calculated,
+            click the button below to start."
+          )
+          return(status)
+        }
+
+        if (is_error(sharedBorders()$error)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "There was an error calculating shared borders:",
+            error = sharedBorders()$error
+          )
+          return(status)
+        }
+
+        if (!isTruthy(riskScores())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Border risk has not been calculated."
+          )
+          return(status)
+        }
+
+        if (is_error(riskScores()$error)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Error while calculating border risk:",
+            error = riskScores()$error
+          )
+          return(status)
+        }
+
+        if (!isTruthy(rescaledScores())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Risk scores cannot be rescaled."
+          )
+          return(status)
+        }
+
+        build_config_status(
+          value = TRUE,
+          msg = "Configuration is valid."
         )
       })
 
@@ -85,174 +135,82 @@ borderRiskServer <- function(id, epi_units, emission_scores) {
       })
       outputOptions(output, "map", suspendWhenHidden = FALSE)
 
-      # Calculate shared borders ----
+      # borders ----
       observeEvent(input$calculate_border_lengths, {
         safely_calc_borders <- safely(calc_border_lengths)
         result <- safely_calc_borders(epi_units = epi_units())
         sharedBorders(result)
       })
 
-      # Calculate border risk ----
-      observeEvent(input$calculate_risk, {
-        shared_borders <- req(sharedBorders())
+      # calc_* ----
+      observe({
+        req(sharedBorders(), !is_error(sharedBorders()$error))
+        req(epi_units(), emission_scores())
+
         safely_calc_risk <- safely(calc_border_risk)
         result <- safely_calc_risk(
           epi_units = epi_units(),
-          shared_borders = shared_borders$result,
+          shared_borders = sharedBorders()$result,
           emission_risk = emission_scores()
         )
-        borderRiskData(result)
+        riskScores(result)
       })
 
-      # Risk scaling ----
+      # rescaling ----
       observeEvent(input$open_risk_scaling, {
-        req(borderRiskData())
+        req(riskScores())
+        req(!is_error(riskScores()$error))
         showModal(rescaleRiskUI(id = ns("rescale_modal")))
       })
+
       new_rescaling_args <- rescaleRiskServer(
         id = "rescale_modal",
-        dataset = reactive(borderRiskData()$result),
-        from = c(0, 12),
-        risk_col = "border_risk",
-        to = c(0, 100)
+        dataset = reactive(riskScores()$result)
       )
-      rescaledRisk <- reactive({
-        args <- req(new_rescaling_args())
+      observeEvent(new_rescaling_args(), {
+        rescaling_args(new_rescaling_args())
+      })
+
+      rescaledScores <- reactive({
+        if (!isTruthy(riskScores()$result)) {
+          return(NULL)
+        }
+        args <- req(rescaling_args())
         rescale_risk_scores(
-          dataset = borderRiskData()$result,
-          cols = args$cols,
-          from = args$from,
-          to = args$to,
+          dataset = riskScores()$result,
           method = args$method,
           inverse = args$inverse
         )
       })
 
-      # Update map ----
-      observe({
+      # map ----
+
+      # table ----
+      output$table <- renderReactable({
         req(configIsValid())
-        plot_risk_interactive(
-          dataset = rescaledRisk(),
-          ll = leafletProxy(mapId = "map")
+        reactable::reactable(
+          rescaledScores(),
+          searchable = TRUE,
+          filterable = TRUE,
+          showPageSizeOptions = TRUE,
+          defaultPageSize = 100,
+          striped = TRUE
         )
       })
 
-      # Table output ----
-      output$table <- renderReactable({
+      # returnData ----
+      returnData <- reactiveVal(NULL)
+      observe({
         req(configIsValid())
-        risk_data <- req(rescaledRisk())
-        table_data <- sf::st_drop_geometry(risk_data)
-        reactable::reactable(table_data)
+        plot_risk_interactive(
+          dataset = rescaledScores(),
+          ll = leafletProxy("map")
+        )
+        returnData(rescaledScores())
       })
 
-      # Return risk data ----
-      return(borderRiskData)
+      returnData
     }
   )
 }
 
-#' @export
-config_is_valid.analyse_border_risk <- function(x, ...){
-  x <- list(...)
-  epi_units <- x$epi_units
-  emission_risk_table <- x$emission_risk_table
-  shared_borders <- x$shared_borders
-  border_risk_data <- x$border_risk_data
-  rescaled_border_risk <- x$rescaled_border_risk
-
-  if (!isTruthy(epi_units)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = .configIsValidMsgs$epi_units_missing
-    )
-    return(status)
-  }
-
-  if (!isTruthy(emission_risk_table)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = .configIsValidMsgs$emission_risk_missing
-    )
-    return(status)
-  }
-
-  if (!isTruthy(shared_borders)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Shared borders has not been calculated, click the button below."
-    )
-    return(status)
-  }
-
-  if (is_error(shared_borders$error)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = paste("There was an error calculating shared borders,",
-      "please save your workspace and send to RiskIntroApp maintainer.",
-      "See the 'About' tab for contact information.")
-    )
-    return(status)
-  }
-
-  if (!isTruthy(shared_borders$result)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = paste("Shared borders dataset is missing,",
-                  "please save your workspace and send to RiskIntroApp maintainer.",
-                  "See the 'About' tab for contact information.")
-    )
-    return(status)
-  }
-
-  if (!isTruthy(border_risk_data)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Border risk has not been calculated."
-    )
-    return(status)
-  }
-
-  if (is_error(border_risk_data$error)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "There was an error when calculating border risk."
-    )
-    return(status)
-  }
-
-  if (!isTruthy(border_risk_data$result)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Border risk dataset not found."
-    )
-    return(status)
-  }
-
-  attrs <- attributes(border_risk_data$result)
-  if (!isTruthy(attrs$risk_col)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Border risk is missing `risk_col` attribute."
-    )
-    return(status)
-  }
-  if (!isTruthy(attrs$scale)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Border risk is missing `scale` attribute."
-    )
-    return(status)
-  }
-  if (!isTruthy(rescaled_border_risk)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = .configIsValidMsgs$rescale_missing
-    )
-    return(status)
-  }
-
-  build_config_status(
-    value = TRUE,
-    msg = "Analysis complete."
-  )
-}
