@@ -39,7 +39,7 @@ summariseScoresUI <- function(id) {
 }
 
 #' @importFrom riskintroanalysis summarise_scores
-summariseScoresServer <- function(id, epi_units, misc_risk_table) {
+summariseScoresServer <- function(id, epi_units, misc_risk_table, core_risks) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -56,8 +56,18 @@ summariseScoresServer <- function(id, epi_units, misc_risk_table) {
           scale = c(0, 100)
         )
 
+        # Add core risk tables
+        if (isTruthy(core_risks())) {
+          risk_data <- nullify(core_risks())
+          for (risk_table in risk_data) {
+            rt <- add_risk(
+              risk_table = rt,
+              risk_data = risk_table
+            )
+          }
+        }
 
-        # if misc risks exist add those
+        # Add misc risk tables
         if (isTruthy(misc_risk_table())) {
           misc_risk_cols <- attr(misc_risk_table(), "risk_cols")
           for (col in misc_risk_cols) {
@@ -70,7 +80,6 @@ summariseScoresServer <- function(id, epi_units, misc_risk_table) {
           }
         }
 
-        # add other tables here...
         rt
       })
 
