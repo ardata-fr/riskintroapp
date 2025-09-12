@@ -109,6 +109,10 @@ ui <- function() {
       entryPointsUI("entry_points")
     ),
     nav_spacer(),
+
+    # Help ----
+    helpUI(),
+
     # Workspace -----
     workspaceUI("workspace"),
 

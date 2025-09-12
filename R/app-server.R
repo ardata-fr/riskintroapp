@@ -4,6 +4,7 @@
 #' @importFrom bslib nav_select
 #' @import riskintroanalysis
 #' @import riskintrodata
+#' @importFrom shinyjs runjs
 server <- function(input, output, session) {
 
   # init map ----
@@ -188,4 +189,7 @@ server <- function(input, output, session) {
       "Road access raster data" = input_raster()
     ))
   )
+
+  helpServer(selected_tab = reactive(input$navbar))
+
 }

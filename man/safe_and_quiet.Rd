@@ -19,3 +19,4 @@ in case of warnings.
 Errors are generally passed to isConfigValid reactives and warnings are passed
 to report_warnings
 }
+\keyword{internal}
