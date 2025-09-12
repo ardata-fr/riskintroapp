@@ -1,4 +1,4 @@
-
+.sidebar_width <- 350
 #' Riskintro Shiny UI
 #'
 #' Serves as the UI for riskintro shiny app.
@@ -30,6 +30,7 @@ ui <- function() {
       icon = icon("map"),
       layout_sidebar(
         sidebar = sidebar(
+          width = .sidebar_width,
           title = "Introduction risk",
           actionButton(
             inputId = "import_epi_units",

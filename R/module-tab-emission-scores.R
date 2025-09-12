@@ -2,7 +2,9 @@ emissionScoresUI <- function(id) {
   ns <- NS(id)
   layout_sidebar(
     sidebar = sidebar(
-      title = "Emission risks",
+      width = .sidebar_width,
+      title = "Emission scores",
+      uiOutput(ns("warnings")),
       importEmissionRiskFactorsUI(ns("import_erf")),
 
       tags$hr(),
@@ -47,8 +49,6 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
     id,
     function(input, output, session) {
       ns <- session$ns
-
-      emission_scores <- reactiveVal(NULL)
 
       # import ----
       new_erf <- importEmissionRiskFactorsServer("import_erf")
@@ -111,15 +111,20 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
         current_weights = current_weights
         )
 
-      observe({
+      emission_risk_result <- reactive({
         req(emission_risk_factors(), current_weights())
-        emission_scores(
-          riskintroanalysis::calc_emission_risk(
-            emission_risk_factors = emission_risk_factors(),
-            weights = current_weights(),
-            keep_scores = TRUE
-          )
+        res <- safe_and_quiet(
+          .fun = riskintroanalysis::calc_emission_risk,
+          emission_risk_factors = emission_risk_factors(),
+          weights = current_weights(),
+          keep_scores = TRUE
         )
+        res
+      })
+
+      emission_scores <- reactive({
+        req(!is_error(emission_risk_result()$error))
+        emission_risk_result()$result
       })
 
       # jokers -----
@@ -145,6 +150,11 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
           country_id(operation$id)
         }
       })
+
+      output$warnings <- renderUI({
+        report_warning(emission_risk_result()$warnings)
+      })
+      outputOptions(output, "warnings", suspendWhenHidden = FALSE)
 
       # map ----
       baseLeaflet <- reactive({basemap()})

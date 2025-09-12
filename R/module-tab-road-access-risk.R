@@ -6,6 +6,7 @@ roadAccessRiskUI <- function(id) {
   ns <- NS(id)
   layout_sidebar(
     sidebar = sidebar(
+      width = .sidebar_width,
       title = "Road access",
       uiOutput(ns("config_is_valid")),
       tags$br(),

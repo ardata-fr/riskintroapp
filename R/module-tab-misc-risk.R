@@ -6,6 +6,7 @@ miscRiskUI <- function(id) {
   ns <- NS(id)
   layout_sidebar(
     sidebar = sidebar(
+      width = .sidebar_width,
       title = "Miscellaneous risks",
       uiOutput(ns("config_is_valid")),
       selectInput(

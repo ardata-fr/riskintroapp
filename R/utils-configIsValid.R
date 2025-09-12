@@ -117,13 +117,13 @@ report_config_status <- function(status) {
   if (isTRUE(status)) {
     shinyWidgets::panel(
       status = "success",
-      shiny::icon("circle-check", style = "color: green;"),
+      shiny::icon("circle-check", , class = "text-success"),
       shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;")
     )
   } else {
     shinyWidgets::panel(
       status = "danger",
-      shiny::icon("circle-xmark", style = "color: red;"),
+      shiny::icon("circle-xmark", class = "text-danger"),
       shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;"),
       if (!is.null(error)) error_box(error)
     )
@@ -138,3 +138,108 @@ error_box <- function(error) {
   monospace; padding: 2px 4px; border-radius: 3px;")
 }
 
+
+#' Capture all function results and side effects
+#'
+#' A combination of [purrr::safely()] in case of errors and [purrr::quietly]
+#' in case of warnings.
+#'
+#' Errors are generally passed to isConfigValid reactives and warnings are passed
+#' to report_warnings
+#'
+#' @param .fun function to run safely and quietly (caputuring results)
+#' @param ... argments to pass to `.fun`
+#' @keywords internal
+#' @importFrom purrr quietly safely
+safe_and_quiet <- function(.fun, ...){
+  safe_fun <- quietly(safely(.fun))
+  out_safe <- safe_fun(...)
+  out <-
+    list(
+      result = out_safe$result$result,
+      error = out_safe$result$error,
+      output = out_safe$output,
+      warnings = out_safe$warnings,
+      messages = out_safe$messages)
+  if(!is.null(out$error)){
+    out$error <- get_error_message(out$error)
+  }
+  # out <- map(out, length_zero_to_na)
+  out
+}
+
+
+#' Report CLI warning messages in HTML
+#'
+#' Converts CLI warning messages from riskintroanalysis functions into
+#' pretty UI outputs to use with renderUI and uiOutput.
+#' @param msg raw msg string, generally captured by safe_and_quiet()
+#' @return HTML object to use with renderUI.
+#' @keywords internal
+report_warning <- function(msg){
+  if (is.null(msg)) return(NULL)
+
+  html_msg <- cli_warning_to_html(msg)
+  shinyWidgets::panel(
+    status = "warning",
+    html_msg
+  )
+}
+
+#' Convert CLI Warning Message to HTML
+#'
+#' Converts CLI-formatted warning messages from riskintroanalysis into HTML
+#' suitable for display in Shiny applications.
+#'
+#' @param message Character string containing CLI-formatted warning message
+#'   with special symbols like ℹ and ! for info and warning indicators.
+#'
+#' @return HTML object suitable for rendering in Shiny UI
+#'
+#' @importFrom htmltools HTML htmlEscape
+#' @keywords internal
+#'
+#' @examples
+#' warning_msg <- "There are NA values in `emission_risk_factors` dataset.\nℹ Missing values identified for the following countries:\n\"ALB\", \"ARM\", \"CYM\", \"HRV\", \"FLK\" and \"JPN\" and 63 more\n! By default, NA values are considered as having the highest level of risk."
+#' cli_warning_to_html(warning_msg)
+cli_warning_to_html <- function(message) {
+  if (is.null(message) || message == "") {
+    return(htmltools::HTML(""))
+  }
+
+  # Split message into lines
+  lines <- strsplit(message, "\n")[[1]]
+
+  # Process each line
+  html_lines <- vapply(lines, function(line) {
+    line <- trimws(line)
+    if (line == "") return("")
+
+    # Handle info lines (ℹ symbol)
+    if (grepl("^ℹ", line)) {
+      content <- gsub("^ℹ\\s*", "", line)
+      return(paste0('<div class="mb-1"><i class="fas fa-info-circle text-info me-1"></i>', htmltools::htmlEscape(content), '</div>'))
+    }
+
+    # Handle warning lines (! symbol)
+    if (grepl("^!", line)) {
+      content <- gsub("^!\\s*", "", line)
+      return(paste0('<div class="mb-1"><i class="fas fa-exclamation-triangle text-warning me-1"></i>', htmltools::htmlEscape(content), '</div>'))
+    }
+
+    # Handle regular text with code highlighting
+    line <- gsub("`([^`]+)`", '<code>\\1</code>', line)
+    return(paste0('<div class="mb-1">', line, '</div>'))
+
+  }, character(1))
+
+  # Remove empty lines and combine
+  html_content <- paste(html_lines[html_lines != ""], collapse = "")
+
+  # Always add warning symbol at start
+  if (html_content != "") {
+    html_content <- paste0('<div class="mb-1"><i class="fas fa-exclamation-triangle text-warning me-1"></i>Warning</div>', html_content)
+  }
+
+  htmltools::HTML(paste0('<div class="cli-warning">', html_content, '</div>'))
+}

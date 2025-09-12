@@ -6,8 +6,10 @@ entryPointsUI <- function(id) {
   ns <- NS(id)
   layout_sidebar(
     sidebar = sidebar(
+      width = .sidebar_width,
       title = "Entry points",
       uiOutput(ns("config_is_valid")),
+      uiOutput(ns("warnings")),
       tags$br(),
       actionButton(
         inputId = ns("import_entry_points"),
@@ -128,6 +130,12 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
         report_config_status(configIsValid())
       })
 
+      # warnings -----
+      output$warnings <- renderUI({
+        report_warning(riskScores()$warnings)
+      })
+      outputOptions(output, "warnings", suspendWhenHidden = FALSE)
+
       # Initialize maps ----
       baseMap <- reactive({ basemap() })
       output$map <- renderLeaflet({
@@ -162,8 +170,8 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
       observe({
         req(input_data(), epi_units(), emission_scores())
 
-        safely_calc_risk <- safely(calc_entry_point_risk)
-        result <- safely_calc_risk(
+        result <- safe_and_quiet(
+          .fun = calc_entry_point_risk,
           entry_points = input_data(),
           epi_units = epi_units(),
           emission_risk = emission_scores()

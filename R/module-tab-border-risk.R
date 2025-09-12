@@ -6,8 +6,10 @@ borderRiskUI <- function(id) {
   ns <- NS(id)
   layout_sidebar(
     sidebar = sidebar(
+      width = .sidebar_width,
       title = "Border risk",
       uiOutput(ns("config_is_valid")),
+      uiOutput(ns("warnings")),
       tags$br(),
       bslib::input_task_button(
         id = ns("calc"),
@@ -106,8 +108,8 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores) {
         req(input_data())
         req(!is_error(input_data()$error))
         req(epi_units(), emission_scores())
-        safely_calc <- safely(calc_border_risk)
-        result <- safely_calc(
+        result <- safe_and_quiet(
+          .fun = calc_border_risk,
           epi_units = epi_units(),
           shared_borders = input_data()$result,
           emission_risk = emission_scores()
@@ -203,6 +205,12 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores) {
       output$config_is_valid <- renderUI({
         report_config_status(configIsValid())
       })
+
+      # warnings -----
+      output$warnings <- renderUI({
+        report_warning(riskScores()$warnings)
+      })
+      outputOptions(output, "warnings", suspendWhenHidden = FALSE)
 
       # table ----
       output$table <- renderReactable({

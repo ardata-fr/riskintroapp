@@ -183,16 +183,17 @@ importEmissionRiskFactorsServer <- function(id) {
       observeEvent(input$file, ignoreInit = TRUE, ignoreNULL = TRUE, {
         fp <- req(input$file$datapath)
         import_is_valid$valid <- import_is_valid$msg <- NULL
-        dataset <- safe_eval({
-          riskintrodata::read_emission_risk_factor_file(fp)
-        })
-        if (is_error(dataset)) {
+        result <- safe_and_quiet(
+          .fun = riskintrodata::read_emission_risk_factor_file,
+          fp = fp
+        )
+        if (!is.null(result$error)) {
           import_is_valid$valid <- FALSE
-          import_is_valid$msg <- get_error_message(dataset)
+          import_is_valid$msg <- result$error
           NULL
         } else {
           import_is_valid$valid <- TRUE
-          importDataset(dataset)
+          importDataset(result$result)
         }
       })
       observeEvent(input$import_open,{
