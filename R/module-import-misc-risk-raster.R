@@ -233,18 +233,149 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
 
       # configIsValid ----
       configIsValid <- reactive(label = paste0("configIsValid-import-", id), {
-        req(importRaster())
-        config_is_valid(
-          "import_misc_raster",
-          raster = importRaster(),
-          extracted_risk = extractedRisk(),
-          epi_units = epi_units(),
-          metadata = riskMetaData(),
-          parameters = list(
-            name = input$name,
-            aggregate_fun = input$aggregate_fun,
-            scale = input$scale
+        raster <- importRaster()
+        extracted_risk <- extractedRisk()
+        metadata <- riskMetaData()
+
+        # raster ----
+        if(!isTruthy(raster)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "A raster file must be imported."
           )
+          return(status)
+        }
+        if(terra::nlyr(raster) == 0) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Raster file contains no data layers."
+          )
+          return(status)
+        }
+
+        if(!terra::hasValues(raster)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Raster has no values."
+          )
+          return(status)
+        }
+
+        # name ----
+        if(!isTruthy(input$name)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Provide a risk name."
+          )
+          return(status)
+        }
+        if (input$name %in% names(metadata)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "There is already a risk with this name."
+          )
+          return(status)
+        }
+
+        if (input$name %in% c('epi_units', "emission_risk_factors", "overall_risk")) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "This risk name is reserved."
+          )
+          return(status)
+        }
+
+        # scale ----
+        if (is.null(input$scale)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale not found."
+          )
+          return(status)
+        }
+        if (any(is.na(input$scale))) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale input must be numeric."
+          )
+          return(status)
+        }
+        if (length(input$scale) != 2) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale must have length 2."
+          )
+          return(status)
+        }
+        if (!is.numeric(input$scale)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale must be numeric."
+          )
+          return(status)
+        }
+        if (input$scale[[1]] == input$scale[[2]]) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale values should not be equal."
+          )
+          return(status)
+        }
+        if (input$scale[[1]] > input$scale[[2]]) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "First scale value should be smaller than the second."
+          )
+          return(status)
+        }
+
+        # aggregation function ----
+        valid_funs <- c("mean", "max", "min", "median", "sum")
+        if(!input$aggregate_fun %in% valid_funs) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = paste("Aggregation function must be one of:", paste(valid_funs, collapse = ", "))
+          )
+          return(status)
+        }
+
+        # extracted risk data ----
+        if(!isTruthy(extracted_risk)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Risk extraction failed. Check raster data and epidemiological units."
+          )
+          return(status)
+        }
+
+        if (nrow(extracted_risk) == 0) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Aggregation resulted in no values. The raster does not overlap epidemiological units."
+          )
+          return(status)
+        }
+
+        risk_values <- extracted_risk[[input$name]]
+        if (all(is.na(risk_values))) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Aggregation resulted only missing values. The raster does not overlap epidemiological units."
+          )
+          return(status)
+        }
+
+        if(any(is.infinite(risk_values), na.rm = TRUE)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Extracted risk values contain infinite values."
+          )
+          return(status)
+        }
+
+        build_config_status(
+          value = TRUE,
+          msg = "Configuration is valid."
         )
       })
       output$config_is_valid <- renderUI({
@@ -316,7 +447,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
           type = "raster",
           join_by = "eu_id",
           initial_scale = input$scale,
-          risk_col = input$risk_col,
+          risk_col = input$name,
           dataset = dataset,
           rescale_args = list(
             cols = input$name,
@@ -333,157 +464,3 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
     })
 }
 
-#' @export
-config_is_valid.import_misc_raster <- function(x, ...) {
-
-  x <- list(...)
-
-  raster <- x$raster
-  extracted_risk <- x$extracted_risk
-  epi_units <- x$epi_units
-  metadata <- x$metadata
-  parameters <- x$parameters
-
-  # raster ----
-  if(!isTruthy(raster)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "A raster file must be imported."
-    )
-    return(status)
-  }
-  if(terra::nlyr(raster) == 0) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Raster file contains no data layers."
-    )
-    return(status)
-  }
-
-  if(!terra::hasValues(raster)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Raster has no values."
-    )
-    return(status)
-  }
-
-  # name ----
-  if(!isTruthy(parameters$name)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Provide a risk name."
-    )
-    return(status)
-  }
-  if (parameters$name %in% names(metadata)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "There is already a risk with this name."
-    )
-    return(status)
-  }
-
-
-  if (parameters$name %in% c('epi_units', "emission_risk_factors", "overall_risk")) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "This risk name is reserved."
-    )
-    return(status)
-  }
-
-
-  # scale ----
-  if (is.null(parameters$scale)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale not found."
-    )
-    return(status)
-  }
-  if (any(is.na(parameters$scale))) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale input must be numeric."
-    )
-    return(status)
-  }
-  if (length(parameters$scale) != 2) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale must have length 2."
-    )
-    return(status)
-  }
-  if (!is.numeric(parameters$scale)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale must be numeric."
-    )
-    return(status)
-  }
-  if (parameters$scale[[1]] == parameters$scale[[2]]) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale values should not be equal."
-    )
-    return(status)
-  }
-  if (parameters$scale[[1]] > parameters$scale[[2]]) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "First scale value should be smaller than the second."
-    )
-    return(status)
-  }
-
-  # aggregation function ----
-  valid_funs <- c("mean", "max", "min", "median", "sum")
-  if(!parameters$aggregate_fun %in% valid_funs) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = paste("Aggregation function must be one of:", paste(valid_funs, collapse = ", "))
-    )
-    return(status)
-  }
-
-  # extracted risk data ----
-  if(!isTruthy(extracted_risk)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Risk extraction failed. Check raster data and epidemiological units."
-    )
-    return(status)
-  }
-
-  if (nrow(extracted_risk) == 0) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Aggregation resulted in no values. The raster does not overlap epidemiological units."
-    )
-    return(status)
-  }
-
-  risk_values <- extracted_risk[[parameters$name]]
-  if (all(is.na(risk_values))) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Aggregation resulted only missing values. The raster does not overlap epidemiological units."
-    )
-    return(status)
-  }
-
-  if(any(is.infinite(risk_values), na.rm = TRUE)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Extracted risk values contain infinite values."
-    )
-    return(status)
-  }
-
-  build_config_status(
-    value = TRUE,
-    msg = "Configuration is valid."
-  )
-}
