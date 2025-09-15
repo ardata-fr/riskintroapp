@@ -35,15 +35,27 @@ ui <- function() {
             title = "Introduction risk",
             help_text = "This is help text",
             level = 4
-            ),
-          actionButton(
-            inputId = "import_epi_units",
-            label = "Import epidemiological units",
-            icon = icon("upload")
           ),
+          dropMenu(
+            actionButton(
+              inputId = "dropMenu",
+              label = "Import epidemiological units",
+              icon = icon("upload")
+            ),
+            actionButton(
+              inputId = "import_epi_units",
+              label = "Import file",
+              icon = icon("file-import")
+            ),
+            actionButton(
+              inputId = "open_geodata",
+              label = "Geodata download",
+              icon = icon("download")
+            )
+          ),
+
           tags$hr(),
           summariseScoresUI("summarise_risk_table"),
-
           exportUI()
         ),
         leafletOutput(
@@ -51,7 +63,7 @@ ui <- function() {
           width = "100%",
           height = "85vh"
         )
-      )
+      ),
     ),
     # Emission risk ----
     nav_panel(

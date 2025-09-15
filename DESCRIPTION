@@ -39,7 +39,8 @@ Imports:
     workspace,
     terra,
     plotly,
-    mirai
+    mirai,
+    geodata
 Suggests:
     commonmark
 Remotes: 

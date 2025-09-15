@@ -151,6 +151,7 @@ error_box <- function(error) {
 #' @param ... argments to pass to `.fun`
 #' @keywords internal
 #' @importFrom purrr quietly safely
+#' @export
 safe_and_quiet <- function(.fun, ...){
   safe_fun <- quietly(safely(.fun))
   out_safe <- safe_fun(...)

@@ -46,14 +46,29 @@ server <- function(input, output, session) {
     border_input(new_datasets$border_input)
   })
 
-  # Import epi units ----
+  # import geodata ----
 
+  observeEvent(input$open_geodata, {
+    hideDropMenu("dropMenu_dropmenu")
+    showModal(geodataUI(id = "geodata"))
+  })
+  geodata_import <- geodataServer(
+    id = "geodata",
+    is_overwriting = reactive(isTruthy(epi_units()))
+    )
+  observeEvent(geodata_import(), {
+    epi_units(geodata_import())
+  })
+
+  # import file ----
   observeEvent(input$import_epi_units,{
+    hideDropMenu("dropMenu_dropmenu")
     showModal(importEpiUnitsUI(id = "import_epi_units"))
   })
   new_epi_units <- importEpiUnitsServer(
     id = "import_epi_units",
-    is_overwriting = reactive(isTruthy(epi_units())))
+    is_overwriting = reactive(isTruthy(epi_units()))
+    )
 
   observeEvent(new_epi_units(),{
     epi_units(new_epi_units())
