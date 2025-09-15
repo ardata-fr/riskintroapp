@@ -77,6 +77,18 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
     function(input, output, session) {
       ns <- session$ns
 
+      # init map ----
+      baseMap <- reactive({basemap()})
+      output$map <- renderLeaflet({
+        req(baseMap())
+        baseMap()
+      })
+      outputOptions(output, "map", suspendWhenHidden = FALSE)
+      observeEvent(epi_units(), {
+        req(epi_units())
+        setBoundsFromSF(leafletProxy("map"), epi_units())
+      })
+
       # miscRiskMetaData ----
       miscRiskMetaData <- reactiveVal(list())
 
@@ -112,15 +124,6 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
           leaflet::clearShapes(ll)
         }
       })
-
-
-      # Initialise maps ----
-      baseMap <- reactive({basemap()})
-      output$map <- renderLeaflet({
-        req(baseMap())
-        baseMap()
-      })
-      outputOptions(output, "map", suspendWhenHidden = FALSE)
 
       # update map ----
       observe({

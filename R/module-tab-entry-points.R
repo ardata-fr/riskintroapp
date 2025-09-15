@@ -54,6 +54,18 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
     function(input, output, session) {
       ns <- session$ns
 
+      # init maps ----
+      baseMap <- reactive({ basemap() })
+      output$map <- renderLeaflet({
+        req(baseMap())
+        baseMap()
+      })
+      outputOptions(output, "map", suspendWhenHidden = FALSE)
+      observeEvent(epi_units(), {
+        req(epi_units())
+        setBoundsFromSF(leafletProxy("map"), epi_units())
+      })
+
       # Data storage ----
       riskScores <- reactiveVal(NULL)
       entryPointsParameters <- reactiveVal(list(
@@ -135,14 +147,6 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
         report_warning(riskScores()$warnings)
       })
       outputOptions(output, "warnings", suspendWhenHidden = FALSE)
-
-      # Initialize maps ----
-      baseMap <- reactive({ basemap() })
-      output$map <- renderLeaflet({
-        req(baseMap())
-        baseMap()
-      })
-      outputOptions(output, "map", suspendWhenHidden = FALSE)
 
       # import ----
       observeEvent(input$import_entry_points, {

@@ -52,6 +52,18 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
     function(input, output, session) {
       ns <- session$ns
 
+      # init map ----
+      baseLeaflet <- reactive({basemap()})
+      output$map <- renderLeaflet({
+        req(baseLeaflet())
+        baseLeaflet()
+      })
+      outputOptions(output, "map", suspendWhenHidden = FALSE)
+      observeEvent(epi_units(), {
+        req(epi_units())
+        setBoundsFromSF(leafletProxy("map"), epi_units())
+      })
+
       # Data storage ----
       animalMobilityData <- reactiveVal(NULL)
       riskScores <- reactiveVal(NULL)
@@ -61,14 +73,6 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
         method = "linear",
         inverse = FALSE
       ))
-
-      # Initialize map ----
-      baseLeaflet <- reactive({basemap()})
-      output$map <- renderLeaflet({
-        req(baseLeaflet())
-        baseLeaflet()
-      })
-      outputOptions(output, "map", suspendWhenHidden = FALSE)
 
       # import ----
       observeEvent(input$import_mobility, {

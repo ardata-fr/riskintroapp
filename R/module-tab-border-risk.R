@@ -53,6 +53,19 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores) {
     function(input, output, session) {
       ns <- session$ns
 
+
+      # init maps ----
+      baseMap <- reactive({ basemap() })
+      output$map <- renderLeaflet({
+        req(baseMap())
+        baseMap()
+      })
+      outputOptions(output, "map", suspendWhenHidden = FALSE)
+      observeEvent(epi_units(), {
+        req(epi_units())
+        setBoundsFromSF(leafletProxy("map"), epi_units())
+      })
+
       # Data storage ----
       riskScores <- reactiveVal(NULL)
 
@@ -61,14 +74,6 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores) {
         method = "linear",
         inverse = FALSE
       ))
-
-      # Initialize maps ----
-      baseMap <- reactive({ basemap() })
-      output$map <- renderLeaflet({
-        req(baseMap())
-        baseMap()
-      })
-      outputOptions(output, "map", suspendWhenHidden = FALSE)
 
       # Setup async "function" ----
       async_calc_borders <- ExtendedTask$new(

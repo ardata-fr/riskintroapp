@@ -75,13 +75,8 @@ server <- function(input, output, session) {
   })
 
   observeEvent(epi_units(), {
-    epi_units <- req(epi_units())
-    bb <- sf::st_bbox(epi_units)
-    leaflet::flyToBounds(
-      map = leafletProxy("map"),
-      lng1 = bb$xmin[[1]], lat1 = bb$ymin[[1]],
-      lng2 = bb$xmax[[1]], lat2 = bb$ymax[[1]]
-      )
+    req(epi_units())
+    setBoundsFromSF(leafletProxy("map"), epi_units())
   })
 
   # emission_scores ----

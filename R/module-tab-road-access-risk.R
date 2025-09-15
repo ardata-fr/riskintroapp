@@ -68,6 +68,10 @@ roadAccessRiskServer <- function(id, input_raster, epi_units) {
         baseLeaflet()
       })
       outputOptions(output, "map", suspendWhenHidden = FALSE)
+      observeEvent(epi_units(), {
+        req(epi_units())
+        setBoundsFromSF(leafletProxy("map"), epi_units())
+      })
 
       rescaling_args <- reactiveVal(list(
         method = "linear",
