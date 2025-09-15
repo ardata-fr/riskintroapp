@@ -7,7 +7,7 @@ borderRiskUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = "Border risk",
+      title = titleWithHelpKey("border-risk-title"),
       uiOutput(ns("config_is_valid")),
       uiOutput(ns("warnings")),
       tags$br(),

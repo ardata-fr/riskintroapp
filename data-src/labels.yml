@@ -1,0 +1,1002 @@
+
+## DEV NOTE:
+## Label values for `label` and `help` use markdown syntax
+## To update labels, edit the below and then use `data-raw/labels.R` to
+## update, then reinstall the package.
+##
+## NEW LABEL TEMPLATE ##
+# - key: new-key # must be unique
+#   data:
+#     - lang: en
+#       label: "View dataset"
+#       help: >
+#             Available names are those found in workspace.
+#     - lang: fr
+#       label: "Voir dataset"
+#       help: >
+#             Les noms disponibles sont celles dans l'éspace de travail.
+#
+
+## Labels
+
+- key: point_id
+  data:
+    - lang: en
+      label: "unique point identifier"
+
+- key: point_name
+  data:
+    - lang: en
+      label: "point name or description"
+
+- key: mode
+  data:
+    - lang: en
+      label: "point mode (legal/illegal)"
+
+
+- key: type
+  data:
+    - lang: en
+      label: "point transport type "
+
+- key: lat
+  data:
+    - lang: en
+      label: "latitude"
+
+- key: lng
+  data:
+  - lang: en
+    label: "longitude"
+
+- key: sources
+  data:
+    - lang: en
+      label: "sources of animal migration"
+
+
+- key: geometry
+  data:
+  - lang: en
+    label: "geospatial data"
+
+- key: eu_id
+  data:
+  - lang: en
+    label: "EU unique identifier"
+
+- key: eu_name
+  data:
+  - lang: en
+    label: "EU name or description"
+
+- key: eu_geometry
+  data:
+  - lang: en
+    label: "EU geospatial polygons"
+
+
+- key: animal_mobility_id
+  data:
+  - lang: en
+    label: "unique identifier for each line"
+
+- key: o_name
+  data:
+  - lang: en
+    label: "origin point name"
+
+- key: o_country
+  data:
+  - lang: en
+    label: "origin point country"
+
+- key: o_lng
+  data:
+  - lang: en
+    label: "origin point longitude"
+
+- key: o_lat
+  data:
+  - lang: en
+    label: "origin point latitude"
+
+- key: d_name
+  data:
+  - lang: en
+    label: "destination point name"
+
+- key: d_country
+  data:
+  - lang: en
+    label: "destination point country"
+
+- key: d_lng
+  data:
+  - lang: en
+    label: "destination point longitude"
+
+- key: d_lat
+  data:
+  - lang: en
+    label: "destination point latitude"
+
+- key: quantity
+  data:
+  - lang: en
+    label: "animal flow headcount"
+
+- key: user_id
+  data:
+  - lang: en
+    label: "User's unique identifier (optional)"
+
+- key: emission_risk_weights
+  data:
+    - lang: en
+      label: "Emission risk factor weights"
+      help: >
+            Risk factor weights are applied to risk factors based on whether they
+            exist or not in a specific country for a specific disease.
+
+            The higher the weight attributed to a given risk factor, the more it
+            contributes to the overall emission risk.
+
+            The total value of all emission risk weights cannot be over 9. This
+            is because emission risk cannot be greater than 12 and 9 of the possible
+            12 risk points are associated with surveillance and control measures.
+            The remaining 3 points come from epistatus.
+
+            As an example, if a country does not apply general surveillance and the
+            associated weight is 0.75; the general surveillance risk factor will
+            contribute 0.75 points to the overall emission risk score.
+
+    - lang: fr
+      label: "Placeholder french label"
+      help: >
+            Placeholder french text
+
+
+- key: emission_risk_scaling
+  data:
+    - lang: en
+      label: "Emission risk factor scaling"
+      help: >
+            The emission risk score is calculated by adding together the emission
+            risk factors for each country. Emission risk score sits in a range of
+            0 to 12, 0 being minimum risk and 12 being the maximum risk.
+
+            This range of 0 to 12 is then expanded from 0 to 100, in doing so
+            the user can specify a transformation function used while scaling the
+            data. This will change the distribution of emission risk scores.
+
+- key: epistatus
+  data:
+    - lang: en
+      label: "Epidemiological status"
+      help: >
+            If the disease has not been detected in the country in the last 5 years, the score will be 0 and
+            If the disease is currently present in the country, the score will be 3.
+            In order to correct for the effects of discontinuity, if the disease
+            was detected within the last 5 years, a score is calculated from an exponential
+            decay function, effectively smoothing the risk score between 0 and 3.
+
+    - lang: fr
+      label: "Statut épedemiologique"
+      help: >
+            Si la maladie n’a pas été détectée dans le pays au cours des 5 dernières années, le score sera de 0 et
+            Si la maladie est actuellement présente dans le pays, le score sera de 3.
+            Afin de corriger les effets de discontinuité dans le scoring, l’option retenue est d’utiliser une
+            décroissance exponentielle.
+
+
+
+- key: epistatus_checkbox
+  data:
+    - lang: en
+      label: "epistatus_checkbox"
+      help: >
+            An epidemiological status of 3 is given to countries currently amidst an
+            outbreak. 0 is for countries for which the last outbreak was over 5 years ago.
+            Countries having had an outbreak in the past 5 years have a smoothed, exponentially-decaying score between 0 and 3.
+
+
+- key: surveillance_measures
+  data:
+    - lang: en
+      label: "Surveillance measures"
+      help: >
+            Surveillance measures are a grouping of emission risk factors used to
+            calculate the surveillence score; a score contributing to overall
+            emission risk of a country. Surveillence measures include the following
+            emission risk factors: targeted surveillence, general_surveillence, screening and
+            disease notification.
+
+- key: control_measures
+  data:
+    - lang: en
+      label: "Control measures"
+      help: >
+            Control measures are a grouping of emission risk factors used to
+            calculate the control score; a score contributing to overall
+            emission risk of a country. Control measures includes the following
+            emission risk factors: precautions at the borders, stamping out, selective
+            killing and disponsal, movement control, and official vaccination.
+
+- key: general_surveillance
+  data:
+    - lang: en
+      label: "General surveillance"
+      help: >
+            animal health surveillance typically based on observations of clinical
+            or behavioural signs of disease, or an assessment of mortality or
+            production data, which are generated by an early detection system or
+            from other information which is available to the Competent Authority.
+
+    - lang: fr
+      label: "Surveillance de routine (passive)"
+      help: >
+            désigne la surveillance de la santé des animaux aquatiques reposant
+            généralement sur les observations de signes cliniques ou
+            comportementaux, ou sur une évaluation des données relatives à la
+            mortalité ou à la production, qui sont générées par un système de
+            détection précoce ou sont issues d'autres informations qui sont mises
+            à disposition de l'Autorité compétente.
+
+- key: targeted_surveillance
+  data:
+    - lang: en
+      label: "Targeted surveillance"
+      help: >
+            Means the surveillance targeted to a specific disease or infection.
+
+    - lang: fr
+      label: "Surveillance ciblée (active)"
+      help: >
+            Désigne une surveillance ciblée sur une maladie ou une infection
+            particulière.
+
+- key: screening
+  data:
+    - lang: en
+      label: "Screening"
+      help: >
+            Survey carried out within the framework of a control programme for
+            the disease, infection or infestation for health qualification of
+            herds/flocks in all or part of the national territory.
+
+    - lang: fr
+      label: "Dépistage"
+      help: >
+            Enquête réalisée dans le cadre d’un plan de lutte contre la maladie,
+            l’infection ou l’infestation en vue de qualifier la situation sanitaire
+            des troupeaux/cheptels sur tout ou partie du territoire national.
+
+- key: disease_notification
+  data:
+    - lang: en
+      label: "Disease notification"
+      help: >
+            Means a disease listed by the Veterinary Authority, and that, as
+            soon as detected or suspected, should be brought to the attention of
+            this Authority, in accordance with national regulations.
+
+    - lang: fr
+      label: "Notification de maladies"
+      help: >
+            Désigne une maladie incluse dans une liste établie par l’Autorité
+            vétérinaire et dont la détection ou la suspicion doit être portée
+            immédiatement à la connaissance de cette Autorité, conformément aux
+            réglementations nationales.
+
+- key: precautions_at_the_borders
+  data:
+    - lang: en
+      label: "Precautions at the borders"
+      help: >
+            Means the operations whereby the Veterinary Services at the borders
+            can apply appropriate animal health measures.
+
+    - lang: fr
+      label: "Précautions aux frontières"
+      help: >
+            Désigne l’opération par laquelle les Services vétérinaires aux
+            fronteres peuvent appliquer des mesures zoosanitaires appropriées.
+
+- key: slaughter
+  data:
+    - lang: en
+      label: "Stamping out"
+      help: >
+            Means a policy designed to eliminate an outbreak by carrying
+            out under the authority of the Veterinary Authority.
+
+    - lang: fr
+      label: "Abattage sanitaire"
+      help: >
+            Désigne l’opération par laquelle les Services vétérinaires aux
+            fronteres peuvent appliquer des mesures zoosanitaires appropriées.
+
+
+- key: selective_killing
+  data:
+    - lang: en
+      label: "Selective killing and disposal"
+      help: >
+            Means a policy designed to eliminate an outbreak by carrying out
+            under the authority of the Veterinary Authority.
+
+    - lang: fr
+      label: "Mise à mort sélective et élimination"
+      help: >
+            Désigne une politique sanitaire visant à éliminer un foyer en
+            effectuant, sous la supervision de l'Autorité vétérinaire.
+
+- key: zoning
+  data:
+    - lang: en
+      label: "Movement control"
+      help: >
+            Measures aimed at avoiding the spread of the disease, infection or
+            infestation within a country/zone/compartment due to the movement
+            of animals or their products.
+
+    - lang: fr
+      label: "Restriction des déplacements"
+      help: >
+            Mesures destinées à éviter la propagation de la maladie, l’infection
+            ou l’infestation dans le pays/zone/compartiment en raison des
+            déplacements d’animaux ou de leurs produits.
+
+- key: official_vaccination
+  data:
+    - lang: en
+      label: "Official vaccination"
+      help: >
+            means the administration of a vaccine, in accordance with the
+            manufacturer's instructions and the Terrestrial Manual, when
+            relevant, with the intention of inducing immunity in an animal
+            or group of animals against one or more pathogenic agent.
+
+    - lang: fr
+      label: "Vaccination officielle"
+      help: >
+            Désigne l'administration d'un vaccin, conformément aux instructions
+            du fabricant et, s'il y a lieu, selon les normes du Manuel terrestre,
+            dans l'intention d'induire chez un animal ou un groupe d'animaux,
+            une immunité contre un ou plusieurs agents pathogènes.
+
+- key: sc_commerce
+  data:
+    - lang: en
+      label: "Commerce"
+      help: >
+            Commerce score measures the risk associated with animal commerce between
+            this country and study EUs. It is calculated from the existence of legal,
+            illegal or no commerce between countries.
+
+            If both illegal and legal commerce exists, the maximum score of 4 is give.
+            If only legal commerce exists, a score of 1. If only illegal, a score of 3.
+            And finally, if there is no commerce, a score of 0.
+
+- key: commerce_illegal
+  data:
+    - lang: en
+      label: "Illegal commerce"
+      help: >
+            Illegal or unsanction commerce exist between this country and study EUs.
+            This type of commerce is riskier due to less regulation and oversight.
+
+- key: commerce_legal
+  data:
+    - lang: en
+      label: "Legal commerce"
+      help: >
+            Legal commerce exist between this countr and study EUs.
+            This type of commerce is less risky, as it should meet sanitary regulations
+            and oversight measures.
+
+- key: disease_settings
+  data:
+    - lang: en
+      label: "Disease settings"
+      help: >
+            Disease settings are used to indicate which disease, animal species
+            and animal category (wild or domestic) is being studied. Each study
+            should be for only one disease and species.
+
+    - lang: fr
+      label: "Placeholder french label"
+      help: >
+            Placeholder french text
+
+- key: species
+  data:
+    - lang: en
+      label: "Species"
+      help: >
+            The species of the animal being studied in this analysis
+
+    - lang: fr
+      label: "Placeholder french label"
+      help: >
+            Placeholder french text
+
+- key: animal_category
+  data:
+    - lang: en
+      label: "Animal category"
+      help: >
+            Whether the animals being studied in this analysis are domestic/farmed or wild animals.
+
+    - lang: fr
+      label: "Placeholder french label"
+      help: >
+            Placeholder french text
+
+- key: disease
+  data:
+    - lang: en
+      label: "Disease"
+      help: >
+            The disease being studied in this analysis
+
+    - lang: fr
+      label: "Placeholder french label"
+      help: >
+            Placeholder french text
+
+
+- key: emission_risk_settings
+  data:
+    - lang: en
+      label: "Emission risk"
+      help: >
+            The emission risk table provides the emission risks for many countries,
+            which is required to calculate the introduction risk of this study's EU.
+
+            In this sidebar, you can choose all the settings required for the emission
+            risk table.
+
+    - lang: fr
+      label: "Placeholder french label"
+      help: >
+            Placeholder french text
+
+- key: emission_risk_map
+  data:
+    - lang: en
+      label: "Click on a country to edit its emission risk data."
+      help: >
+            Placeholder
+
+    - lang: fr
+      label: "Placeholder french label"
+      help: >
+            Placeholder french text
+
+# graphics labels
+- key: border_title
+  data:
+    - lang: en
+      label: "Borders risks"
+      help: >
+            Placeholder
+    - lang: fr
+      label: "Risques liés aux frontières"
+      help: >
+            Placeholder
+- key: risk_level_title
+  data:
+    - lang: en
+      label: "Risks levels"
+      help: >
+            Placeholder
+    - lang: fr
+      label: "Niveaux de risque"
+      help: >
+            Placeholder
+- key: entry_point_mode
+  data:
+    - lang: en
+      label: "Entry point mode"
+      help: >
+            Placeholder
+    - lang: fr
+      label: "Mode du point d'entrée"
+      help: >
+            Placeholder
+
+- key: epi_units_file
+  data:
+    - lang: en
+      label: ""
+      help: >
+            Epidemiological units (EUs) are geographical areas of interest for
+            finding risk scores. EUs often take the
+            form of a country's administrative boundaries, but can be any area such
+            as a national park or island.
+
+            Each epidemiological unit record should be named, and have associated
+            geospatial polygon data, provided in the form of a geospatial dataset
+            (such as .shp, .geojson, .gpkg, etc...). An API download may also be
+            available from [www.geoboundaries.org](www.geoboundaries.org) if you have internet access, here
+            you can select the adminstrative datasets for countries around the
+            world (select the "Geoboundaries API" below).
+
+- key: entry_points_file
+  data:
+    - lang: en
+      label: ""
+      help: >
+            Entry points within the geographical bounds of an epidemiological
+            unit contribute to it's risk scores. Different types of
+            points contribute differently. Therefore, each point should have a name,
+            transport type, legality mode and
+            point location. Geographic data can be provided as longitude/latitude
+            data, or as geospatial points data (such as in a .shp or .geojson file).
+
+- key: animal_mobility_file
+  data:
+    - lang: en
+      label: ""
+      help: >
+            Animal mobility describes the flow of legal animal commerce between two
+            points. Using the origin and destination points, this information can be used
+            to provide disease introdution risk scores that are weighted by the
+            quantities of animals that pass through that flow.
+
+            This dataset should have origin latitude and longitude, and destination latitude and longitude,
+            as well as a name for the origin point, and desitination point. Include the quantity column
+            to have weighted risk scores. This file needs to be imported in a tabular format, such as .csv,
+            .txt or .xlsx.
+
+- key: road_access_file
+  data:
+    - lang: en
+      label: ""
+      help: >
+            Road access risk contains an index of isolation from large towns and cities. The
+            data is uploaded in raster format. The data will provide an aggregated risk score for each of the EUs.
+
+- key: emission_risk_factors_file
+  data:
+    - lang: en
+      label: ""
+      help: >
+            Emission risk factors are used to calculate almost all risk factors. It
+            uses the emission risk factors as described on the
+            [WAHIS: World Animal Health Information System](https://wahis.woah.org/#/home). It is
+            highly recommended to use the default emission risk factors, these can then be
+            edited using the graphical interface.
+
+            If none of the default risk factor species, animal category or disease correspond to your requirements,
+            select 'Other disease'. Note that this means all data will be filled via the graphical interface on the 'Emission Risk' tab
+
+
+- key: road_access_tab
+  data:
+    - lang: en
+      label: ""
+      help: >
+            Road access risk score averages the accessibity to roads index across in each epidemiological unit. This
+            average is scaled to a score between 0 and 100 for comparison to other risk scores.
+
+
+
+- key: animal_mobility_tab
+  data:
+    - lang: en
+      label: ""
+      help: >
+            Animal mobility shows animal commerce flows through origina and destination points.
+            This map shows all international inflows into EUs. The emission risk of a point is
+            calculated from all its sources, which then informs the introduction score for
+            each of the EUs.
+
+- key: import_erf
+  data:
+    - lang: en
+      label: "Import emission risk factors dataset"
+      help: >
+            The emission risk factors dataset is based on the data from the [WAHIS: World Animal Health Information System](https://wahis.woah.org/#/home)
+            control and surveillance measures data portal. It also includes data on
+            the existence of illegal or legal commerce with other countries and
+            the epidemiological status.
+
+            The dataset has strict rules and contains many columns, therefore it is
+            recommended to create your dataset from the template file generated by
+            the `riskintro::write_erf_template()` function. [See the documentation
+            for details on the required data format](https://astre.gitlab.cirad.fr/riskintro/reference/write_erf_template.html).
+
+
+- key: road_access_scaling
+  data:
+    - lang: en
+      label: "Road access risk scaling"
+      help: >
+            Road access risk must be scaled to a new range of 0 to 100.
+            As part of this rescaling, a transformation function can be used
+            to alter the distribution of values.
+
+# Module sidebar titles
+- key: emission-scores-title
+  data:
+    - lang: en
+      label: "Emission scores"
+      help: >
+            The emission risk table provides the emission risks for many countries,
+            which is required to calculate the introduction risk of this study's EU.
+            In this sidebar, you can choose all the settings required for the emission
+            risk table.
+    - lang: fr
+      label: "Scores d'émission"
+      help: >
+            La table des risques d'émission fournit les risques d'émission pour de nombreux pays,
+            ce qui est nécessaire pour calculer le risque d'introduction de l'UE de cette étude.
+
+- key: animal-mobility-title
+  data:
+    - lang: en
+      label: "Animal mobility"
+      help: >
+            Animal mobility shows animal commerce flows through origin and destination points.
+            This analysis shows all international inflows into EUs. The emission risk of a point is
+            calculated from all its sources, which then informs the introduction score for
+            each of the EUs.
+    - lang: fr
+      label: "Mobilité animale"
+      help: >
+            La mobilité animale montre les flux de commerce d'animaux à travers les points d'origine et de destination.
+
+- key: border-risk-title
+  data:
+    - lang: en
+      label: "Border risk"
+      help: >
+            Border risk analysis calculates introduction risk based on shared borders between
+            epidemiological units and countries with different emission risk levels.
+    - lang: fr
+      label: "Risque frontalier"
+      help: >
+            L'analyse du risque frontalier calcule le risque d'introduction basé sur les frontières partagées.
+
+- key: entry-points-title
+  data:
+    - lang: en
+      label: "Entry points"
+      help: >
+            Entry points within the geographical bounds of an epidemiological
+            unit contribute to its risk scores. Different types of
+            points contribute differently based on transport type and legality mode.
+    - lang: fr
+      label: "Points d'entrée"
+      help: >
+            Les points d'entrée dans les limites géographiques d'une unité épidémiologique
+            contribuent à ses scores de risque.
+
+- key: road-access-title
+  data:
+    - lang: en
+      label: "Road access"
+      help: >
+            Road access risk contains an index of isolation from large towns and cities. The
+            data provides an aggregated risk score for each of the EUs based on accessibility.
+    - lang: fr
+      label: "Accès routier"
+      help: >
+            Le risque d'accès routier contient un indice d'isolement des grandes villes.
+
+- key: misc-risk-title
+  data:
+    - lang: en
+      label: "Miscellaneous risks"
+      help: >
+            Miscellaneous risks allow you to import additional risk factors from raster files
+            or precalculated datasets to supplement the main risk analysis.
+    - lang: fr
+      label: "Risques divers"
+      help: >
+            Les risques divers vous permettent d'importer des facteurs de risque supplémentaires.
+
+# Modal titles
+- key: import-epi-units-title
+  data:
+    - lang: en
+      label: "Import epidemiological units"
+      help: >
+            Epidemiological units (EUs) are geographical areas of interest for
+            finding risk scores. EUs often take the
+            form of a country's administrative boundaries, but can be any area such
+            as a national park or island.
+    - lang: fr
+      label: "Importer les unités épidémiologiques"
+      help: >
+            Les unités épidémiologiques (UE) sont des zones géographiques d'intérêt.
+
+- key: import-entry-points-title
+  data:
+    - lang: en
+      label: "Import entry points"
+      help: >
+            Entry points within the geographical bounds of an epidemiological
+            unit contribute to its risk scores. Different types of
+            points contribute differently. Therefore, each point should have a name,
+            transport type, legality mode and point location.
+    - lang: fr
+      label: "Importer les points d'entrée"
+      help: >
+            Les points d'entrée dans les limites géographiques d'une unité épidémiologique.
+
+- key: import-animal-mobility-title
+  data:
+    - lang: en
+      label: "Import animal mobility data"
+      help: >
+            Animal mobility describes the flow of legal animal commerce between two
+            points. Using the origin and destination points, this information can be used
+            to provide disease introduction risk scores that are weighted by the
+            quantities of animals that pass through that flow.
+    - lang: fr
+      label: "Importer les données de mobilité animale"
+      help: >
+            La mobilité animale décrit le flux de commerce légal d'animaux entre deux points.
+
+- key: import-road-access-title
+  data:
+    - lang: en
+      label: "Import risk from raster file"
+      help: >
+            Road access risk contains an index of isolation from large towns and cities. The
+            data is uploaded in raster format. The data will provide an aggregated risk score for each of the EUs.
+    - lang: fr
+      label: "Importer le risque depuis un fichier raster"
+      help: >
+            Le risque d'accès routier contient un indice d'isolement des grandes villes.
+
+- key: import-misc-risk-raster-title
+  data:
+    - lang: en
+      label: "Import risk from raster file"
+      help: >
+            Import miscellaneous risk data from raster files. The raster values will be
+            aggregated for each epidemiological unit to create risk scores.
+    - lang: fr
+      label: "Importer le risque depuis un fichier raster"
+      help: >
+            Importer des données de risque diverses depuis des fichiers raster.
+
+- key: import-misc-risk-precalculated-title
+  data:
+    - lang: en
+      label: "Import precalculated risk file"
+      help: >
+            Import precalculated risk scores that have already been calculated for each
+            epidemiological unit. The data should be in tabular format.
+    - lang: fr
+      label: "Importer un fichier de risque précalculé"
+      help: >
+            Importer des scores de risque précalculés qui ont déjà été calculés.
+
+- key: entry-points-parameters-title
+  data:
+    - lang: en
+      label: "Entry Points Risk Parameters"
+      help: >
+            Configure the parameters used for calculating entry point risk scores,
+            including coefficients for legal and illegal entry points.
+    - lang: fr
+      label: "Paramètres de risque des points d'entrée"
+      help: >
+            Configurer les paramètres utilisés pour calculer les scores de risque.
+
+- key: save-workspace-title
+  data:
+    - lang: en
+      label: "Save workspace"
+      help: >
+            Save your current analysis datasets and settings to a workspace file
+            that can be loaded later to continue your work.
+    - lang: fr
+      label: "Sauvegarder l'espace de travail"
+      help: >
+            Sauvegarder vos jeux de données et paramètres d'analyse actuels.
+
+- key: load-workspace-title
+  data:
+    - lang: en
+      label: "Load workspace"
+      help: >
+            Load a previously saved workspace file to restore your analysis
+            datasets and settings.
+    - lang: fr
+      label: "Charger l'espace de travail"
+      help: >
+            Charger un fichier d'espace de travail précédemment sauvegardé.
+
+- key: edit-risk-factors-title
+  data:
+    - lang: en
+      label: "Edit emission risk factors"
+      help: >
+            Edit emission risk factors for a specific country including surveillance measures,
+            control measures, commerce status, and epidemiological status. Changes affect
+            the emission risk calculations for this country.
+    - lang: fr
+      label: "Modifier les facteurs de risque d'émission"
+      help: >
+            Modifier les facteurs de risque d'émission pour un pays spécifique.
+
+- key: export-title
+  data:
+    - lang: en
+      label: "Export"
+      help: >
+            Export your analysis results and datasets to various file formats including
+            geospatial data, CSV files, and plots. Select which files to export and
+            choose your preferred format for each.
+    - lang: fr
+      label: "Exporter"
+      help: >
+            Exporter vos résultats d'analyse et jeux de données vers différents formats.
+
+- key: rescale-risk-title
+  data:
+    - lang: en
+      label: "Rescale risk scores"
+      help: >
+            Rescale risk scores to a new range (0-100) using different transformation
+            methods (linear, quadratic, exponential, sigmoid). This allows you to adjust
+            the distribution of risk values for better visualization and comparison.
+    - lang: fr
+      label: "Redimensionner les scores de risque"
+      help: >
+            Redimensionner les scores de risque vers une nouvelle plage (0-100).
+
+- key: edit-factor-weights-title
+  data:
+    - lang: en
+      label: "Edit emission factor weights"
+      help: >
+            Configure the weights applied to emission risk factors. Surveillance measures
+            must sum to 2.0 and control measures must sum to 3.0 for a total of 5.0.
+            These weights determine how much each factor contributes to the overall emission risk.
+    - lang: fr
+      label: "Modifier les poids des facteurs d'émission"
+      help: >
+            Configurer les poids appliqués aux facteurs de risque d'émission.
+
+- key: import-wahis-data-title
+  data:
+    - lang: en
+      label: "Import WAHIS data"
+      help: >
+            Import emission risk factors from the WAHIS (World Animal Health Information System)
+            database. Filter by disease, species, and animal category to select relevant
+            countries and their surveillance/control measures for your study.
+    - lang: fr
+      label: "Importer les données WAHIS"
+      help: >
+            Importer les facteurs de risque d'émission depuis la base de données WAHIS.
+
+- key: import-erf-file-title
+  data:
+    - lang: en
+      label: "Import emission risk factors file"
+      help: >
+            Import emission risk factors from a CSV or TSV file. Use the template download
+            to ensure your file has the correct format and required columns for validation.
+    - lang: fr
+      label: "Importer un fichier de facteurs de risque d'émission"
+      help: >
+            Importer les facteurs de risque d'émission depuis un fichier CSV ou TSV.
+
+- key: manual-erf-entry-title
+  data:
+    - lang: en
+      label: "Set study settings for manual entry"
+      help: >
+            Create an empty emission risk factors dataset with your study parameters
+            (disease, species, animal category). You can then manually add countries
+            and configure their risk factors through the graphical interface.
+    - lang: fr
+      label: "Configurer les paramètres d'étude pour la saisie manuelle"
+      help: >
+            Créer un jeu de données de facteurs de risque d'émission vide avec vos paramètres d'étude.
+
+- key: workspace-validation-error-title
+  data:
+    - lang: en
+      label: "Dataset validation errors"
+      help: >
+            Some datasets in the workspace file could not be validated and will not be loaded.
+            This usually happens when the file format has changed or the data is corrupted.
+            Check the error messages below for details.
+    - lang: fr
+      label: "Erreurs de validation des jeux de données"
+      help: >
+            Certains jeux de données du fichier d'espace de travail n'ont pas pu être validés.
+
+# Info text for modal content
+- key: import-wahis-data-info
+  data:
+    - lang: en
+      label: "WAHIS Import Information"
+      help: >
+            Here, you can import data that is provided on the World Animal Health
+            Information System (WAHIS). This data has been downloaded and processed by
+            the RiskIntro team.
+
+            Control and surveillance measures make a large
+            portion of a country's emission risk score, this data comes from
+            the [WAHIS Surveillance and control measures Dashboard](https://wahis.woah.org/#/dashboards/control-measure-dashboard).
+
+            Epidemiological status data comes from the [Disease situation dashboard](https://wahis.woah.org/#/dashboards/country-or-disease-dashboard).
+
+            These two datasets are processed and joined together to create the
+            file you are importing here.
+
+            **Note: data may not be complete for all countries involved in your
+            study.**
+    - lang: fr
+      label: "Informations d'importation WAHIS"
+      help: >
+            Ici, vous pouvez importer des données fournies par le Système mondial
+            d'information sanitaire de l'OIE (WAHIS). Ces données ont été téléchargées
+            et traitées par l'équipe RiskIntro.
+
+            Les mesures de contrôle et de surveillance constituent une grande
+            partie du score de risque d'émission d'un pays, ces données proviennent
+            du [Tableau de bord des mesures de surveillance et de contrôle WAHIS](https://wahis.woah.org/#/dashboards/control-measure-dashboard).
+
+            Les données sur le statut épidémiologique proviennent du [Tableau de bord de la situation des maladies](https://wahis.woah.org/#/dashboards/country-or-disease-dashboard).
+
+            Ces deux jeux de données sont traités et joints ensemble pour créer le
+            fichier que vous importez ici.
+
+            **Remarque : les données peuvent ne pas être complètes pour tous les pays
+            impliqués dans votre étude.**
+
+- key: import-erf-file-info
+  data:
+    - lang: en
+      label: "File Import Information"
+      help: >
+            Importing the emission risk factors dataset has some strict dataset
+            validation rules. Please find the rules here: placeholder-link.
+
+            In case you are starting from a new file and would like to work from
+            a template, please click the 'Download template' button below and
+            refer to the above link to ensure you follow validation rules while
+            filling out the file.
+    - lang: fr
+      label: "Informations d'importation de fichier"
+      help: >
+            L'importation du jeu de données des facteurs de risque d'émission a des
+            règles de validation strictes. Veuillez trouver les règles ici : placeholder-link.
+
+            Si vous partez d'un nouveau fichier et souhaitez travailler à partir
+            d'un modèle, veuillez cliquer sur le bouton 'Télécharger le modèle' ci-dessous et
+            vous référer au lien ci-dessus pour vous assurer de suivre les règles de validation
+            lors du remplissage du fichier.
+
+- key: manual-erf-entry-info
+  data:
+    - lang: en
+      label: "Manual Entry Information"
+      help: >
+            The manual entry option will create an empty emission risk table
+            that you can then edit using the interactive map.
+
+            After you are done here, click on the country
+            you would like to edit.
+    - lang: fr
+      label: "Informations de saisie manuelle"
+      help: >
+            L'option de saisie manuelle créera une table de risque d'émission vide
+            que vous pourrez ensuite éditer en utilisant la carte interactive.
+
+            Une fois terminé ici, cliquez sur le pays
+            que vous souhaitez éditer.
+

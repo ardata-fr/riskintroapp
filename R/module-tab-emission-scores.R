@@ -3,7 +3,7 @@ emissionScoresUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = "Emission scores",
+      title = titleWithHelpKey("emission-scores-title"),
       uiOutput(ns("warnings")),
       importEmissionRiskFactorsUI(ns("import_erf")),
 

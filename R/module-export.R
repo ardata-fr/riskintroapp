@@ -142,7 +142,7 @@ exportServer <- function(id = "export_module", files) {
       observeEvent(input$open_export, {
         req(file_list())
         showModal(modalDialog(
-          title = "Export",
+          title = titleWithHelpKey("export-title"),
           # CSS for styling
           tags$head(
             tags$style(HTML("

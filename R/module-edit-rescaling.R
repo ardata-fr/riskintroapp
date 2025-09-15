@@ -25,9 +25,9 @@ rescaleRiskUI <- function(id) {
   ns <- NS(id)
 
   modalDialog(
+    title = titleWithHelpKey("rescale-risk-title"),
     fluidRow(column(
       width = 12,
-      title = "Risk score rescaling",
       div(
         style = "display: flex; align-items: center; gap: 20px;",
         awesomeRadio(

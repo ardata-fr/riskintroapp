@@ -11,7 +11,7 @@ importEpiUnitsUI <- function(id) {
   ns <- NS(id)
 
   modalDialog(
-    title = "Import epidemiological units",
+    title = titleWithHelpKey("import-epi-units-title"),
     size = "l",
     easyClose = FALSE,
     fade = TRUE,

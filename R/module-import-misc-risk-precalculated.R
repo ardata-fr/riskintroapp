@@ -4,7 +4,7 @@ importMiscRiskPrecalculatedUI <- function(id) {
   ns <- NS(id)
 
   modalDialog(
-    title = "Import precalculated risk file",
+    title = titleWithHelpKey("import-misc-risk-precalculated-title"),
     fluidRow(column(
       width = 10, offset = 1,
       tags$p("Import csv or txt file."),

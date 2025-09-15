@@ -31,7 +31,11 @@ ui <- function() {
       layout_sidebar(
         sidebar = sidebar(
           width = .sidebar_width,
-          title = "Introduction risk",
+          title = titleWithHelp(
+            title = "Introduction risk",
+            help_text = "This is help text",
+            level = 4
+            ),
           actionButton(
             inputId = "import_epi_units",
             label = "Import epidemiological units",

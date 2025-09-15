@@ -56,7 +56,7 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
     observeEvent(input$save, {
       showModal(
         modalDialog(
-          title = "Save workspace",
+          title = titleWithHelpKey("save-workspace-title"),
           textInput(
             inputId = ns("modal_save_name"),
             label = "File name"
@@ -115,7 +115,7 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
     observeEvent(input$load, {
       showModal(
         modalDialog(
-          title = "Load workspace",
+          title = titleWithHelpKey("load-workspace-title"),
           fileInput(
             inputId = ns("modal_load_file"),
             label = "Choose a file",
@@ -186,6 +186,7 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
       }
       if(length(validate_msg) > 0) {
         showModal(modalDialog(
+          title = titleWithHelpKey("workspace-validation-error-title"),
           div(h4("Some datasets where not validated and will not be loaded.")),
           do.call(tagList, validate_msg)
         ))

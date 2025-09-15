@@ -7,7 +7,7 @@ entryPointsUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = "Entry points",
+      title = titleWithHelpKey("entry-points-title"),
       uiOutput(ns("config_is_valid")),
       uiOutput(ns("warnings")),
       tags$br(),

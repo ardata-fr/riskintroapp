@@ -1,7 +1,7 @@
 importRoadAccessUI <- function(id) {
   ns <- NS(id)
   modalDialog(
-    title = "Import risk from raster file",
+    title = titleWithHelpKey("import-road-access-title"),
     fluidRow(column(
       width = 10, offset = 1,
       tags$p("Import raster file (.tif, .tiff, .grd, .asc) containing risk values."),

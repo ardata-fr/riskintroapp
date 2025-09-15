@@ -41,7 +41,7 @@ emissionFactorWeightsUI <- function(id) {
   default_weights <- riskintrodata::get_erf_weights()
 
   modalDialog(
-    title = "Edit emission factor weights",
+    title = titleWithHelpKey("edit-factor-weights-title"),
     size = "l",
     easyClose = TRUE,
 

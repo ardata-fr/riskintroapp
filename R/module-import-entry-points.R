@@ -17,7 +17,7 @@ importEntryPointsUI <- function(id) {
 
   modalDialog(
     width = 10, offset = 1,
-    title = "Import entry points",
+    title = titleWithHelpKey("import-entry-points-title"),
     size = "l",
     easyClose = TRUE,
     fade = TRUE,

@@ -8,7 +8,7 @@ animalMobilityUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = "Animal mobility",
+      title = titleWithHelpKey("animal-mobility-title"),
       uiOutput(ns("config_is_valid")),
       uiOutput(ns("warnings")),
       tags$br(),

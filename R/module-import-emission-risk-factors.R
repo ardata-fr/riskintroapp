@@ -103,11 +103,12 @@ importEmissionRiskFactorsServer <- function(id) {
       observeEvent(input$wahis_open,{
         hideDropMenu(id = "dropMenu_dropmenu")
         showModal(modalDialog(
+          title = titleWithHelpKey("import-wahis-data-title"),
           fluidRow(
             column(
               width = 10, offset = 1,
-              tags$h3("Import WAHIS data"),
-              tags$text("Filter settings for your study."),
+              HTML(get_help("import-wahis-data-info")),
+
               shinyWidgets::panel(
                 select_group_ui(
                   id = ns("my_filters"),
@@ -199,32 +200,33 @@ importEmissionRiskFactorsServer <- function(id) {
       observeEvent(input$import_open,{
         hideDropMenu(id = "dropMenu_dropmenu")
         showModal(modalDialog(
+          title = titleWithHelpKey("import-erf-file-title"),
           fluidRow(column(
-              width = 10, offset = 1,
-              fluidRow(column(
-                width = 10, offset = 1,
-                tags$h3("Import file"),
-                inlineComponents(
-                  fileInput(
-                    inputId = ns("file"),
-                    label = NULL,
-                    multiple = FALSE,
-                    accept = c("csv", "txt", "tsv"),
-                    width = "400px",
-                    buttonLabel = "Browse...",
-                    placeholder = "No file selected"
-                  ),
-                  downloadButton(
-                    outputId = ns("downloadData"),
-                    label = "Download template"
-                  )
-                ),
+            width = 10, offset = 1,
 
-                verbatimTextOutput(outputId = ns("import_validation")),
-                reactable::reactableOutput(outputId = ns("import_reactable")),
-                uiOutput(outputId = ns("existing_dataset_warning"))
-              )),
-            )),
+            HTML(get_help("import-erf-file-info")),
+
+            inlineComponents(
+              valign = "top",
+              fileInput(
+                inputId = ns("file"),
+                label = NULL,
+                multiple = FALSE,
+                accept = c("csv", "txt", "tsv"),
+                width = "400px",
+                buttonLabel = "Browse...",
+                placeholder = "No file selected"
+              ),
+              downloadButton(
+                outputId = ns("downloadData"),
+                label = "Download template"
+              )
+            ),
+
+            verbatimTextOutput(outputId = ns("import_validation")),
+            reactable::reactableOutput(outputId = ns("import_reactable")),
+            uiOutput(outputId = ns("existing_dataset_warning"))
+          )),
           footer = list(
             actionButton(
               inputId = ns("import_apply"),
@@ -271,7 +273,10 @@ importEmissionRiskFactorsServer <- function(id) {
       observeEvent(input$manual_open, {
         hideDropMenu(id = "dropMenu_dropmenu")
         showModal(modalDialog(
-          tags$h3("Set study settings for manual entry"),
+          title = titleWithHelpKey("manual-erf-entry-title"),
+
+          HTML(get_help("manual-erf-entry-info")),
+
           textInput(
             inputId = ns("man_disease"),
             label = "Disease",

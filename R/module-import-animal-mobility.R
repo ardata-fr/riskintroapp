@@ -16,7 +16,7 @@ importAnimalMobilityUI <- function(id) {
   ns <- shiny::NS(id)
 
   modalDialog(
-    title = "Import animal mobility data",
+    title = titleWithHelpKey("import-animal-mobility-title"),
     size = "l",
     easyClose = FALSE,
     fade = TRUE,

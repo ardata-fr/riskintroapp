@@ -65,7 +65,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
   weights <- current_weights
 
   modalDialog(
-    title = sprintf("Edit emission risk factors for %s (%s)", riskintrodata::iso3_to_name(country_id), country_id),
+    title = titleWithHelpKeyAndDynamicText("edit-risk-factors-title", sprintf(" for %s (%s)", riskintrodata::iso3_to_name(country_id), country_id)),
     size = "xl",
     easyClose = TRUE,
     # CSS for colored table headers

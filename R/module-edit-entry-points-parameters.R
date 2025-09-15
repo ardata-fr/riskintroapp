@@ -25,7 +25,7 @@ entryPointsParametersUI <- function(id) {
   ns <- NS(id)
 
   modalDialog(
-    title = "Entry Points Risk Parameters",
+    title = titleWithHelpKey("entry-points-parameters-title"),
     fluidRow(
       # Left sidebar with controls
       column(

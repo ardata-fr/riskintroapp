@@ -7,7 +7,7 @@ roadAccessRiskUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = "Road access",
+      title = titleWithHelpKey("road-access-title"),
       uiOutput(ns("config_is_valid")),
       tags$br(),
       dropMenu(
