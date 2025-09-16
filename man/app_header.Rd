@@ -10,6 +10,4 @@ app_header()
 This function creates the header for the RiskIntroApp, including scripts,
 styles, and custom message handlers.
 }
-\examples{
-app_header()
-}
+\keyword{internal}

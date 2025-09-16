@@ -16,3 +16,4 @@ A modal dialog UI element for raster file import and configuration.
 Creates a modal dialog interface for importing risk scores from raster files
 and processing them for epidemiological risk analysis.
 }
+\keyword{internal}

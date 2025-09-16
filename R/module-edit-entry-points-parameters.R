@@ -20,7 +20,7 @@
 #' @importFrom shiny NS modalDialog fluidRow column tags div sliderInput actionButton icon modalButton
 #' @importFrom plotly plotlyOutput
 #'
-#' @export
+#' @keywords internal
 entryPointsParametersUI <- function(id) {
   ns <- NS(id)
 
@@ -183,7 +183,7 @@ entryPointsParametersUI <- function(id) {
 #' @importFrom plotly plot_ly add_surface add_trace layout renderPlotly
 #' @importFrom shiny moduleServer reactive renderText observeEvent removeModal
 #'
-#' @export
+#' @keywords internal
 entryPointsParametersServer <- function(id) {
   moduleServer(
     id,

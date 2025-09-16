@@ -5,8 +5,7 @@
 #'
 #' @param id Character string. The namespace id for the module.
 #' @return A dropdown menu UI element with import options.
-#'
-#' @export
+#' @keywords internal
 #' @importFrom shinyWidgets dropMenu
 #' @importFrom shiny NS actionButton
 importEmissionRiskFactorsUI <- function(id) {
@@ -56,7 +55,7 @@ importEmissionRiskFactorsUI <- function(id) {
 #' @param id Character string. The namespace id for the module.
 #' @return A reactive function returning the imported emission risk factors dataset.
 #'
-#' @export
+#' @keywords internal
 #' @importFrom shinyWidgets alert panel
 #' @importFrom shinyjs enable disable
 #' @importFrom datamods select_group_server select_group_ui

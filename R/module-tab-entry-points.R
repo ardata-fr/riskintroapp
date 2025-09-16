@@ -11,6 +11,15 @@ entryPointsUI <- function(id) {
       uiOutput(ns("config_is_valid")),
       uiOutput(ns("warnings")),
       tags$br(),
+
+      # Interactive editing info ----
+      div(
+        class = "alert alert-info",
+        style = "margin-bottom: 15px;",
+        icon("info-circle"),
+        " Click on the map to add new entry points or click on existing markers to edit them."
+      ),
+
       actionButton(
         inputId = ns("import_entry_points"),
         label = "Import entry points",
@@ -43,10 +52,11 @@ entryPointsUI <- function(id) {
   )
 }
 
+
 #' @importFrom sf st_drop_geometry
-#' @importFrom leaflet renderLeaflet leafletProxy addPolygons
+#' @importFrom leaflet renderLeaflet leafletProxy addPolygons addCircleMarkers clearMarkers
 #' @importFrom reactable reactable renderReactable
-#' @importFrom shiny moduleServer observeEvent reactive req showModal removeModal
+#' @importFrom shiny moduleServer observeEvent reactive req showModal removeModal reactiveVal
 #' @importFrom riskintroanalysis calc_entry_point_risk
 entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
   moduleServer(
@@ -74,6 +84,34 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
         coef_illegal = 1,
         illegal_factor = 3
       ))
+
+      # Map event reactives for interactive editing ----
+      map_click_reactive <- reactiveVal(NULL)
+      map_marker_click_reactive <- reactiveVal(NULL)
+
+      observeEvent(input$map_click, {
+        map_click_reactive(input$map_click)
+      })
+
+      observeEvent(input$map_marker_click, {
+        map_marker_click_reactive(input$map_marker_click)
+      })
+
+      # Interactive editing ----
+      interactive_data <- interactiveEntryPointsEditorServer(
+        id = "interactive_editor",
+        input_data = input_data,
+        emission_scores = emission_scores,
+        map_proxy = reactive(leafletProxy("map")),
+        map_click = reactive(map_click_reactive()),
+        map_marker_click = reactive(map_marker_click_reactive())
+      )
+
+      # Update input_data when interactive edits occur
+      observeEvent(interactive_data(), {
+        req(interactive_data())
+        input_data(interactive_data())
+      })
 
       # Risk scaling arguments ----
       rescaling_args <- reactiveVal(list(
@@ -213,6 +251,32 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
       })
 
       # map ----
+      # Add simple markers for entry points
+      observe({
+        req(input_data())
+
+        ll <- leafletProxy("map")
+        entry_points <- input_data()
+
+        # Clear existing markers
+        ll |> clearMarkers()
+
+        if (nrow(entry_points) > 0) {
+          # Entry points always use sf geometry
+          ll |>
+            addCircleMarkers(
+              data = entry_points,
+              layerId = ~point_id,
+              radius = 8,
+              fillOpacity = 0.8,
+              stroke = TRUE,
+              weight = 2,
+              color = "white",
+              fillColor = ~ifelse(mode == "C", "#f72585", "#7209b7"),
+              popup = ~paste0("<b>", point_name, "</b><br>Type: ", type, "<br>Mode: ", mode)
+            )
+        }
+      })
 
       # table ----
       output$table <- renderReactable({

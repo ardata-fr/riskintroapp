@@ -16,3 +16,4 @@ A modal dialog UI element for importing animal mobility data.
 Creates a modal dialog interface for uploading animal mobility data with
 file upload, column mapping, and preview functionality.
 }
+\keyword{internal}

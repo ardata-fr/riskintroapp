@@ -26,3 +26,4 @@ Handles saving and loading of analysis workspaces:
 \item Error handling: Shows alerts for save/load failures
 }
 }
+\keyword{internal}

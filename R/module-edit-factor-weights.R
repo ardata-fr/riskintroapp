@@ -33,7 +33,7 @@
 #'
 #' @importFrom shiny NS modalDialog tags fluidRow column actionButton
 #' @importFrom shinyjs useShinyjs
-#' @export
+#' @keywords internal
 emissionFactorWeightsUI <- function(id) {
   ns <- NS(id)
 
@@ -272,7 +272,7 @@ emissionFactorWeightsUI <- function(id) {
 #'
 #' @importFrom shiny moduleServer req reactive observe updateSliderInput
 #' @importFrom shinyjs enable disable
-#' @export
+#' @keywords internal
 emissionFactorWeightsServer <- function(id, current_weights) {
 
   # Weight factor names

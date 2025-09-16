@@ -59,13 +59,13 @@
 #' @importFrom shiny NS modalDialog tags fluidRow column actionButton conditionalPanel dateInput
 #' @importFrom shinyWidgets prettySwitch radioGroupButtons
 #' @importFrom riskintrodata iso3_to_name
-#' @export
+#' @keywords internal
 riskFactorEditorUI <- function(id, country_id, current_weights) {
   ns <- NS(id)
   weights <- current_weights
 
   modalDialog(
-    title = titleWithHelpKeyAndDynamicText("edit-risk-factors-title", sprintf(" for %s (%s)", riskintrodata::iso3_to_name(country_id), country_id)),
+    title = sprintf("Edit emission risk factors for %s (%s)", riskintrodata::iso3_to_name(country_id), country_id),
     size = "xl",
     easyClose = TRUE,
     # CSS for colored table headers
@@ -450,7 +450,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
 #' @importFrom shiny updateDateInput
 #' @importFrom dplyr filter if_else
 #' @importFrom riskintrodata iso3_to_name get_erf_weights
-#' @export
+#' @keywords internal
 riskFactorEditorServer <- function(id, emission_risk_factors, country_id, current_weights) {
 
   # Risk factor column definitions

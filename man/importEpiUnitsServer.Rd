@@ -23,3 +23,4 @@ Handles geospatial file import for epidemiological units with:
 \item Data validation and error reporting
 }
 }
+\keyword{internal}

@@ -73,3 +73,4 @@ observeEvent(export_errors(), {
 \code{\link{export_helper}} for the internal export processing logic
 \code{\link{write_file_helper}} for format-specific file writing
 }
+\keyword{internal}

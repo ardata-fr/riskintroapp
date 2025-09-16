@@ -20,3 +20,4 @@ Reactive expression returning risk metadata list when import is completed.
 Server logic for importing risk scores from raster files with zonal statistics
 extraction and validation for epidemiological risk analysis.
 }
+\keyword{internal}

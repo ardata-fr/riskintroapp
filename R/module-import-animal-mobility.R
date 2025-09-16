@@ -6,7 +6,7 @@
 #' @param id Character string. The namespace id for the module.
 #' @return A modal dialog UI element for importing animal mobility data.
 #'
-#' @export
+#' @keywords internal
 #' @importFrom shiny NS modalDialog fluidRow column tags fileInput uiOutput actionButton
 #' @importFrom bslib navset_card_tab nav_panel
 #' @importFrom reactable reactableOutput
@@ -80,7 +80,7 @@ importAnimalMobilityUI <- function(id) {
 #' @param is_overwriting reactive logical. Does the dataset being imported already exist?
 #' @return A reactive function returning the validated animal mobility dataset.
 #'
-#' @export
+#' @keywords internal
 #' @importFrom purrr safely map
 #' @importFrom bslib navset_card_tab nav_panel
 #' @importFrom reactable reactableOutput renderReactable reactable
@@ -88,7 +88,6 @@ importAnimalMobilityUI <- function(id) {
 #' @importFrom esquisse dragulaInput
 #' @importFrom shinyjs enable disable
 #' @importFrom readr read_csv
-#' @importFrom readxl read_excel
 #' @importFrom shiny
 #'  moduleServer reactiveVal observeEvent renderUI req
 #'  isTruthy observe showModal modalDialog fluidRow column fileInput uiOutput
@@ -113,7 +112,6 @@ importAnimalMobilityServer <- function(id, is_overwriting = reactive(FALSE)) {
           "csv" = readr::read_delim(path, show_col_types = FALSE),
           "tsv" = readr::read_delim(path, show_col_types = FALSE, col_names = TRUE),
           "txt" = readr::read_delim(path, show_col_types = FALSE),
-          "xlsx" = readxl::read_excel(path),
           stop("Unsupported file format: ", extension)
         )
       })

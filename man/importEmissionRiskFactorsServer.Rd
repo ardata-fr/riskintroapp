@@ -20,3 +20,4 @@ Handles three import methods for emission risk factors:
 \item Manual entry: Create empty dataset with study parameters for manual data entry
 }
 }
+\keyword{internal}

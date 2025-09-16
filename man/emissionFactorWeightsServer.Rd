@@ -48,3 +48,4 @@ Other emission-factor-weights:
 \code{\link{emissionFactorWeightsUI}()}
 }
 \concept{emission-factor-weights}
+\keyword{internal}

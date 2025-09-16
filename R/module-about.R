@@ -7,7 +7,7 @@
 aboutUI <- function(id = "about") {
   ns <- NS(id)
 
-  si <- sessionInfo()
+  si <- utils::sessionInfo()
 
   packages_loaded <- grep("^riskintro", si$loadedOnly |> names(), value = TRUE)
   packages_attached <- grep("^riskintro", si$otherPkgs |> names(), value = TRUE)

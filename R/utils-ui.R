@@ -3,8 +3,7 @@
 #' @title CIRAD Bootstrap Theme
 #' @description
 #' This function creates a Bootstrap theme for CIRAD.
-#' @examples
-#' bs_theme_cirad()
+#' @keywords internal
 bs_theme_cirad <- function() {
 
   theme <- bs_theme(
@@ -35,8 +34,7 @@ bs_theme_cirad <- function() {
 #' @description
 #' This function creates the header for the RiskIntroApp, including scripts,
 #' styles, and custom message handlers.
-#' @examples
-#' app_header()
+#' @keywords internal
 app_header <- function() {
   tagList(
     tags$script(src = "riskintro/js/title-change.js"),

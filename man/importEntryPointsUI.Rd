@@ -16,3 +16,4 @@ A modal dialog UI element for importing entry points.
 Creates a modal dialog interface for uploading entry points data with
 file upload, column mapping, and preview functionality.
 }
+\keyword{internal}

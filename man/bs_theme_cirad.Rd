@@ -9,6 +9,4 @@ bs_theme_cirad()
 \description{
 This function creates a Bootstrap theme for CIRAD.
 }
-\examples{
-bs_theme_cirad()
-}
+\keyword{internal}

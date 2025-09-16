@@ -16,3 +16,4 @@ A navigation menu with workspace management options.
 Creates a navigation menu with save and load options for managing analysis workspaces.
 Appears in the application navigation bar.
 }
+\keyword{internal}

@@ -1,5 +1,5 @@
 
-#' @importFrom leaflet setBounds
+#' @importFrom leaflet fitBounds
 #' @importFrom sf st_bbox
 setBoundsFromSF <- function(ll, x) {
   bb <- sf::st_bbox(x)

@@ -31,3 +31,4 @@ The server function:
 \item Returns parameter configuration for use in entry point risk calculations
 }
 }
+\keyword{internal}

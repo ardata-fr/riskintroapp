@@ -32,3 +32,4 @@ fluidPage(
 \seealso{
 \code{\link{exportServer}} for the corresponding server-side logic.
 }
+\keyword{internal}

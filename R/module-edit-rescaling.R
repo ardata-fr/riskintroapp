@@ -20,7 +20,7 @@
 #' @importFrom bslib card layout_column_wrap card_body card_header
 #' @importFrom shiny NS modalDialog fluidRow column tags div numericInput actionButton icon plotOutput modalButton
 #'
-#' @export
+#' @keywords internal
 rescaleRiskUI <- function(id) {
   ns <- NS(id)
 
@@ -120,7 +120,7 @@ rescaleRiskUI <- function(id) {
 #'  moduleServer reactiveValues observe reactive req isTruthy eventReactive
 #'  updateNumericInput observeEvent renderPlot
 #'
-#' @export
+#' @keywords internal
 rescaleRiskServer <- function(
     id,
     dataset,

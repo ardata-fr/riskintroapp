@@ -5,7 +5,7 @@
 #' @param id Character string. The namespace id for the module.
 #' @return An action button for importing epidemiological units.
 #'
-#' @export
+#' @keywords internal
 #' @importFrom shiny NS actionButton
 importEpiUnitsUI <- function(id) {
   ns <- NS(id)
@@ -80,7 +80,7 @@ importEpiUnitsUI <- function(id) {
 #' @param is_overwriting reactive logical. Does the dataset being imported already exist?
 #' @return A reactive function returning the validated epidemiological units dataset.
 #'
-#' @export
+#' @keywords internal
 #' @importFrom riskintrodata read_geo_file
 #' @importFrom purrr safely
 #' @importFrom bslib navset_card_tab nav_panel

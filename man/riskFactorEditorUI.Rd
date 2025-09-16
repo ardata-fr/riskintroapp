@@ -83,3 +83,4 @@ Other risk-factor-editor:
 \code{\link{riskFactorEditorServer}()}
 }
 \concept{risk-factor-editor}
+\keyword{internal}

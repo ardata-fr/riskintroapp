@@ -15,3 +15,4 @@ An action button for importing epidemiological units.
 \description{
 Creates a simple import button for uploading geospatial epidemiological units data.
 }
+\keyword{internal}

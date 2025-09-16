@@ -7,7 +7,7 @@
 #' @param id Character string. The namespace id for the module.
 #' @return A navigation menu with workspace management options.
 #'
-#' @export
+#' @keywords internal
 #' @importFrom bslib nav_item nav_menu
 #' @importFrom shiny actionLink icon NS
 workspaceUI <- function(id) {
@@ -44,7 +44,7 @@ workspaceUI <- function(id) {
 #' @param misc_risks Reactive value containing miscellaneous risks table.
 #' @return A reactive function returning loaded workspace data.
 #'
-#' @export
+#' @keywords internal
 #' @importFrom shiny
 #'  downloadButton modalButton downloadHandler reactiveValuesToList
 workspaceServer <- function(id, datasets, settings, misc_risks) {
@@ -150,7 +150,7 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
         "animal_mobility_input" = "animal_mobility",
         "entry_points_input" = "entry_points"
       )
-      
+
       # Validate input datasets ---------
       inputs_to_validate <- nullify(datasets[names(datasets) %in% tablenames_to_validate])
       # Add input datasets with proper validation names

@@ -12,7 +12,7 @@
 #' @importFrom leaflet leafletOutput
 #' @importFrom bslib card card_body card_header layout_column_wrap
 #'
-#' @export
+#' @keywords internal
 importMiscRiskRasterUI <- function(id) {
   ns <- NS(id)
 
@@ -134,7 +134,7 @@ importMiscRiskRasterUI <- function(id) {
 #' @importFrom leaflet
 #'  leaflet addTiles addRasterImage renderLeaflet colorNumeric labelFormat
 #'
-#' @export
+#' @keywords internal
 importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
   moduleServer(
     id,

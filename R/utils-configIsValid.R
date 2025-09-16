@@ -4,36 +4,6 @@
   emission_risk_missing = "Emission scores dataset must be imported."
 )
 
-#' @title Validate Configuration
-#' @description
-#' Generic function to validate configuration based on validator type.
-#' @param x A string with the method to call
-#' @param ... parameters to validate
-#' @return A config_status object (logical with message attribute)
-#' @examples
-#' config_is_valid.test <- function(x, ...){
-#' params <- list(...)
-#' if(is.null(params$a)) {
-#'   return(FALSE)
-#' }
-#' if(is.null(params$b)) {
-#'   return(FALSE)
-#' }
-#' if(is.null(params$c)) {
-#'   return(FALSE)
-#' }
-#' TRUE
-#' }
-#'
-#' config_is_valid("test", a = 1, b = 2, c = 3)
-#'
-#' @export
-config_is_valid <- function(x, ...) {
-  params <- list(...)
-  class(params) <- x
-  UseMethod("config_is_valid", params)
-}
-
 #' @title Build a Configuration Status
 #' @description
 #' Build a configuration status from a
@@ -219,10 +189,7 @@ report_warning <- function(msg){
 #'
 #' @importFrom htmltools HTML htmlEscape
 #' @keywords internal
-#'
-#' @examples
-#' warning_msg <- "There are NA values in `emission_risk_factors` dataset.\nℹ Missing values identified for the following countries:\n\"ALB\", \"ARM\", \"CYM\", \"HRV\", \"FLK\" and \"JPN\" and 63 more\n! By default, NA values are considered as having the highest level of risk."
-#' cli_warning_to_html(warning_msg)
+#' @noRd
 cli_warning_to_html <- function(message) {
   if (is.null(message) || message == "") {
     return(htmltools::HTML(""))

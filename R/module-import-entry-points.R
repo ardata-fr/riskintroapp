@@ -6,7 +6,7 @@
 #' @param id Character string. The namespace id for the module.
 #' @return A modal dialog UI element for importing entry points.
 #'
-#' @export
+#' @keywords internal
 #' @importFrom shiny NS modalDialog fluidRow column tags fileInput uiOutput actionButton
 #' @importFrom bslib navset_card_tab nav_panel
 #' @importFrom reactable reactableOutput
@@ -89,8 +89,7 @@ importEntryPointsUI <- function(id) {
 #'
 #' @param id Character string. The namespace id for the module.
 #' @return A reactive function returning the validated entry points dataset.
-#'
-#' @export
+#' @keywords internal
 #' @importFrom riskintrodata read_geo_file validate_dataset extract_dataset is_dataset_valid
 #' @importFrom purrr safely map
 #' @importFrom bslib navset_card_tab nav_panel

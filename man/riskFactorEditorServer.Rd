@@ -74,3 +74,4 @@ Other risk-factor-editor:
 \code{\link{riskFactorEditorUI}()}
 }
 \concept{risk-factor-editor}
+\keyword{internal}

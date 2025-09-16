@@ -21,7 +21,7 @@
 #' )
 #' }
 #'
-#' @export
+#' @keywords internal
 exportUI <- function(id = "export_module") {
   ns <- NS(id)
   actionButton(
@@ -108,7 +108,7 @@ exportUI <- function(id = "export_module") {
 #' @importFrom shinyWidgets updateAwesomeCheckboxGroup
 #' @importFrom shinyjs enable disable
 #' @importFrom purrr safely
-#' @export
+#' @keywords internal
 exportServer <- function(id = "export_module", files) {
   moduleServer(
     id,

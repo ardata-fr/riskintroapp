@@ -25,3 +25,4 @@ The UI provides:
 \item Apply and Close action buttons
 }
 }
+\keyword{internal}

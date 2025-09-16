@@ -52,3 +52,4 @@ Other emission-factor-weights:
 \code{\link{emissionFactorWeightsServer}()}
 }
 \concept{emission-factor-weights}
+\keyword{internal}

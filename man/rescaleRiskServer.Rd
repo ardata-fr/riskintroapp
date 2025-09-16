@@ -43,3 +43,4 @@ The server function:
 \item Returns rescaling parameters for use in risk calculation pipeline
 }
 }
+\keyword{internal}
