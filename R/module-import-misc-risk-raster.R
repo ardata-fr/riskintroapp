@@ -32,7 +32,8 @@ importMiscRiskRasterUI <- function(id) {
       inlineComponents(
         textInput(
           inputId = ns("name"),
-          label = "Risk name"
+          label = "Risk name",
+          updateOn = "blur"
         ),
         selectInput(
           inputId = ns("layer"),
@@ -203,12 +204,15 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
       observeEvent(input$minmax_scale, {
         req(input$layer)
         raster_data <- req(importRaster())
-        min_max <- as.data.frame(terra::minmax(raster_data))[[input$layer]]
+        min_max <- as.data.frame(terra::minmax(raster_data[[input$layer]], compute = TRUE))
         req(min_max)
-        updateNumericRangeInput(
-          inputId = "scale",
-          value = c(min_max[[1]], min_max[[2]])
-        )
+
+        if (all(is.finite(min_max[[1]]))) {
+          updateNumericRangeInput(
+            inputId = "scale",
+            value = min_max[[1]]
+          )
+        }
       })
 
       # Extract risk values for epidemiological units ----
