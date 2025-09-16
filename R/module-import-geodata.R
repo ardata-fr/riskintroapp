@@ -8,10 +8,10 @@ geodataUI <- function(id) {
   names(cc_choices) <- paste(cc$ISO3, '-', cc$NAME)
 
   modalDialog(
-    title = titleWithHelpKey("geodata"),
+    title = titleWithHelpKey("import-geodata-title"),
     size = "xl",
     easyClose = TRUE,
-
+    HTML(get_help("import-geodata-body")),
     panel(
       inlineComponents(
       valign = "top",
@@ -131,12 +131,21 @@ geodataServer <- function(id, is_overwriting) {
           downloadError(status)
           return(NULL)
         }
+        # geodata returning nothing because no file exists results in a message
+        if (is.null(res$result) && is.null(res$error) && !is.null(res$messages)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Error while downloading:",
+            error = paste(res$messages, collapse = ". ")
+          )
+          downloadError(status)
+          return(NULL)
+        }
         show_toast(
           "Epidemiological units have finished downloading.",
           type = "info",
           timer = 5000
         )
-
         downloadError(NULL)
         res
       })

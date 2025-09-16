@@ -1000,3 +1000,64 @@
             Une fois terminé ici, cliquez sur le pays
             que vous souhaitez éditer.
 
+- key: import-erf-file-info
+  data:
+    - lang: en
+      label: "File Import Information"
+      help: >
+            Importing the emission risk factors dataset has some strict dataset
+            validation rules. Please find the rules here: placeholder-link.
+
+            In case you are starting from a new file and would like to work from
+            a template, please click the 'Download template' button below and
+            refer to the above link to ensure you follow validation rules while
+            filling out the file.
+    - lang: fr
+      label: "Informations d'importation de fichier"
+      help: >
+            L'importation du jeu de données des facteurs de risque d'émission a des
+            règles de validation strictes. Veuillez trouver les règles ici : placeholder-link.
+
+            Si vous partez d'un nouveau fichier et souhaitez travailler à partir
+            d'un modèle, veuillez cliquer sur le bouton 'Télécharger le modèle' ci-dessous et
+            vous référer au lien ci-dessus pour vous assurer de suivre les règles de validation
+            lors du remplissage du fichier.
+
+- key: import-geodata-title
+  data:
+    - lang: en
+      label: "Download administrative boundaries from GADM"
+      help: >
+            GADM provides maps and spatial data for all countries and
+            their sub-divisions. In this window, you can download
+            that data directly into RiskIntroApp.
+
+    - lang: fr
+      label: "French translation"
+      help: >
+            French translation
+
+
+- key: import-geodata-body
+  data:
+    - lang: en
+      label: "Placeholder"
+      help: >
+            Here, you can download administrative boundaries data for all
+            countries and their sub-divisions. This data will be used as
+            the epidemiological units for the rest of the study. Note, not all
+            levels of sub-division are available for all countries.
+
+            The data are freely available from [GADM](https://gadm.org/) for academic
+            use and other non-commercial use. Redistribution, or commercial use
+            is not allowed without prior permission. See the
+            [license](https://gadm.org/license.html) for more details.
+
+            Select the country and level of sub-division required for your
+            analysis, then click Download.
+
+    - lang: fr
+      label: "French translation"
+      help: >
+            French translation
+
