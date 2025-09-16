@@ -282,6 +282,7 @@ operation_status <- function(
 #' # Returns "'A', 'B' and 'C'"
 #' @noRd
 #' @importFrom glue glue_collapse
+#' @importFrom glue glue
 quote_and_collapse <- function(value, quote_char = "`") {
   paste0(
     quote_char,

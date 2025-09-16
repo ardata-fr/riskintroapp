@@ -84,6 +84,7 @@ importMiscRiskPrecalculatedUI <- function(id) {
 
 #' @importFrom readr read_delim write_csv
 #' @importFrom shinyWidgets updateNumericRangeInput
+#' @importFrom glue glue
 importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
   moduleServer(
     id,
@@ -101,14 +102,14 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
         )
       })
       importRaw <- reactive({
-        fp <- req(input$file$datapath)
+        if (!isTruthy(input$file$datapath)) return(NULL)
         safely_read_delim <- safely(readr::read_delim)
-        dataset <- safely_read_delim(fp, show_col_types = FALSE)
+        dataset <- safely_read_delim(input$file$datapath, show_col_types = FALSE)
         if(is_error(dataset$error)) {
           read_error(dataset$error)
         } else {
           read_error(NULL)
-          out <- dataset$result
+          dataset$result
         }
       })
 
@@ -137,6 +138,8 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
         req(importRaw(), input$risk_col)
         vec <- req(importRaw()[[input$risk_col]])
         req(is.numeric(vec))
+        vec <- vec[!is.na(vec)]
+        req(vec)
         updateNumericRangeInput(
           inputId = "scale",
           value = c(min(vec), max(vec))
@@ -196,26 +199,197 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
           ) |>
           riskintroanalysis::addRiskLegend(
             scale = input$scale,
-            title = "Aggregated Score"
+            title = "Score"
           )
       })
 
       # configIsValid ----
-      configIsValid <- reactive(label = paste0("configIsValid-import-", id),{
-        config_is_valid(
-          x = "import_precalcuated_risk",
-          import_success = isTruthy(importRaw()),
-          dataset = importData(),
-          risk_table = epi_units(),
-          metadata = riskMetaData(),
-          parameters = list(
-            join_by = input$join_by,
-            risk_col = input$risk_col,
-            scale = input$scale,
-            risk_name = input$risk_name
+      configIsValid <- reactive(label = paste0("configIsValid-", id),{
+
+
+        warnings <- c()
+
+        if (!isTruthy(epi_units())){
+          status <- build_config_status(
+            value = FALSE,
+            msg = .configIsValidMsgs$epi_units_missing
           )
+          return(status)
+        }
+
+        if(!isTruthy(importRaw())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "A dataset must be imported."
+          )
+          return(status)
+        }
+
+        # risk_name ----
+        if(!isTruthy(input$risk_name)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Provide a risk name."
+          )
+          return(status)
+        }
+
+        if (!is_valid_name(input$risk_name)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Risk name contains special characters other than '_' and spaces."
+          )
+          return(status)
+        }
+
+        metadata <- riskMetaData()
+        if (input$risk_name %in% names(metadata)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "There is already a risk with this name."
+          )
+          return(status)
+        }
+
+        if (input$risk_name %in% c('epi_units', "emission_risk_factors", "overall_risk")) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "This risk name is reserved."
+          )
+          return(status)
+        }
+
+
+        # risk col ----
+        if(!isTruthy(input$risk_col)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Select a risk column to import."
+          )
+          return(status)
+        }
+
+        risk_data <- importRaw()[[input$risk_name]]
+
+        if(!is.numeric(risk_data)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Selected risk column must contain numeric values."
+          )
+          return(status)
+        }
+
+        is_nas <- is.na(risk_data)
+
+        if(all(is_nas)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "All risk scores are missing."
+          )
+          return(status)
+        }
+
+        if(any(is_nas)) {
+          warnings <- c(
+            warnings,
+            paste(
+              "Risk column contains missing values in rows ",
+              quote_and_collapse(which(is_nas), quote_char = "", max_out = 6)
+            ))
+        }
+
+        # join by ----
+        if(!isTruthy(input$join_by)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = 'Select the identifier column to use to join with epidemiological units table.'
+          )
+          return(status)
+        }
+
+        if(input$join_by == input$risk_col) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = 'The join by column and the risk column cannot be the same.'
+          )
+          return(status)
+        }
+
+        id_not_found <- !importRaw()[[input$join_by]] %in% epi_units()$eu_id
+
+        if (all(id_not_found)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "No matching rows found between epidemiological units and imported dataset."
+          )
+          return(status)
+        } else if (any(id_not_found)) {
+
+          id_the_ids <- quote_and_collapse(
+            paste0(importRaw()[[input$join_by]][id_not_found], " (row ",which(id_not_found) ,")"),
+            max_out = 6
+          )
+          warn_str <- glue::glue(
+            "{length(which(id_not_found))}/{nrow(importRaw())} row identifiers do not match epidemiological units.
+      The following rows ID will not be joined: {id_the_ids}"
+          )
+          warnings <- c(warnings, warn_str)
+        }
+
+        # scale ----
+        if (is.null(input$scale)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale not found."
+          )
+          return(status)
+        }
+        if (any(is.na(input$scale))) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale input must be numeric."
+          )
+          return(status)
+        }
+
+        if (length(input$scale) != 2) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale must have length 2."
+          )
+          return(status)
+        }
+        if (!all(is.numeric(input$scale))) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale must be numeric."
+          )
+          return(status)
+        }
+
+        if (input$scale[[1]] == input$scale[[2]]) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Scale values should not be equal."
+          )
+          return(status)
+        }
+
+        if (input$scale[[1]] > input$scale[[2]]) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "First scale value should be smaller than the second."
+          )
+          return(status)
+        }
+
+        build_config_status(
+          value = TRUE,
+          msg = "Configuration is valid.",
+          warnings = warnings
         )
       })
+
       output$config_ui <- renderUI({
         report_config_status(configIsValid())
       })
@@ -273,181 +447,6 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
     })
 }
 
-#' @export
-config_is_valid.import_precalcuated_risk <- function(x, ...) {
-  params <- list(...)
-
-  import_success <- params$import_success
-  dataset <- params$dataset
-  risk_table <- params$risk_table
-  metadata <- params$metadata
-  parameters <- params$parameters
-
-  if(!isTruthy(import_success)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "A dataset must be imported."
-    )
-    return(status)
-  }
-  # dataset ----
-  if(!isTruthy(dataset)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "A dataset must be imported."
-    )
-    return(status)
-  }
-
-  # risk_name ----
-  if(!isTruthy(parameters$risk_name)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Provide a risk name."
-    )
-    return(status)
-  }
-
-  if (!is_valid_name(parameters$risk_name)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Risk name contains special characters other than '_' and spaces."
-    )
-    return(status)
-  }
-
-  if (parameters$risk_name %in% names(metadata)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "There is already a risk with this name."
-    )
-    return(status)
-  }
-
-  if (parameters$risk_name %in% c('epi_units', "emission_risk_factors", "overall_risk")) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "This risk name is reserved."
-    )
-    return(status)
-  }
-
-
-  # risk col ----
-  if(!isTruthy(parameters$risk_col)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Select a risk column to import."
-    )
-    return(status)
-  }
-
-  risk_data <- dataset[[parameters$risk_name]]
-
-  if(!is.numeric(risk_data)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Selected risk column must contain numeric values."
-    )
-    return(status)
-  }
-
-  if(any(is.na(risk_data))) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = paste("Risk column contains missing values.")
-    )
-    return(status)
-  }
-
-  # scale ----
-  if (is.null(parameters$scale)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale not found."
-    )
-    return(status)
-  }
-  if (any(is.na(parameters$scale))) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale input must be numeric."
-    )
-    return(status)
-  }
-
-  if (length(parameters$scale) != 2) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale must have length 2."
-    )
-    return(status)
-  }
-  if (!all(is.numeric(parameters$scale))) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale must be numeric."
-    )
-    return(status)
-  }
-
-  if (parameters$scale[[1]] == parameters$scale[[2]]) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "Scale values should not be equal."
-    )
-    return(status)
-  }
-
-  if (parameters$scale[[1]] > parameters$scale[[2]]) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "First scale value should be smaller than the second."
-    )
-    return(status)
-  }
-
-  # join by ----
-  if(!isTruthy(parameters$join_by)) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = 'Select the identifier column to use to join with epidemiological units table.'
-    )
-    return(status)
-  }
-
-  if(parameters$join_by == parameters$risk_col) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = 'The join by column and the risk column cannot be the same.'
-    )
-    return(status)
-  }
-
-  id_not_found <- dataset[[parameters$join_by]][!dataset[[parameters$join_by]] %in% risk_table$eu_id]
-
-  if (length(id_not_found) == length(dataset[[parameters$join_by]])) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = "No matching rows found between epidemiological units and imported dataset."
-    )
-    return(status)
-  } else if (length(id_not_found) > 0) {
-    status <- build_config_status(
-      value = FALSE,
-      msg = paste(
-        "There are values for the identifier column that do not match",
-        "any epidemiological units EU_ID values. The following cannot be joined: ",
-        quote_and_collapse(id_not_found, max_out = 6))
-    )
-    return(status)
-  }
-
-  build_config_status(
-    value = TRUE,
-    msg = "Configuration is valid."
-  )
-}
 
 
 
