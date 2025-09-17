@@ -19,6 +19,7 @@
 #' @importFrom bslib card layout_column_wrap card_body card_header
 #' @importFrom shiny NS modalDialog fluidRow column tags div sliderInput actionButton icon modalButton
 #' @importFrom plotly plotlyOutput
+#' @importFrom shinyjs disabled
 #'
 #' @keywords internal
 entryPointsParametersUI <- function(id) {
@@ -34,13 +35,15 @@ entryPointsParametersUI <- function(id) {
           style = "padding-right: 15px;",
 
           # Parameter controls ----
-          sliderInput(
-            inputId = ns("max_risk"),
-            label = "Maximum Risk (m):",
-            value = 100,
-            min = 1,
-            max = 100,
-            step = 1
+          shinyjs::disabled(
+            sliderInput(
+              inputId = ns("max_risk"),
+              label = "Maximum Risk (m):",
+              value = 100,
+              min = 1,
+              max = 100,
+              step = 1
+            )
           ),
           sliderInput(
             inputId = ns("coef_legal"),

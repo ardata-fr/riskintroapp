@@ -78,7 +78,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
 
       # Data storage ----
       riskScores <- reactiveVal(NULL)
-      entryPointsParameters <- reactiveVal(list(
+      entry_point_params <- reactiveVal(list(
         max_risk = 100,
         coef_legal = 1,
         coef_illegal = 1,
@@ -205,7 +205,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
       new_parameters <- entryPointsParametersServer("parameters_modal")
       observeEvent(new_parameters(), {
         req(new_parameters())
-        entryPointsParameters(new_parameters())
+        entry_point_params(new_parameters())
       })
 
       # calc_* ----
@@ -216,9 +216,8 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
           .fun = calc_entry_point_risk,
           entry_points = input_data(),
           epi_units = epi_units(),
-          emission_risk = emission_scores()
-          # Note: Current calc_entry_point_risk doesn't accept scaling parameters
-          # These would need to be implemented in a future version of the function
+          emission_risk = emission_scores(),
+          scaling_args = entry_point_params()
         )
         riskScores(result)
       })
