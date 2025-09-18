@@ -1,0 +1,18 @@
+
+.panel.panel-dragula {
+  max-width: none;
+}
+.panel.panel-dragula.panel-dragula-source {
+  max-height: 400px;
+}
+
+.dragula-target-container {
+  display: grid;
+  gap: 5px;
+  max-height: 400px;
+}
+.dragula-grid {
+  display: grid;
+  gap: 5px;
+  width: 100%; /* Make grid take full width */
+}

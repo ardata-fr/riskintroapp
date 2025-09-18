@@ -165,30 +165,33 @@ importEntryPointsServer <- function(id) {
       spec <- riskintrodata:::.spec_entry_points
       required <- map(spec, \(x) x[["required"]])
       optional <- names(required)[!unlist(required)]
-      optional_label <- paste(optional, "(optional)")
       required <- names(required)[unlist(required)]
+      optional_label <- paste(optional, "(optional)")
+
+
       required <- required[required != "geometry"]  # Geometry handled separately
       targetsLabels <- c(required, optional_label)
       targetsIds <- c(required, optional)
-
-      tagList(
-        div(h4("Select column mapping for entry points analysis")),
-        dragulaInput(
-          inputId = ns("col_mapping"),
-          label = NULL,
-          sourceLabel = "Imported data columns",
-          targetsLabels = targetsLabels,
-          targetsIds = targetsIds,
-          choices = sources,
-          selected = auto_select_cols(
-            user_cols = sources,
-            options = targetsIds
-          ),
-          replace = TRUE,
-          copySource = TRUE,
-          width = "100%"
-        )
+      targets <- setNames(targetsIds, nm = targetsLabels)
+      target_status <- ifelse(targetsIds %in% required, "primary", "warning")
+      customDragulaInput(
+        inputId = ns("col_mapping"),
+        label = NULL,
+        sourceLabel = "Available columns",
+        targets = targets,
+        choices = sources,
+        selected = auto_select_cols(
+          user_cols = sources,
+          options = targetsIds
+        ),
+        replace = TRUE,
+        choice_status = "primary",
+        target_status = target_status,
+        badge = TRUE,
+        ncolGrid = 3,
+        flip = FALSE
       )
+
     })
 
     # Validation logic ----
