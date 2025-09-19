@@ -1,5 +1,21 @@
 
 
+# div(
+#   tags$label(
+#     class = "control-label",
+#     `for` = ns("test_parameters"),
+#     get_label("ttest-independent-test_parameters", "english")
+#   ),
+#   helpPopup(get_help("ttest-independent-test_parameters", "english"))
+# ),
+# multipleColumnSelectionInput(
+#   inputId = ns("test_parameters"),
+#   label = NULL,
+#   choices = character(0),
+#   selected = character(0),
+#   actionsBox = TRUE
+# )
+
 #' Title with inline help tooltip
 #' @param title The title text
 #' @param help_text The help text for the tooltip

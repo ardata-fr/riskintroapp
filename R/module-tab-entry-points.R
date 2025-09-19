@@ -58,6 +58,12 @@ entryPointsUI <- function(id) {
 #' @importFrom shiny moduleServer observeEvent reactive req showModal removeModal reactiveVal
 #' @importFrom riskintroanalysis calc_entry_point_risk
 entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
+
+  country_choices <- setNames(
+    object = riskintrodata::world_sf$iso3,
+    nm = paste(riskintrodata::world_sf$iso3, "-", riskintrodata::world_sf$country_name)
+  )
+
   moduleServer(
     id,
     function(input, output, session) {
@@ -85,30 +91,52 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
       ))
 
       # Map event reactives for interactive editing ----
-      map_click_reactive <- reactiveVal(NULL)
-      map_marker_click_reactive <- reactiveVal(NULL)
-
+      clicky <- reactiveVal(NULL)
       observeEvent(input$map_click, {
-        map_click_reactive(input$map_click)
+        req(input_data(), emission_scores())
+        map_click <- input$map_click
+        marker_click <- input$map_marker_click
+        dataset <- input_data()
+        # convert floats to character for comparison
+        # check if new point or editing existing point.
+        if (identical(
+          sprintf("%.2f", map_click[c("lat", "lng")]),
+          sprintf("%.2f", marker_click[c("lat", "lng")])
+        )) {
+          map_click$operation <- "update"
+          map_click$id <- marker_click$id
+        } else {
+          map_click$operation <- "create"
+          new_id <- order(
+            as.integer(gsub("ep-", "", unique(dataset$point_id), fixed = TRUE)), decreasing = TRUE
+            )[[1]] + 1
+          map_click$id <- sprintf("ep-%05i", new_id)
+        }
+        dat <- dataset[dataset$point_id %in% marker_click$id, ] |> sf::st_drop_geometry()
+        config <- as.list(dat[1, ]) # these values are unique
+        config$sources <- dat$sources  # but there are multiple sources per point
+        config$source_choices <- country_choices
+        clicky(map_click)
+        showModal(editEntryPointsUI(id = ns("edit_entry_points"), config = config))
       })
 
-      observeEvent(input$map_marker_click, {
-        browser()
-        map_marker_click_reactive(input$map_marker_click)
+      # Interactive editing ----
+      edit_data <- editEntryPointsServer(
+        id = "edit_entry_points",
+        map_click = clicky
+      )
+      observeEvent(edit_data(), {
+        operation <- edit_data()$operation
+        new_data <- edit_data()$row
+        out <- input_data()
+        if (operation %in% c("delete", "update")) {
+          out <- out[!out$point_id %in% unique(new_data$point_id), ]
+        }
+        if (operation %in% c("update", "create")) {
+          out <- rbind(out, new_data)
+        }
+        input_data(out)
       })
-
-      # # Interactive editing ----
-      # interactive_data <- interactiveEntryPointsEditorServer(
-      #   id = "interactive_editor",
-      #   input_data = input_data,
-      #   map_click = NULL
-      # )
-
-      # # Update input_data when interactive edits occur
-      # observeEvent(interactive_data(), {
-      #   req(interactive_data())
-      #   input_data(interactive_data())
-      # })
 
       # Risk scaling arguments ----
       rescaling_args <- reactiveVal(list(

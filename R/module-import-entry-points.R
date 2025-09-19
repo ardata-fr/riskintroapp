@@ -184,7 +184,6 @@ importEntryPointsServer <- function(id) {
       targetActions <- lapply(as.list(setNames(nm = targetIds)), function(x){
         helpPopup(get_help(x))
         })
-
       tagList(
         customDragulaInput(
           inputId = ns("col_mapping"),
@@ -312,10 +311,9 @@ importEntryPointsServer <- function(id) {
     })
 
     # Import confirmation ----
-    importedDataset <- reactiveVal(NULL)
+    returnData <- reactiveVal(NULL)
     observeEvent(input$import_data, {
-      req(validatedDataset())
-      importedDataset(validatedDataset())
+      returnData(validatedDataset())
       importTable(NULL) # Reset to empty
       removeModal()
     })
@@ -327,47 +325,6 @@ importEntryPointsServer <- function(id) {
     })
 
     # Return validated dataset ----
-    return(importedDataset)
+    return(returnData)
   })
-}
-
-# Helper functions ----
-
-#' Create preview map for entry points
-#' @param data sf object with entry points
-#' @return leaflet map
-#' @noRd
-preview_entry_points_map <- function(data) {
-  req(inherits(data, "sf"))
-
-  # Basic validation that we have point geometry
-  geom_types <- unique(as.character(st_geometry_type(data)))
-  if (!all(geom_types == "POINT")) {
-    # Return basic map if not all points
-    return(leaflet::leaflet() |>
-      leaflet::addTiles() |>
-      leaflet::setView(lng = 0, lat = 0, zoom = 2))
-  }
-
-  # Create leaflet map with entry points
-  bbox <- sf::st_bbox(data)
-
-  leaflet::leaflet(data) |>
-    leaflet::addTiles() |>
-    leaflet::addCircleMarkers(
-      radius = 6,
-      fillColor = "#ff7f0e",
-      color = "#ffffff",
-      weight = 1,
-      fillOpacity = 0.8,
-      popup = ~ifelse(
-        "point_name" %in% names(data),
-        paste0("<strong>", point_name, "</strong>"),
-        paste0("Entry Point ", seq_len(nrow(data)))
-      )
-    ) |>
-    leaflet::fitBounds(
-      lng1 = bbox[1], lat1 = bbox[2],
-      lng2 = bbox[3], lat2 = bbox[4]
-    )
 }
