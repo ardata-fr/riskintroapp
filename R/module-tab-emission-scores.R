@@ -4,7 +4,7 @@ emissionScoresUI <- function(id) {
     sidebar = sidebar(
       width = .sidebar_width,
       title = titleWithHelpKey("emission-scores-title"),
-      uiOutput(ns("warnings")),
+      uiOutput(ns("config_is_valid")),
       importEmissionRiskFactorsUI(ns("import_erf")),
 
       tags$hr(),
@@ -151,10 +151,46 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
         }
       })
 
-      output$warnings <- renderUI({
-        report_warning(emission_risk_result()$warnings)
+      # configIsValid -----
+      configIsValid <- reactive({
+
+        warnings <- character()
+        if (is_error(emission_risk_result()$error)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Error while calculating emission risk scores:",
+            error = emission_risk_result()$error
+          )
+        }
+        if (is_error(emission_risk_result()$error)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Error while calculating emission risk scores:",
+            error = emission_risk_result()$error
+          )
+          return(status)
+        }
+
+        warnings <- c(warnings, emission_risk_result()$warnings)
+
+        if (!isTruthy(emission_scores())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Emission scores have not been calculated."
+          )
+          return(status)
+        }
+        build_config_status(
+          value = TRUE,
+          msg = "Calculation complete.",
+          warnings = warnings,
+          warnings_msg = "Calculation complete with warnings:"
+        )
       })
-      outputOptions(output, "warnings", suspendWhenHidden = FALSE)
+      output$config_is_valid <- renderUI({
+        report_config_status(configIsValid())
+      })
+      outputOptions(output, "config_is_valid", suspendWhenHidden = FALSE)
 
       # map ----
       baseLeaflet <- reactive({basemap()})

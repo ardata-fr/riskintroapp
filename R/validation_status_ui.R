@@ -25,7 +25,7 @@ unnest_validatation_status_details <- function(details){
   details_msg <- list()
   for (i in seq_len(nrow(details))) {
     r <- details[i, ]
-    if (r$vectorised_check) {
+    if (isTRUE(r$vectorised_check)) {
       # Vectorised checks get precise messages detailing which values are invalid
       # and where
       details_msg[[i]] <- tagList(

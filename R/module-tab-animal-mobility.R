@@ -10,7 +10,6 @@ animalMobilityUI <- function(id) {
       width = .sidebar_width,
       title = titleWithHelpKey("animal-mobility-title"),
       uiOutput(ns("config_is_valid")),
-      uiOutput(ns("warnings")),
       tags$br(),
       actionButton(
         inputId = ns("import_mobility"),
@@ -128,6 +127,8 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
 
       # configIsValid ----
       configIsValid <- reactive(label = paste0("configIsValid-", id), {
+
+        warnings <- character()
         if (!isTruthy(epi_units())) {
           status <- build_config_status(
             value = FALSE,
@@ -169,6 +170,10 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
           return(status)
         }
 
+        if (isTruthy(riskScores()$warnings)) {
+          warnings <- c(warnings, riskScores()$warnings)
+        }
+
         if (!isTruthy(rescaledScores())) {
           status <- build_config_status(
             value = FALSE,
@@ -179,19 +184,15 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
 
         build_config_status(
           value = TRUE,
-          msg = "Configuration is valid."
+          msg = "Analysis complete.",
+          warnings = warnings,
+          warnings_msg = "Analysis complete with warnings:"
         )
       })
       output$config_is_valid <- renderUI({
         report_config_status(configIsValid())
       })
       outputOptions(output, "config_is_valid", suspendWhenHidden = FALSE)
-
-      # warnings -----
-      output$warnings <- renderUI({
-        report_warning(riskScores()$warnings)
-      })
-      outputOptions(output, "warnings", suspendWhenHidden = FALSE)
 
       # table ----
       output$table <- renderReactable({

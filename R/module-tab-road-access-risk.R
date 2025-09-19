@@ -92,26 +92,6 @@ roadAccessRiskServer <- function(id, input_raster, epi_units) {
       })
 
       # # download ----
-      # downloadError <- reactiveVal(NULL)
-      # observeEvent(input$dnld_btn, {
-      #   req(epi_units())
-      #   hideDropMenu(id = "dropMenu_dropmenu")
-      #   safe_download <- safely(riskintrodata::download_road_access_raster)
-      #   url <- safe_download()
-      #   if (is_error(url$error)) {
-      #     downloadError(url$error)
-      #     return()
-      #   }
-        # safely_rast <- safely(terra::rast)
-        # res <- safely_rast(url$result)
-        # if (is_error(res$error)) {
-        #   downloadError(res$error)
-        #   return()
-        # }
-      #   downloadError(NULL)
-      #   cropped <- terra::crop(res$result,epi_units(), mask = TRUE)
-      #   input_raster(cropped)
-      # })
 
       downloadError <- reactiveVal(NULL)
       # Setup async "function" ----
@@ -203,6 +183,8 @@ roadAccessRiskServer <- function(id, input_raster, epi_units) {
 
       # configIsValid ----
       configIsValid <- reactive(label = paste0("configIsValid-", id), {
+
+        warnings <- character()
         if (!isTruthy(epi_units())) {
           status <- build_config_status(
             value = FALSE,
@@ -240,6 +222,11 @@ roadAccessRiskServer <- function(id, input_raster, epi_units) {
           )
           return(status)
         }
+
+        if (isTruthy(riskScores()$warnings)) {
+          warnings <- c(warnings, riskScores()$warnings)
+        }
+
         if (!isTruthy(rescaledScores())) {
           status <- build_config_status(
             value = FALSE,
@@ -249,7 +236,9 @@ roadAccessRiskServer <- function(id, input_raster, epi_units) {
         }
         build_config_status(
           value = TRUE,
-          msg = "Configuration is valid."
+          msg = "Analysis complete.",
+          warnings = warnings,
+          warnings_msg = "Analysis complete with warnings:"
         )
       })
       output$config_is_valid <- renderUI({

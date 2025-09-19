@@ -9,10 +9,9 @@ entryPointsUI <- function(id) {
       width = .sidebar_width,
       title = titleWithHelpKey("entry-points-title"),
       uiOutput(ns("config_is_valid")),
-      uiOutput(ns("warnings")),
+      # uiOutput(ns("warnings")),
       tags$br(),
 
-      # Interactive editing info ----
       div(
         class = "alert alert-info",
         style = "margin-bottom: 15px;",
@@ -32,11 +31,11 @@ entryPointsUI <- function(id) {
         icon = icon('cogs')
       ),
       tags$br(),
-      actionButton(
-        inputId = ns("open_risk_scaling"),
-        label = "Edit risk scaling",
-        icon = icon("pen-to-square")
-      )
+      # actionButton(
+      #   inputId = ns("open_risk_scaling"),
+      #   label = "Edit risk scaling",
+      #   icon = icon("pen-to-square")
+      # )
     ),
     navset_card_tab(
       id = ns("panel_ui"),
@@ -121,6 +120,8 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
 
       # configIsValid ----
       configIsValid <- reactive(label = paste0("configIsValid-", id), {
+
+        warnings <- character()
         if (!isTruthy(epi_units())) {
           status <- build_config_status(
             value = FALSE,
@@ -162,6 +163,10 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
           return(status)
         }
 
+        if (isTruthy(riskScores()$warnings)) {
+          warnings <- c(warnings, riskScores()$warnings)
+        }
+
         if (!isTruthy(rescaledScores())) {
           status <- build_config_status(
             value = FALSE,
@@ -172,19 +177,15 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
 
         build_config_status(
           value = TRUE,
-          msg = "Configuration is valid."
+          msg = "Analysis complete.",
+          warnings = warnings,
+          warnings_msg = "Analysis complete with warnings:"
         )
       })
 
       output$config_is_valid <- renderUI({
         report_config_status(configIsValid())
       })
-
-      # warnings -----
-      output$warnings <- renderUI({
-        report_warning(riskScores()$warnings)
-      })
-      outputOptions(output, "warnings", suspendWhenHidden = FALSE)
 
       # import ----
       observeEvent(input$import_entry_points, {
@@ -210,7 +211,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
 
       # calc_* ----
       observe({
-        req(input_data(), epi_units(), emission_scores())
+        req(input_data(), epi_units(), emission_scores(),entry_point_params())
 
         result <- safe_and_quiet(
           .fun = calc_entry_point_risk,
