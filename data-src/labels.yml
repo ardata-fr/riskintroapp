@@ -19,42 +19,98 @@
 
 ## Labels
 
+
+- key: mapping_tooltip
+  data:
+    - lang: en
+      help: >
+            These are the column from the dataset you've imported, move them
+            to the corresponding data definitions.
+
+            Each column has specific requirements and will be validated before
+            you can use the dataset for entry points analysis.
+
+
 - key: point_id
   data:
     - lang: en
       label: "unique point identifier"
+      help: >
+            The point identifier uniquely identifies each individual entry point.
+            Each entry point can have multiple risk sources.
 
 - key: point_name
   data:
     - lang: en
       label: "point name or description"
+      help: >
+            The point name of an entry point is descriptive and used in
+            data visualisations.
 
 - key: mode
   data:
     - lang: en
-      label: "point mode (legal/illegal)"
+      label: "mode (controlled/uncontrolled)"
+      help: >
+            The mode type of an entry point denotes whether animals entering
+            the epidemiological unit through that point are being controlled
+            by local authorities.
 
+            Animal crossings are that uncontrolled or illegal, correspond to a
+            relatively high risk of spread of disease. Whereas controlled
+            or legal entry is less risky.
 
 - key: type
   data:
     - lang: en
-      label: "point transport type "
+      label: "transport type"
+      help: >
+            The transport type of an entry point denotes whether animals entering
+            the epidemiological unit through that point are being transported
+            through an airport/aerodrome, seaport, land border, contraband border
+            or through transhumance crossing.
+
+            This data is optional as it is only used for data visualatsation
+            purposes, and does not effect any risk scores.
 
 - key: lat
   data:
     - lang: en
       label: "latitude"
+      help: >
+            Latitude and latitude cooridates of entry points provide the
+            location of the entry point. This allows the analysis
+            to match each entry point with an epidemiological unit.
 
 - key: lng
   data:
-  - lang: en
-    label: "longitude"
+    - lang: en
+      label: "longitude"
+      help: >
+            Latitude and latitude cooridates of entry points provide the
+            location of the entry point. This allows the analysis
+            to match each entry point with an epidemiological unit.
 
 - key: sources
   data:
     - lang: en
-      label: "sources of animal migration"
+      label: "emission risk sources"
+      help: >
+            Emission risk sources are the origin countries of animals entering
+            epidemiological units. An entry point can have multilple source countries.
 
+            Note that this column should contain ISO3 country codes.
+
+
+- key: entry_points_mapping
+  data:
+    - lang: en
+      help: >
+             \* Required columns.
+
+             \** Mode and sources are optional at data import stage, but will be required
+             to complete the analysis. Use the map interface to complete these data entries
+             afterwards.
 
 - key: geometry
   data:

@@ -18,7 +18,7 @@ importEntryPointsUI <- function(id) {
   modalDialog(
     width = 10, offset = 1,
     title = titleWithHelpKey("import-entry-points-title"),
-    size = "l",
+    size = "xl",
     easyClose = TRUE,
     fade = TRUE,
     fluidRow(column(
@@ -47,7 +47,8 @@ importEntryPointsUI <- function(id) {
           ".qmd",
           ".gpkg",
           ".geojson"
-        )
+        ),
+        width = "100%"
       ),
       uiOutput(ns("import_error")),
       navset_card_tab(
@@ -116,13 +117,14 @@ importEntryPointsServer <- function(id) {
       file <- input$file
       req(file)
       # Handle different file types
-      if (any(tools::file_ext(file$name) %in% c("csv", "txt", "tsv"))) {
+      ext <- tolower(tools::file_ext(file$name))
+      if (any(ext %in% c("csv", "txt", "tsv"))) {
         # CSV file - read with readr
         safely_read_delim <- safely(readr::read_delim)
         result <- safely_read_delim(file$datapath, show_col_types = FALSE)
         result$type <- "tabular"
 
-      } else if (any(tools::file_ext(file$name) %in% c("shp"))) {
+      } else if (any(ext %in% c("shp"))) {
         # Geospatial files - handle shapefiles differently
         shp <- file$datapath[endsWith(file$datapath, suffix = ".shp")]
         if (length(shp) > 0) {
@@ -134,7 +136,7 @@ importEntryPointsServer <- function(id) {
         result <- safely_read_geo_file(file$new_name %||% file$datapath)
         result$type <- "geospatial"
 
-      } else if (any(tools::file_ext(file$name) %in% c("gpkg", "geojson"))) {
+      } else if (any(ext %in% c("gpkg", "geojson"))) {
         safely_read_geo_file <- safely(read_geo_file)
         result <- safely_read_geo_file(file$datapath)
         result$type <- "geospatial"
@@ -155,43 +157,57 @@ importEntryPointsServer <- function(id) {
       )
     })
 
-    # Column mapping interface ----
+    # dragula ----
     output$dragula <- renderUI({
       req(importTable())
+
       dataset <- req(importTable()$result)
       sources <- colnames(dataset)
+      type <- importTable()$type
 
-      # Get entry points specification
-      spec <- riskintrodata:::.spec_entry_points
-      required <- map(spec, \(x) x[["required"]])
-      optional <- names(required)[!unlist(required)]
-      required <- names(required)[unlist(required)]
-      optional_label <- paste(optional, "(optional)")
+      if (identical(type, "tabular")) {
+        required <- c("point_name","lng","lat")
+        optional <- c("mode","sources","type")
+      } else {
+        sources <- sources[sources!="geometry"]
+        required <- c("point_name")
+        optional <- c("mode","sources","type")
+      }
 
+      required_label <- get_label(required)
+      required_label <- paste(required_label, "*")
+      optional_label <- get_label(optional)
+      optional_label[1:2] <- paste(optional_label[1:2], "**")
+      targetIds <- c(required, optional)
+      targets <- setNames(targetIds, nm = c(required_label, optional_label))
+      target_status <- ifelse(targetIds %in% required, "primary", "warning")
+      targetActions <- lapply(as.list(setNames(nm = targetIds)), function(x){
+        helpPopup(get_help(x))
+        })
 
-      required <- required[required != "geometry"]  # Geometry handled separately
-      targetsLabels <- c(required, optional_label)
-      targetsIds <- c(required, optional)
-      targets <- setNames(targetsIds, nm = targetsLabels)
-      target_status <- ifelse(targetsIds %in% required, "primary", "warning")
-      customDragulaInput(
-        inputId = ns("col_mapping"),
-        label = NULL,
-        sourceLabel = "Available columns",
-        targets = targets,
-        choices = sources,
-        selected = auto_select_cols(
-          user_cols = sources,
-          options = targetsIds
+      tagList(
+        customDragulaInput(
+          inputId = ns("col_mapping"),
+          label = NULL,
+          sourceLabel = "Available columns",
+          sourceActions = helpPopup(get_help("mapping_tooltip")),
+          targetActions = targetActions,
+          targets = targets,
+          choices = sources,
+          selected = auto_select_cols(
+            user_cols = sources,
+            options = targetIds
+          ),
+          replace = TRUE,
+          choice_status = "primary",
+          target_status = target_status,
+          badge = TRUE,
+          ncolGrid = if(identical(type, "tabular")) 3 else 2,
+          flip = FALSE
         ),
-        replace = TRUE,
-        choice_status = "primary",
-        target_status = target_status,
-        badge = TRUE,
-        ncolGrid = 3,
-        flip = FALSE
+        HTML(get_help("entry_points_mapping")),
+        tags$br()
       )
-
     })
 
     # Validation logic ----
@@ -261,7 +277,7 @@ importEntryPointsServer <- function(id) {
 
       build_config_status(
         value = TRUE,
-        msg = "Configuration is valid."
+        msg = "Import configuration is valid."
       )
     })
 
@@ -300,13 +316,13 @@ importEntryPointsServer <- function(id) {
     observeEvent(input$import_data, {
       req(validatedDataset())
       importedDataset(validatedDataset())
+      importTable(NULL) # Reset to empty
       removeModal()
     })
 
     # Cancel import ----
     observeEvent(input$cancel_import, {
-      # Reset internal state
-      importTable(NULL)
+      importTable(NULL) # Reset to empty
       removeModal()
     })
 
