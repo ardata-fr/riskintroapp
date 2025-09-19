@@ -70,10 +70,14 @@ helpPopup <- function(text){
 }
 
 get_label <- function(key, lang = "en"){
-  labels_int[labels_int$lang %in% lang & labels_int$key %in% key, "label"]
+  lang_subset <- labels_int[labels_int$lang == lang, ]
+  matched_indices <- match(key, lang_subset$key)
+  lang_subset$label[matched_indices]
 }
 
 get_help <- function(key, lang = "en"){
-  labels_int[labels_int$lang %in% lang & labels_int$key %in% key, "help"]
+  lang_subset <- labels_int[labels_int$lang == lang, ]
+  matched_indices <- match(key, lang_subset$key)
+  lang_subset$help[matched_indices]
 }
 
