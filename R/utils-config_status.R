@@ -171,9 +171,10 @@ format_cli_warning_to_html <- function(message) {
   html_content <- gsub("\\s+", " ", html_content)
   html_content <- trimws(html_content)
 
-  # Add strategic line breaks BEFORE converting to HTML icons
   # Break before any info or warning symbol
   html_content <- gsub("(\\S)\\s+(\u2139|!)", "\\1\n\\2", html_content)
+  # Break before bullet points
+  html_content <- gsub("(\\S)\\s+(\u2022)", "\\1\n\\2", html_content)
   # Break before country list
   html_content <- gsub("(:)\\s+(\")", "\\1\n  \\2", html_content)
 
