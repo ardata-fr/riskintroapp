@@ -28,9 +28,9 @@ server <- function(input, output, session) {
       epi_units = epi_units(),
       emission_risk_factors = emission_risk_factors(),
       input_raster = input_raster(),
-      animal_mobility_input = animal_mobility_input(),
-      entry_points_input = entry_points_input(),
-      border_input = border_input()
+      animal_mobility = animal_mobility_input(),
+      entry_points = entry_points_input(),
+      shared_borders = border_input()
     )),
     misc_risks = misc_risk_meta
   )
@@ -41,9 +41,9 @@ server <- function(input, output, session) {
     epi_units(new_datasets$epi_units)
     emission_risk_factors(new_datasets$emission_risk_factors)
     input_raster(new_datasets$input_raster)
-    animal_mobility_input(new_datasets$animal_mobility_input)
-    entry_points_input(new_datasets$entry_points_input)
-    border_input(new_datasets$border_input)
+    animal_mobility_input(new_datasets$animal_mobility)
+    entry_points_input(new_datasets$entry_points)
+    border_input(new_datasets$shared_borders)
   })
 
   # import geodata ----

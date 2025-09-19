@@ -78,7 +78,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
       # Data storage ----
       riskScores <- reactiveVal(NULL)
       entry_point_params <- reactiveVal(list(
-        max_risk = 100,
+        max_risk = 12,
         coef_legal = 1,
         coef_illegal = 1,
         illegal_factor = 3
@@ -93,24 +93,22 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
       })
 
       observeEvent(input$map_marker_click, {
+        browser()
         map_marker_click_reactive(input$map_marker_click)
       })
 
-      # Interactive editing ----
-      interactive_data <- interactiveEntryPointsEditorServer(
-        id = "interactive_editor",
-        input_data = input_data,
-        emission_scores = emission_scores,
-        map_proxy = reactive(leafletProxy("map")),
-        map_click = reactive(map_click_reactive()),
-        map_marker_click = reactive(map_marker_click_reactive())
-      )
+      # # Interactive editing ----
+      # interactive_data <- interactiveEntryPointsEditorServer(
+      #   id = "interactive_editor",
+      #   input_data = input_data,
+      #   map_click = NULL
+      # )
 
-      # Update input_data when interactive edits occur
-      observeEvent(interactive_data(), {
-        req(interactive_data())
-        input_data(interactive_data())
-      })
+      # # Update input_data when interactive edits occur
+      # observeEvent(interactive_data(), {
+      #   req(interactive_data())
+      #   input_data(interactive_data())
+      # })
 
       # Risk scaling arguments ----
       rescaling_args <- reactiveVal(list(
@@ -212,7 +210,6 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
       # calc_* ----
       observe({
         req(input_data(), epi_units(), emission_scores(),entry_point_params())
-
         result <- safe_and_quiet(
           .fun = calc_entry_point_risk,
           entry_points = input_data(),
@@ -251,31 +248,9 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
       })
 
       # map ----
-      # Add simple markers for entry points
       observe({
-        req(input_data())
-
-        ll <- leafletProxy("map")
-        entry_points <- input_data()
-
-        # Clear existing markers
-        ll |> clearMarkers()
-
-        if (nrow(entry_points) > 0) {
-          # Entry points always use sf geometry
-          ll |>
-            addCircleMarkers(
-              data = entry_points,
-              layerId = ~point_id,
-              radius = 8,
-              fillOpacity = 0.8,
-              stroke = TRUE,
-              weight = 2,
-              color = "white",
-              fillColor = ~ifelse(mode == "C", "#f72585", "#7209b7"),
-              popup = ~paste0("<b>", point_name, "</b><br>Type: ", type, "<br>Mode: ", mode)
-            )
-        }
+        req(configIsValid())
+        plot_risk_interactive(rescaledScores(), ll = leafletProxy("map"))
       })
 
       # table ----

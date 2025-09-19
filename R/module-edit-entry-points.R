@@ -50,7 +50,7 @@ interactiveEntryPointsEditorUI <- function(id) {
 #' @importFrom bslib card card_header card_body
 #'
 #' @keywords internal
-interactiveEntryPointsEditorServer <- function(id, input_data, emission_scores, map_proxy, map_click, map_marker_click, map_marker_dragend) {
+interactiveEntryPointsEditorServer <- function(id, input_data, map_click) {
   moduleServer(
     id,
     function(input, output, session) {

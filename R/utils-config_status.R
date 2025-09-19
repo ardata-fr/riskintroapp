@@ -128,18 +128,13 @@ error_box <- function(error) {
 safe_and_quiet <- function(.fun, ...){
   safe_fun <- quietly(safely(.fun))
   res <- safe_fun(...)
-  out <- list(
+  list(
     result = res$result$result,
     error = res$result$error,
     output = res$output,
     warnings = res$warnings,
     messages = res$messages
   )
-  if(!is.null(out$error)){
-    out$error <- get_error_message(out$error)
-  }
-  # out <- map(out, length_zero_to_na)
-  out
 }
 
 #' Convert CLI Warning Message to HTML
