@@ -37,21 +37,24 @@ ui <- function() {
             level = 4
           ),
           dropMenu(
-            actionButton(
+            placement = "right",
+            tag = actionButton(
               inputId = "dropMenu",
               label = "Import epidemiological units",
-              icon = icon("upload")
+              icon = icon("upload"),
             ),
-            actionButton(
+            div(actionButton(
               inputId = "import_epi_units",
               label = "Import file",
-              icon = icon("file-import")
-            ),
-            actionButton(
+              icon = icon("file-import"),
+              style = "width: 200px; margin-bottom: 7px;"
+            )),
+            div(actionButton(
               inputId = "open_geodata",
               label = "Geodata download",
-              icon = icon("download")
-            )
+              icon = icon("download"),
+              style = "width: 200px; margin-bottom: 7px;"
+            ))
           ),
 
           tags$hr(),

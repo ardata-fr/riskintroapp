@@ -124,22 +124,23 @@
   data:
   - lang: en
     label: "EU unique identifier"
+    help: >
+          This is the unique identifier for each epidemiological unit. This is
+          optional, and will be generated internally if left empty. But incase you
+          have meaningful identifiers already, you can add them here.
 
 - key: eu_name
   data:
   - lang: en
-    label: "EU name or description"
+    label: "Name or descriptor of epidemiological unit."
 
-- key: eu_geometry
+- key: epi_units_mapping
   data:
   - lang: en
-    label: "EU geospatial polygons"
+    help: >
+          \* Required columns.
 
-- key: user_id
-  data:
-  - lang: en
-    label: "User's unique identifier (optional)"
-
+          "Dataset polygon geometry is detected automatically."
 
 # animal mobility import
 - key: animal_mobility_id
@@ -805,10 +806,13 @@
 - key: misc-risk-title
   data:
     - lang: en
-      label: "Miscellaneous risks"
+      label: "Additional risks"
       help: >
-            Miscellaneous risks allow you to import additional risk factors from raster files
-            or precalculated datasets to supplement the main risk analysis.
+            Additional risks allow you to import other risk factors that are not
+            included in the core analysis method, thus supplementing the overall
+            analysis with custom user-defined risk factors.
+
+            You can add these from raster files or precalculated datasets.
     - lang: fr
       label: "Risques divers"
       help: >
@@ -874,8 +878,9 @@
     - lang: en
       label: "Import risk from raster file"
       help: >
-            Import miscellaneous risk data from raster files. The raster values will be
+            Import additional risk data from raster files. The raster values will be
             aggregated for each epidemiological unit to create risk scores.
+
     - lang: fr
       label: "Importer le risque depuis un fichier raster"
       help: >
