@@ -67,10 +67,10 @@ report_config_status <- function(status) {
   if (is.null(status)) return(NULL)
   stopifnot(is.logical(status), length(status) == 1L)
 
-  msg <- attr(status, "comment") %||% ""
-  error <- attr(status, "error")
-  warnings <- attr(status, "warnings")
-  warnings_msg <- attr(status, "warnings_msg") %||% msg
+  msg <- attr(status, "comment", exact = TRUE) %||% ""
+  error <- attr(status, "error", exact = TRUE)
+  warnings <- attr(status, "warnings", exact = TRUE)
+  warnings_msg <- attr(status, "warnings_msg", exact = TRUE) %||% msg
 
   if (isTRUE(status) && is.null(warnings)) {
     shinyWidgets::panel(
