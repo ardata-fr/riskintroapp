@@ -17,7 +17,7 @@ importAnimalMobilityUI <- function(id) {
 
   modalDialog(
     title = titleWithHelpKey("import-animal-mobility-title"),
-    size = "l",
+    size = "xl",
     easyClose = FALSE,
     fade = TRUE,
     fluidRow(column(
@@ -176,41 +176,50 @@ importAnimalMobilityServer <- function(id, is_overwriting = reactive(FALSE)) {
                 showPageSizeOptions = TRUE)
     })
 
-    # Dragula UI ----
+    # dragula ----
     output$dragula <- renderUI({
       req(importTable())
       req(importTable()$result)
       dataset <- req(importTable()$result)
       sources <- colnames(dataset)
 
-      # Get animal mobility specification
-      spec <- riskintrodata:::.spec_animal_mobility
-      required <- map(spec, \(x) x[["required"]])
-      optional <- names(required)[!unlist(required)]
-      optional_label <- paste(optional, "(optional)")
-      required <- names(required)[unlist(required)]
+      required <- c("d_lng", "d_lat")
+      optional <- c("o_iso3","o_name","o_lng","o_lat","d_iso3","d_name", "quantity")
+      required_labels <- get_label(required)
+      optional_labels <- get_label(optional)
+      required_labels <- paste(required_labels, "*")
 
-      targetsLabels <- c(required, optional_label)
-      targetsIds <- c(required, optional)
+      targetsLabels <- c(required_labels, optional_labels)
+      targetIds <- c(required, optional)
+      targets <- setNames(targetIds, nm = targetsLabels)
+      target_status <- ifelse(targetIds %in% required, "primary", "warning")
+      targetActions <- lapply(as.list(setNames(nm = targetIds)), function(x){
+        helpPopup(get_help(x))
+      })
 
       tagList(
-        div(h4("Select column mapping for animal mobility data")),
-        dragulaInput(
+        customDragulaInput(
           inputId = ns("col_mapping"),
           label = NULL,
-          sourceLabel = "Imported data columns",
-          targetsLabels = targetsLabels,
-          targetsIds = targetsIds,
+          sourceLabel = "Available columns",
+          sourceActions = helpPopup(get_help("mapping_tooltip")),
+          targetActions = targetActions,
+          targets = targets,
           choices = sources,
           selected = auto_select_cols(
             user_cols = sources,
-            options = targetsIds
+            options = targetIds
           ),
           replace = TRUE,
-          copySource = TRUE,
-          width = "100%"
-        )
+          choice_status = "primary",
+          target_status = target_status,
+          badge = TRUE,
+          ncolGrid = 4,
+          flip = FALSE
+        ),
+        HTML(get_help("animal_mobility_mapping"))
       )
+
     })
 
     # configIsValid ----

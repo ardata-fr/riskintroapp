@@ -282,7 +282,8 @@ customDragulaInput <- function(
   )
   targetPanelStyle <- paste(
     "grid-template-columns:",
-    sprintf("repeat(%s, minmax(50px, auto));", ncolGrid)
+    # width of target boxes is always the full width divided by the number of columns
+    sprintf("repeat(%s, %s);", ncolGrid, sprintf("%.3f%%", 100/ncolGrid))
   )
   tagList(
     dragula_input_deps(),

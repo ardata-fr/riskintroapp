@@ -20,6 +20,7 @@
 ## Labels
 
 
+# entry points import
 - key: mapping_tooltip
   data:
     - lang: en
@@ -117,6 +118,8 @@
   - lang: en
     label: "geospatial data"
 
+
+# Epi units import
 - key: eu_id
   data:
   - lang: en
@@ -132,61 +135,116 @@
   - lang: en
     label: "EU geospatial polygons"
 
+- key: user_id
+  data:
+  - lang: en
+    label: "User's unique identifier (optional)"
 
+
+# animal mobility import
 - key: animal_mobility_id
   data:
   - lang: en
     label: "unique identifier for each line"
+    help: >
+          Identifier that uniquely identified each animal mobility flow.
 
 - key: o_name
   data:
   - lang: en
     label: "origin point name"
+    help: >
+          Name or description of the point of origin of animal mobility flows.
+
+
+- key: o_iso3
+  data:
+  - lang: en
+    label: "origin country ISO3 code"
+    help: >
+          3 character ISO3 country code of the country from which animal mobility
+          flows originate.
 
 - key: o_country
   data:
   - lang: en
     label: "origin point country"
+    help: >
+          Name of the country from which animal mobility flows originate.
 
 - key: o_lng
   data:
   - lang: en
     label: "origin point longitude"
+    help: >
+          Longitude of the point from which animal mobility flows originate.
 
 - key: o_lat
   data:
   - lang: en
     label: "origin point latitude"
+    help: >
+          lattitude of the point from which animal mobility flows originate.
+
+- key: d_iso3
+  data:
+  - lang: en
+    label: "destination country ISO3 code"
+    help: >
+          3 character ISO3 country code of the country to which the animal flows
+          arrive. This should be the same as the country of the epidemiological units.
 
 - key: d_name
   data:
   - lang: en
     label: "destination point name"
+    help: >
+          Name or description of the point of arrival of animal mobility flows.
 
 - key: d_country
   data:
   - lang: en
     label: "destination point country"
+    help: >
+          Name of the country to which the animal flows arrive.
 
 - key: d_lng
   data:
   - lang: en
     label: "destination point longitude"
+    help: >
+          Longitude of the point where the animal mobility flows arrive.
 
 - key: d_lat
   data:
   - lang: en
     label: "destination point latitude"
+    help: >
+          Lattitude of the point where the animal mobility flows arrive.
 
 - key: quantity
   data:
   - lang: en
     label: "animal flow headcount"
+    help: >
+          Quanitity of animal mobility along this flow. This is used to weight
+          analysis of disease spread. A country from which more animals flow is
+          given greater weight.
 
-- key: user_id
+          If this column is not selected, all emission risk sources will be
+          equally weighted.
+
+- key: animal_mobility_mapping
   data:
   - lang: en
-    label: "User's unique identifier (optional)"
+    label: "animal flow headcount"
+    help: >
+          \* Required columns.
+
+          Points of origin can be inferred from either the ISO3 country code or
+          longitude and lattitude of the point of origin.
+
+# emission risks and factors
 
 - key: emission_risk_weights
   data:
