@@ -21,7 +21,7 @@
 #' @importFrom shiny NS modalDialog fluidRow column tags div numericInput actionButton icon plotOutput modalButton
 #'
 #' @keywords internal
-rescaleRiskUI <- function(id) {
+rescaleRiskUI <- function(id, rescaling_args) {
   ns <- NS(id)
 
   modalDialog(
@@ -34,13 +34,13 @@ rescaleRiskUI <- function(id) {
           inputId = ns("method"),
           label = "Transformation function",
           choices = c("linear", "quadratic", "exponential", "sigmoid"),
-          selected = "linear"
+          selected = rescaling_args$method
         ),
 
         awesomeCheckbox(
           inputId = ns("inverse"),
           label = "Inverse function",
-          value = FALSE
+          value = rescaling_args$inverse
         )
       ),
 

@@ -55,7 +55,7 @@ roadAccessRiskUI <- function(id) {
   )
 }
 
-roadAccessRiskServer <- function(id, input_raster, epi_units, saved_conf) {
+roadAccessRiskServer <- function(id, input_raster, epi_units, saved_config) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -165,7 +165,7 @@ roadAccessRiskServer <- function(id, input_raster, epi_units, saved_conf) {
       # Risk scaling ----
       observeEvent(input$open_risk_scaling, {
         req(riskScores())
-        showModal(rescaleRiskUI(id = ns("rescale_modal")))
+        showModal(rescaleRiskUI(id = ns("rescale_modal"), rescaling_args = rescaling_args()))
       })
       new_rescaling_args <- rescaleRiskServer(
         id = "rescale_modal",

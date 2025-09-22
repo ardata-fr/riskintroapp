@@ -107,7 +107,7 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
       observeEvent(input$open_risk_scaling, {
         req(riskScores())
         req(!is_error(riskScores()$error))
-        showModal(rescaleRiskUI(id = ns("rescale_modal")))
+        showModal(rescaleRiskUI(id = ns("rescale_modal"), rescaling_args = rescaling_args()))
       })
 
       new_rescaling_args <- rescaleRiskServer(

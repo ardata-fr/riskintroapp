@@ -127,7 +127,10 @@ server <- function(input, output, session) {
   road_access <- roadAccessRiskServer(
     id = "road_access",
     epi_units = epi_units,
-    input_raster = input_raster
+    input_raster = input_raster,
+    saved_config = reactive({
+      updated_workspace()$settings$road_access
+    })
   )
 
   entry_points_input <- reactiveVal()
@@ -135,7 +138,10 @@ server <- function(input, output, session) {
     id = "entry_points",
     input_data = entry_points_input,
     epi_units = epi_units,
-    emission_scores = emission_scores
+    emission_scores = emission_scores,
+    saved_config = reactive({
+      updated_workspace()$settings$road_access
+    })
   )
 
   core_config <- reactive({

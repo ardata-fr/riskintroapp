@@ -222,7 +222,9 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
 
       # edit risk scaling -----
       observeEvent(input$open_risk_scaling, {
-        showModal(rescaleRiskUI(id = ns("rescale_modal")))
+        req(input$select_risk)
+        rescaling_args <- miscRiskMetaData()[[input$select_risk]]$rescale_args
+        showModal(rescaleRiskUI(id = ns("rescale_modal"),rescaling_args = rescaling_args))
       })
       new_rescaling_args <- rescaleRiskServer(
         id = "rescale_modal",
