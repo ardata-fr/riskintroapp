@@ -23,14 +23,14 @@ server <- function(input, output, session) {
   # Workspace ----
   updated_workspace <- workspaceServer(
     id = "workspace",
-    settings = list(),
+    core_config = core_config,
     datasets = reactive(list(
       epi_units = epi_units(),
       emission_risk_factors = emission_risk_factors(),
       input_raster = input_raster(),
       animal_mobility = animal_mobility_input(),
       entry_points = entry_points_input(),
-      shared_borders = border_input()
+      shared_borders = border_input()$result
     )),
     misc_risks = misc_risk_meta
   )
@@ -43,7 +43,7 @@ server <- function(input, output, session) {
     input_raster(new_datasets$input_raster)
     animal_mobility_input(new_datasets$animal_mobility)
     entry_points_input(new_datasets$entry_points)
-    border_input(new_datasets$shared_borders)
+    border_input(list(result = new_datasets$shared_borders, error = NULL))
   })
 
   # import geodata ----
@@ -106,7 +106,10 @@ server <- function(input, output, session) {
     id = "border",
     input_data = border_input,
     epi_units = epi_units,
-    emission_scores = emission_scores
+    emission_scores = emission_scores,
+    saved_config = reactive({
+      updated_workspace()$settings$border_risk
+    })
   )
 
   animal_mobility_input <- reactiveVal()
@@ -114,7 +117,10 @@ server <- function(input, output, session) {
     id = "animal_mobility",
     input_data = animal_mobility_input,
     epi_units = epi_units,
-    emission_scores = emission_scores
+    emission_scores = emission_scores,
+    saved_config = reactive({
+      updated_workspace()$settings$animal_mobility
+    })
   )
 
   input_raster <- reactiveVal(NULL)
@@ -132,6 +138,24 @@ server <- function(input, output, session) {
     emission_scores = emission_scores
   )
 
+  core_config <- reactive({
+    if(
+      isTruthy(border_risk()) ||
+      isTruthy(animal_mobility()) ||
+      isTruthy(road_access()) ||
+      isTruthy(entry_points())
+    ) {
+      list(
+        border_risk = border_risk()$config,
+        animal_mobility = animal_mobility()$config,
+        road_access = road_access()$config,
+        entry_points = entry_points()$config
+      )
+    } else {
+      NULL
+    }
+  })
+
   core_risks <- reactive({
     if(
       isTruthy(border_risk()) ||
@@ -140,10 +164,10 @@ server <- function(input, output, session) {
       isTruthy(entry_points())
     ) {
       list(
-        border_risk = border_risk(),
-        animal_mobility = animal_mobility(),
-        road_access = road_access(),
-        entry_points = entry_points()
+        border_risk = border_risk()$dataset,
+        animal_mobility = animal_mobility()$dataset,
+        road_access = road_access()$dataset,
+        entry_points = entry_points()$dataset
       )
     } else {
       NULL

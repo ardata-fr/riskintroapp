@@ -45,11 +45,16 @@ animalMobilityUI <- function(id) {
 #' @importFrom shiny moduleServer observeEvent reactive req showModal removeModal renderUI isTruthy
 #' @importFrom riskintroanalysis calc_animal_mobility_risk rescale_risk_scores
 #' @importFrom purrr safely
-animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
+animalMobilityServer <- function(id, input_data, epi_units, emission_scores, saved_config) {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
+
+      # saved_config -----
+      observeEvent(saved_config(), {
+        rescaling_args(saved_config()$rescaling_args)
+      })
 
       # init map ----
       baseLeaflet <- reactive({basemap()})
@@ -216,7 +221,12 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores) {
           dataset = rescaledScores(),
           ll = leafletProxy("map")
         )
-        returnData(rescaledScores())
+        returnData(list(
+          dataset = rescaledScores(),
+          config = list(
+            rescaling_args = rescaling_args()
+          )
+        ))
       })
 
       returnData

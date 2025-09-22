@@ -57,7 +57,7 @@ entryPointsUI <- function(id) {
 #' @importFrom reactable reactable renderReactable
 #' @importFrom shiny moduleServer observeEvent reactive req showModal removeModal reactiveVal
 #' @importFrom riskintroanalysis calc_entry_point_risk
-entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
+entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_config) {
 
   country_choices <- setNames(
     object = riskintrodata::world_sf$iso3,
@@ -68,6 +68,12 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
     id,
     function(input, output, session) {
       ns <- session$ns
+
+      # saved_config -----
+      observeEvent(saved_config(), {
+        rescaling_args(saved_config()$rescaling_args)
+        entry_point_params(saved_config()$entry_point_params)
+      })
 
       # init maps ----
       baseMap <- reactive({ basemap() })
@@ -302,7 +308,13 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores) {
           dataset = rescaledScores(),
           ll = leafletProxy("map")
         )
-        returnData(rescaledScores())
+        returnData(list(
+          dataset = rescaledScores(),
+          config = list(
+            rescaling_args = rescaling_args(),
+            entry_point_params = entry_point_params()
+          )
+        ))
       })
 
       returnData

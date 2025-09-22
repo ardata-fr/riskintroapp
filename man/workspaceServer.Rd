@@ -4,16 +4,16 @@
 \alias{workspaceServer}
 \title{Workspace Management Module Server}
 \usage{
-workspaceServer(id, datasets, settings, misc_risks)
+workspaceServer(id, datasets, core_config, misc_risks)
 }
 \arguments{
 \item{id}{Character string. The namespace id for the module.}
 
 \item{datasets}{Reactive values containing analysis datasets.}
 
-\item{settings}{Analysis settings to include in workspace.}
-
 \item{misc_risks}{Reactive value containing miscellaneous risks table.}
+
+\item{settings}{Analysis settings to include in workspace.}
 }
 \value{
 A reactive function returning loaded workspace data.

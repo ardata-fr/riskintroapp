@@ -47,7 +47,7 @@ workspaceUI <- function(id) {
 #' @keywords internal
 #' @importFrom shiny
 #'  downloadButton modalButton downloadHandler reactiveValuesToList
-workspaceServer <- function(id, datasets, settings, misc_risks) {
+workspaceServer <- function(id, datasets, core_config, misc_risks) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -95,7 +95,7 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
           file = file,
           datasets = to_save,
           settings = list(
-            other_settings = settings,
+            core_config = core_config(),
             misc_risks = misc_risk_settings
           )
         )
@@ -144,7 +144,10 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
         return()
       }
       datasets <- result$result$datasets
-      tablenames_to_validate <- c("animal_mobility", "epi_units", "entry_points", "emission_risk_factors")
+      tablenames_to_validate <- c(
+        "animal_mobility", "epi_units",
+        "entry_points", "emission_risk_factors"
+        )
 
       # Validate input datasets ---------
       inputs_to_validate <- nullify(datasets[names(datasets) %in% tablenames_to_validate])
@@ -184,7 +187,13 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
 
       # Non-validated datasets ----
       validated_datasets$input_raster <- datasets$input_raster
-      validated_datasets$border_input <- datasets$border_input
+      validated_datasets$shared_borders <- datasets$shared_borders
+
+      # spoof validation of this dataset as attributes are not saved
+      if (!is.null(validated_datasets$shared_borders)){
+        attr(validated_datasets$shared_borders, "table_name") <- "shared_borders"
+      }
+
 
       # misc_data ---------
       misc_settings <- result$result$settings$misc_risks
@@ -200,7 +209,7 @@ workspaceServer <- function(id, datasets, settings, misc_risks) {
       }
       out <- list(
         datasets = validated_datasets,
-        settings = result$settings,
+        settings = result$result$settings$core_config,
         misc_settings = misc_settings
       )
       updated_workspace(out)

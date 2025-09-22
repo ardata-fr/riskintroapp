@@ -47,12 +47,16 @@ borderRiskUI <- function(id) {
 #' @importFrom mirai mirai
 #' @importFrom shiny ExtendedTask
 #' @importFrom shinyWidgets show_toast
-borderRiskServer <- function(id, input_data, epi_units, emission_scores) {
+borderRiskServer <- function(id, input_data, epi_units, emission_scores, saved_config) {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
 
+      # saved_config -----
+      observeEvent(saved_config(), {
+        rescaling_args(saved_config()$rescaling_args)
+      })
 
       # init maps ----
       baseMap <- reactive({ basemap() })
@@ -242,7 +246,12 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores) {
           dataset = rescaledScores(),
           ll = leafletProxy("map")
         )
-        returnData(rescaledScores())
+        returnData(list(
+          dataset = rescaledScores(),
+          config = list(
+            rescaling_args = rescaling_args()
+          )
+        ))
       })
 
       returnData

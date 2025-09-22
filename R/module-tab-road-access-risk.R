@@ -55,11 +55,16 @@ roadAccessRiskUI <- function(id) {
   )
 }
 
-roadAccessRiskServer <- function(id, input_raster, epi_units) {
+roadAccessRiskServer <- function(id, input_raster, epi_units, saved_conf) {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
+
+      # saved_config -----
+      observeEvent(saved_config(), {
+        rescaling_args(saved_config()$rescaling_args)
+      })
 
       # init map ----
       baseLeaflet <- reactive({basemap()})
@@ -267,9 +272,12 @@ roadAccessRiskServer <- function(id, input_raster, epi_units) {
           dataset = rescaledScores(),
           ll = leafletProxy("map")
         )
-        returnData(rescaledScores())
+        returnData(list(
+          dataset = rescaledScores(),
+          config = list(
+            rescaling_args = rescaling_args()
+          )))
       })
-
 
       returnData
     })
