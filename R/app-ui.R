@@ -72,19 +72,19 @@ ui <- function() {
     nav_panel(
       title = "Emission scores",
       value = "emission_risk",
-      icon = icon("arrows-up-down-left-right"),
+      icon = icon("viruses"),
       emissionScoresUI("emission_scores")
     ),
     # Intro risk analysis tabs ----
     nav_menu(
-      title = "Introduction risks",
+      title = "Core risks",
       value = "risk_panel_selector",
-      icon = icon("warning"),
+      icon = icon("magnifying-glass-chart"),
 
       nav_item(actionLink(
         inputId = "nav_border_risk",
         label = "Border risk",
-        icon("arrow-down-up-across-line")
+        icon("person-walking-dashed-line-arrow-right")
       )),
       nav_item(actionLink(
         inputId = "nav_animal_movement_risk",
@@ -94,18 +94,19 @@ ui <- function() {
       nav_item(actionLink(
         inputId = "nav_entry_point_risk",
         label = "Entry point risk",
-        icon("location-dot")
+        icon("map-pin")
       )),
       nav_item(actionLink(
         inputId = "nav_road_access_risk",
         label = "Road access risk",
-        icon("arrow-right-to-city")
-      )),
-      nav_item(actionLink(
-        inputId = "nav_misc_risk",
-        label = "Miscellaneous risks",
-        icon("arrows-to-circle")
+        icon("road")
       ))
+    ),
+    nav_panel(
+      title = "Additional risks",
+      icon = icon("plus"),
+      value = "nav_misc_risk",
+      miscRiskUI("misc")
     ),
     nav_panel_hidden(
       value = "nav_animal_movement_risk",
@@ -114,10 +115,6 @@ ui <- function() {
     nav_panel_hidden(
       value = "nav_road_access_risk",
       roadAccessRiskUI("road_access")
-    ),
-    nav_panel_hidden(
-      value = "nav_misc_risk",
-      miscRiskUI("misc")
     ),
     nav_panel_hidden(
       value = "nav_border_risk",

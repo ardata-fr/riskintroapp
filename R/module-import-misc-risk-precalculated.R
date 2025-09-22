@@ -52,7 +52,7 @@ importMiscRiskPrecalculatedUI <- function(id) {
         actionButton(
           inputId = ns("minmax_scale"),
           label = NULL,
-          icon = icon("arrows-left-right-to-line"),
+          icon = icon("plus-minus"),
           width = "75px"
         )
       ),

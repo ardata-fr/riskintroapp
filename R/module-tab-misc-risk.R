@@ -168,7 +168,7 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
         } else {
           status <- build_config_status(
             value = FALSE,
-            msg = "No miscellaneous risks have been imported yet."
+            msg = "No additional risks have been imported yet."
           )
         }
         status
