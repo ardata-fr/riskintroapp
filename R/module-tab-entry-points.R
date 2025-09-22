@@ -31,11 +31,11 @@ entryPointsUI <- function(id) {
         icon = icon('cogs')
       ),
       tags$br(),
-      # actionButton(
-      #   inputId = ns("open_risk_scaling"),
-      #   label = "Edit risk scaling",
-      #   icon = icon("pen-to-square")
-      # )
+      actionButton(
+        inputId = ns("open_risk_scaling"),
+        label = "Edit risk scaling",
+        icon = icon("pen-to-square")
+      )
     ),
     navset_card_tab(
       id = ns("panel_ui"),
@@ -232,7 +232,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
 
       # parameters ----
       observeEvent(input$configure_parameters, {
-        showModal(entryPointsParametersUI(id = ns("parameters_modal")))
+        showModal(entryPointsParametersUI(id = ns("parameters_modal"), saved_params = entry_point_params()))
       })
 
       new_parameters <- entryPointsParametersServer("parameters_modal")

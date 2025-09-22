@@ -22,7 +22,7 @@
 #' @importFrom shinyjs disabled
 #'
 #' @keywords internal
-entryPointsParametersUI <- function(id) {
+entryPointsParametersUI <- function(id, saved_params) {
   ns <- NS(id)
 
   modalDialog(
@@ -36,19 +36,16 @@ entryPointsParametersUI <- function(id) {
 
           # Parameter controls ----
           shinyjs::disabled(
-            sliderInput(
+            numericInput(
               inputId = ns("max_risk"),
               label = "Maximum Risk (m):",
-              value = 100,
-              min = 1,
-              max = 100,
-              step = 1
+              value = 12
             )
           ),
           sliderInput(
             inputId = ns("coef_legal"),
             label = "Legal Coefficient (\u03b1):",
-            value = 1,
+            value = saved_params$coef_legal,
             min = 0.1,
             max = 10,
             step = 0.1
@@ -56,7 +53,7 @@ entryPointsParametersUI <- function(id) {
           sliderInput(
             inputId = ns("coef_illegal"),
             label = "Illegal Coefficient (\u03b2):",
-            value = 1,
+            value = saved_params$coef_illegal,
             min = 0.1,
             max = 10,
             step = 0.1
@@ -64,8 +61,8 @@ entryPointsParametersUI <- function(id) {
           sliderInput(
             inputId = ns("illegal_factor"),
             label = "Illegal Factor (\u03bb):",
-            value = 3,
-            min = 1,
+            value = saved_params$illegal_factor,
+            min = 1.1,
             max = 10,
             step = 0.1
           ),
