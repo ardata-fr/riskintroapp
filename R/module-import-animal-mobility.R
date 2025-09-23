@@ -93,7 +93,7 @@ importAnimalMobilityUI <- function(id) {
 #'  isTruthy observe showModal modalDialog fluidRow column fileInput uiOutput
 #'  actionButton removeModal
 #' @importFrom leaflet
-#'  leafletOutput renderLeaflet
+#'  leafletOutput renderLeaflet addMarkers
 #' @importFrom riskintrodata
 #'  validate_dataset is_dataset_valid extract_dataset
 importAnimalMobilityServer <- function(id, is_overwriting = reactive(FALSE)) {

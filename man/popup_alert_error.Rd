@@ -24,3 +24,4 @@ popup_alert_error(
 Shows a modal popup alert for displaying error messages with formatted error details.
 Used throughout the application for consistent error reporting.
 }
+\keyword{internal}

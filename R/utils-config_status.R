@@ -17,8 +17,6 @@
 #' @param warnings character vector of warnings. Often the
 #' `res$warnings` of [safe_and_quiet()].
 #' @param warnings_msg Alternative msg value for when value is TRUE and warnings are present.
-#' @examples
-#' build_config_status(value = TRUE, msg = "something is wrong")
 #' @keywords internal
 #' @seealso [report_config_status()]
 build_config_status <- function(value, msg, error = NULL, warnings = NULL, warnings_msg = NULL) {
@@ -58,9 +56,6 @@ is_non_empty_single_logical <- function(x) {
 #' @param status an object created by `build_config_status`
 #' @return if `status` is not null a shiny::tagList containing an icon and message.
 #' If `status` is NULL returns NULL for ease of use in [shiny::renderUI()].
-#' @examples
-#' status <- build_config_status(TRUE, "All good")
-#' report_config_status(status)
 #' @keywords internal
 #' @importFrom shinyWidgets panel
 report_config_status <- function(status) {

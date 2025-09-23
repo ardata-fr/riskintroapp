@@ -40,7 +40,7 @@ workspaceUI <- function(id) {
 #'
 #' @param id Character string. The namespace id for the module.
 #' @param datasets Reactive values containing analysis datasets.
-#' @param settings Analysis settings to include in workspace.
+#' @param core_config Analysis settings for core analysis methods to include in workspace.
 #' @param misc_risks Reactive value containing miscellaneous risks table.
 #' @return A reactive function returning loaded workspace data.
 #'

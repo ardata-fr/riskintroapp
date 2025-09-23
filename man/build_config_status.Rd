@@ -31,9 +31,6 @@ if \code{value} is FALSE or TRUE.}
 Build a configuration status from a boolean and a message to display alongside
 it.
 }
-\examples{
-build_config_status(value = TRUE, msg = "something is wrong")
-}
 \seealso{
 \code{\link[=report_config_status]{report_config_status()}}
 }

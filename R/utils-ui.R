@@ -1,5 +1,4 @@
 #' @importFrom bslib bs_theme bs_add_rules font_google
-#' @export
 #' @title CIRAD Bootstrap Theme
 #' @description
 #' This function creates a Bootstrap theme for CIRAD.
@@ -29,7 +28,6 @@ bs_theme_cirad <- function() {
 
 #' @importFrom shinyjs useShinyjs
 #' @importFrom htmltools tagList tags singleton HTML
-#' @export
 #' @title App Header UI
 #' @description
 #' This function creates the header for the RiskIntroApp, including scripts,

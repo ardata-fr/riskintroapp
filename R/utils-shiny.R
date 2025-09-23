@@ -9,7 +9,7 @@
 #' @param error The error object or message to display.
 #' @param type Character string. Alert type (default: "danger").
 #'
-#' @export
+#' @keywords internal
 #' @importFrom shinyWidgets show_alert
 popup_alert_error <- function(
     title = "Error",

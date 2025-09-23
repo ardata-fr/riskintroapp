@@ -18,8 +18,4 @@ Render a simple Shiny-friendly UI element that shows
 a green checkmark with the message if valid, or a red cross
 with the message if invalid.
 }
-\examples{
-status <- build_config_status(TRUE, "All good")
-report_config_status(status)
-}
 \keyword{internal}
