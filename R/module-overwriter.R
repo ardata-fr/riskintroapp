@@ -1,5 +1,4 @@
 
-#' @importFrom tibble rownames_to_column
 #' @importFrom shiny textAreaInput
 overwriterUI <- function(id, conf) {
   ns <- NS(id)
