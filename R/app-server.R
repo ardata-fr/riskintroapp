@@ -30,7 +30,8 @@ server <- function(input, output, session) {
       input_raster = input_raster(),
       animal_mobility = animal_mobility_input(),
       entry_points = entry_points_input(),
-      shared_borders = border_input()$result
+      shared_borders = border_input()$result,
+      overwriter_data = overwriter_data()
     )),
     misc_risks = misc_risk_meta
   )
@@ -44,6 +45,7 @@ server <- function(input, output, session) {
     animal_mobility_input(new_datasets$animal_mobility)
     entry_points_input(new_datasets$entry_points)
     border_input(list(result = new_datasets$shared_borders, error = NULL))
+    overwriter_data(new_datasets$overwriter_data)
   })
 
   # import geodata ----
@@ -197,12 +199,38 @@ server <- function(input, output, session) {
     nav_select(id = "navbar", selected = "nav_misc_risk")
   })
 
+  # overwriter -----
+  overwriter_data <- reactiveVal(NULL)
+  observeEvent(input$map_shape_click, {
+    ir <- req(intro_risk())
+    ir <- sf::st_drop_geometry(ir)
+    ir <- ir[ir$eu_id %in% input$map_shape_click$id, ]
+    ir <- ir[1, ]
+    showModal(overwriterUI(
+      id = "overwriter",
+      conf = list(
+        eu_id = ir$eu_id,
+        eu_name = ir$eu_name,
+        overwrite_risk = ir$overwrite_risk,
+        overwrite_risk_comm = ir$overwrite_risk_comm,
+        table = ir
+      )
+    ))
+  })
+  overwriterServer(
+    id = "overwriter",
+    clicky = reactive(input$map_shape_click),
+    overwriter_data = overwriter_data,
+    intro_risk = intro_risk
+  )
+
   # intro_risk -----
   intro_risk <- summariseScoresServer(
     id = "summarise_risk_table",
     epi_units = epi_units,
     misc_risk_table = misc_risk_table,
-    core_risks = core_risks
+    core_risks = core_risks,
+    overwriter_data = overwriter_data
   )
   observe({
     req(baseLeaflet())

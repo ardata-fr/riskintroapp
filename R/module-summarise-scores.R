@@ -39,7 +39,7 @@ summariseScoresUI <- function(id) {
 }
 
 #' @importFrom riskintroanalysis summarise_scores
-summariseScoresServer <- function(id, epi_units, misc_risk_table, core_risks) {
+summariseScoresServer <- function(id, epi_units, misc_risk_table, core_risks, overwriter_data) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -113,8 +113,10 @@ summariseScoresServer <- function(id, epi_units, misc_risk_table, core_risks) {
           cols = intersect(input$score_selector, existing_cols),
           method = input$summary_method,
           name_to = "overall_risk",
-          keep_cols = TRUE
+          keep_cols = TRUE,
+          overwrite_table = overwriter_data()
         )
+
         returnDataset(summarised_rt)
       })
 

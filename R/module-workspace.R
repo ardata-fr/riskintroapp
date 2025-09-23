@@ -188,6 +188,7 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
       # Non-validated datasets ----
       validated_datasets$input_raster <- datasets$input_raster
       validated_datasets$shared_borders <- datasets$shared_borders
+      validated_datasets$overwriter_data <- datasets$overwriter_data
 
       # spoof validation of this dataset as attributes are not saved
       if (!is.null(validated_datasets$shared_borders)){
