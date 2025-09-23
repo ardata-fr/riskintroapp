@@ -247,15 +247,58 @@ server <- function(input, output, session) {
     })
   exportServer(
     id = "export_module",
-    files = reactive(list(
-      "Epidemiological units" = epi_units(),
-      "Epidemiological units with all introduction scores" = intro_risk(),
-      "Intoduction scores table" = sf::st_drop_geometry(intro_risk()),
-      "Animal mobility input data" = animal_mobility_input(),
-      "Entry points input data" = entry_points_input(),
-      "Shared borders data" = border_input(),
-      "Road access raster data" = input_raster()
-    ))
+    files = reactive({
+      misc_list <- list(
+        "Combined table" = misc_risk_table()
+      )
+      misc_meta <- misc_risk_meta()
+      if (length(misc_meta) > 0) {
+        for (name in names(misc_meta)) {
+          misc_list[[name]] <- misc_meta[[name]]$dataset
+        }
+      }
+
+      list(
+        "Epidemiological units" = list(
+          "Input epidemiological units" = epi_units()
+        ),
+        "Emission risk" = list(
+          "Emission risk factors" = emission_risk_factors(),
+          "Emission risk scores" = emission_scores(),
+          "Plot" = plot_emission_risk(emission_scores())
+
+        ),
+        "Final analysis" = list(
+          "Risk table as geosptial" = intro_risk(),
+          "Risk table as tabular" = sf::st_drop_geometry(intro_risk()),
+          "Plot" = plot_risk(intro_risk())
+        ),
+        "Entry Points Data" = list(
+          "Input data" = entry_points_input(),
+          "Introduction risk by epidemiological unit" = entry_points()$dataset,
+          "Emission risk by enrty point" = extract_point_risk(entry_points()$dataset),
+          "Plot" = plot_risk(entry_points()$dataset)
+        ),
+        "Animal Mobility Data" = list(
+          "Input data" = animal_mobility_input(),
+          "Introduction risk by epidemiological unit" = animal_mobility()$dataset,
+          "Emission risk by animal mobility flow" = extract_flow_risk(animal_mobility()$dataset),
+          "Plot" = plot_risk(animal_mobility()$dataset)
+        ),
+        "Border Risk Data" = list(
+          "Shared borders (input data)" = border_input()$result,
+          "Introduction risk by epidemiological unit" = border_risk()$dataset,
+          "Emission risk by shared border" = extract_border(border_risk()$dataset),
+          "Plot" = plot_risk(border_risk()$dataset)
+        ),
+        "Road access risk" = list(
+          "Input raster" = input_raster(),
+          "Introduction risk by epidemiological unit" = road_access()$dataset,
+          "Plot" = plot_risk(road_access()$dataset)
+        ),
+        "Additional risks" = misc_list
+      )
+    })
   )
 
   helpServer(selected_tab = reactive(input$navbar))

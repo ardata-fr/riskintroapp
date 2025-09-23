@@ -116,7 +116,36 @@ exportServer <- function(id = "export_module", files) {
       ns <- session$ns
 
       file_list <- reactive({
-        nullify(files())
+        raw_files <- nullify(files())
+        if (length(raw_files) == 0) return(NULL)
+
+        # Check if this is a nested structure (sections)
+        if (is.list(raw_files[[1]])) {
+          # Flatten nested structure and preserve section info
+          flattened <- list()
+          section_info <- list()
+
+          file_counter <- 1
+          for (section_name in names(raw_files)) {
+            section_files <- raw_files[[section_name]]
+            for (file_name in names(section_files)) {
+              # Create unique internal key but preserve original name for display
+              unique_key <- paste0("file_", file_counter)
+              flattened[[unique_key]] <- section_files[[file_name]]
+              section_info[[unique_key]] <- list(
+                section = section_name,
+                display_name = file_name
+              )
+              file_counter <- file_counter + 1
+            }
+          }
+
+          attr(flattened, "sections") <- section_info
+          return(flattened)
+        } else {
+          # Flat structure - return as is
+          return(raw_files)
+        }
       })
 
       file_types <- reactive({
@@ -206,6 +235,7 @@ exportServer <- function(id = "export_module", files) {
             )
           ),
           footer = list(
+            uiOutput(ns("export_error_ui")),
             downloadButton(
               outputId = ns("download"),
               label = "Export",
@@ -226,14 +256,37 @@ exportServer <- function(id = "export_module", files) {
         if(length(datasets_info) == 0) {
           return(p("No files available"))
         }
+
+        # Get section information if it exists
+        section_info <- attr(file_list(), "sections")
+        has_sections <- !is.null(section_info)
+
         ui_elements <- list()
+        current_section <- NULL
+
         for(i in seq_along(datasets_info)) {
-          dataset_name <- names(datasets_info[i])
+          dataset_key <- names(datasets_info[i])
           dataset_type <- datasets_info[i]
+
+          # Get display info
+          if (has_sections) {
+            file_info <- section_info[[dataset_key]]
+            dataset_name <- file_info$display_name
+            file_section <- file_info$section
+
+            # Add section header if this is a new section
+            if (!identical(current_section, file_section)) {
+              current_section <- file_section
+              ui_elements[[length(ui_elements) + 1]] <- h4(current_section, style = "margin-top: 20px; color: #337ab7;")
+            }
+          } else {
+            dataset_name <- dataset_key
+          }
+
           format_choices <- switch(
             dataset_type,
             "geospatial" = c("GeoPackage (.gpkg)" = "gpkg", "Shapefile (.shp)" = "shp"),
-            "dataset" = c("Parquet (.parquet)" = "parquet", "CSV (.csv)" = "csv"),
+            "dataset" = c("CSV (.csv)" = "csv", "Parquet (.parquet)" = "parquet"),
             "raster"= c("tiff"),
             "plot" = c("PNG", "JPEG", "SVG")
           )
@@ -241,7 +294,7 @@ exportServer <- function(id = "export_module", files) {
           checkbox_id <- ns(paste0("enabled_", i))
           format_id <- ns(paste0("format_", i))
 
-          ui_elements[[i]] <- div(
+          ui_elements[[length(ui_elements) + 1]] <- div(
             class = "checkbox-select-wrapper inline-layout",
             div(
               class = "inline-container",
@@ -315,17 +368,30 @@ exportServer <- function(id = "export_module", files) {
         filename = function() {
           enabled_selections <- selections()
           if (length(enabled_selections) == 1) {
-            filename <- names(enabled_selections)[1]
+            internal_key <- names(enabled_selections)[1]
             format <- enabled_selections[[1]]$format
-            return(paste0(tools::file_path_sans_ext(filename), ".", format))
+
+            # Get the display name from section info
+            section_info <- attr(file_list(), "sections")
+            if (!is.null(section_info) && !is.null(section_info[[internal_key]])) {
+              display_name <- section_info[[internal_key]]$display_name
+            } else {
+              display_name <- internal_key
+            }
+
+            return(paste0(tools::file_path_sans_ext(display_name), ".", format))
           } else {
             return(paste0("export_", Sys.Date(), ".zip"))
           }
         },
 
         content = function(file) {
-          safely_export <- purrr::safely(export_helper)
-          res <- safely_export(selections(), file_list(), file)
+          res <- safe_and_quiet(
+            export_helper,
+            enabled_selections = selections(),
+            file_list = file_list(),
+            file = file
+          )
           if (isTruthy(res$error)) {
             export_error(res$error)
           } else {
@@ -334,7 +400,17 @@ exportServer <- function(id = "export_module", files) {
           }
         }
       )
-      return(reactive(export_error()))
+
+      output$export_error <- renderUI({
+        req(export_error())
+        build_config_status(
+          value = FALSE,
+          msg = "There was an error exporting:",
+          error = export_error()
+        ) |>
+          report_config_status()
+      })
+
     }
   )
 }
@@ -372,17 +448,36 @@ exportServer <- function(id = "export_module", files) {
 #' @keywords internal
 export_helper <- function(enabled_selections, file_list, file) {
   if (length(enabled_selections) == 1) {
-    filename <- names(enabled_selections)[1]
-    obj <- file_list[[filename]]
+    internal_key <- names(enabled_selections)[1]
+    obj <- file_list[[internal_key]]
     format <- enabled_selections[[1]]$format
     write_file_helper(obj, file, format)
   } else {
     temp_dir <- tempfile(pattern = "ri-export-")
     dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
-    for (filename in names(enabled_selections)) {
-      obj <- file_list[[filename]]
-      format <- enabled_selections[[filename]]$format
-      temp_file <- file.path(temp_dir, paste0(tools::file_path_sans_ext(filename), ".", format))
+
+    # Get section info to get display names
+    section_info <- attr(file_list, "sections")
+
+    for (internal_key in names(enabled_selections)) {
+      obj <- file_list[[internal_key]]
+      format <- enabled_selections[[internal_key]]$format
+
+      # Use display name and section if available, otherwise use internal key
+      if (!is.null(section_info) && !is.null(section_info[[internal_key]])) {
+        display_name <- section_info[[internal_key]]$display_name
+        section_name <- section_info[[internal_key]]$section
+
+        # Create section folder if it doesn't exist
+        section_dir <- file.path(temp_dir, section_name)
+        dir.create(section_dir, showWarnings = FALSE, recursive = TRUE)
+
+        temp_file <- file.path(section_dir, paste0(tools::file_path_sans_ext(display_name), ".", format))
+      } else {
+        display_name <- internal_key
+        temp_file <- file.path(temp_dir, paste0(tools::file_path_sans_ext(display_name), ".", format))
+      }
+
       write_file_helper(obj, temp_file, format)
     }
     workspace:::pack_folder(temp_dir, file)
@@ -451,6 +546,16 @@ write_file_helper <- function(x, file, format) {
     arrow::write_parquet(x, file)
   } else if (format == "raster") {
     terra::writeRaster(x, file)
+  } else if (format %in% c("PNG", "JPEG", "SVG")) {
+    # Handle ggplot exports
+    ggplot2::ggsave(
+      filename = file,
+      plot = x,
+      device = tolower(format),
+      width = 10,
+      height = 8,
+      dpi = 300
+    )
   }
   file
 }
