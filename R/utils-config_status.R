@@ -227,7 +227,7 @@ get_error_message <- function(x) {
 #' @title Checks if an Object is an Error
 #' @description
 #' Determines whether an object is an error, specifically if it inherits from
-#' the classes `error` or `try-error`. For use with resulting values of [safe_and_quite()].
+#' the classes `error` or `try-error`. For use with resulting values of [safe_and_quiet()].
 #' @param x The object to test. Can be of any type.
 #' @keywords internal
 #' @importFrom rlang inherits_any

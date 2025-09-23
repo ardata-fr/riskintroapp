@@ -11,6 +11,6 @@ is_error(x)
 }
 \description{
 Determines whether an object is an error, specifically if it inherits from
-the classes \code{error} or \code{try-error}. For use with resulting values of \code{\link[=safe_and_quite]{safe_and_quite()}}.
+the classes \code{error} or \code{try-error}. For use with resulting values of \code{\link[=safe_and_quiet]{safe_and_quiet()}}.
 }
 \keyword{internal}

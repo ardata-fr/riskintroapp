@@ -4,7 +4,7 @@
 \alias{rescaleRiskUI}
 \title{Rescale Risk Scores Module UI}
 \usage{
-rescaleRiskUI(id)
+rescaleRiskUI(id, rescaling_args)
 }
 \arguments{
 \item{id}{Character string. Module namespace identifier.}

@@ -428,7 +428,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
             label = generate_leaflet_labels(
               extracted_risk,
               title_field = "eu_name",
-              exclude_fields = "user_id"
+              exclude = "user_id"
             ),
             group = "risk"
           ) |>

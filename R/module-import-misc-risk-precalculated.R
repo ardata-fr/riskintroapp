@@ -193,7 +193,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
             label = generate_leaflet_labels(
               risk_data_sf,
               title_field = "eu_name",
-              exclude_fields = c("user_id")
+              exclude = c("user_id")
             ),
             group = "risk"
           ) |>

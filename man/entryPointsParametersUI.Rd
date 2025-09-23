@@ -4,7 +4,7 @@
 \alias{entryPointsParametersUI}
 \title{Entry Points Parameters Module UI}
 \usage{
-entryPointsParametersUI(id)
+entryPointsParametersUI(id, saved_params)
 }
 \arguments{
 \item{id}{Character string. Module namespace identifier.}
