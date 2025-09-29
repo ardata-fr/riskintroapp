@@ -4,7 +4,7 @@
 \alias{report_config_status}
 \title{Report a Configuration Status}
 \usage{
-report_config_status(status)
+report_config_status(status, in_panel = TRUE)
 }
 \arguments{
 \item{status}{an object created by \code{build_config_status}}

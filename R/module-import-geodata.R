@@ -228,7 +228,9 @@ geodataServer <- function(id, is_overwriting) {
           msg = "Configuration is valid."
         )
       })
-      output$config_is_valid <- renderUI(report_config_status(configIsValid()))
+      output$config_is_valid <- renderUI({
+        report_config_status(configIsValid(), in_panel = FALSE)
+        })
       output$show_preview <- reactive(isTruthy(valid_dataset()))
       outputOptions(output, "show_preview", suspendWhenHidden = FALSE)
 

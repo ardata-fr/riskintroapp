@@ -235,7 +235,8 @@ importEpiUnitsServer <- function(id, is_overwriting) {
     })
 
     output$config_is_valid <- renderUI({
-      report_config_status(configIsValid()$status)
+      browser()
+      report_config_status(configIsValid()$status, in_panel = FALSE)
     })
 
     observe({

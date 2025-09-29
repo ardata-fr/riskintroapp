@@ -205,8 +205,6 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
 
       # configIsValid ----
       configIsValid <- reactive(label = paste0("configIsValid-", id),{
-
-
         warnings <- c()
 
         if (!isTruthy(epi_units())){
@@ -391,7 +389,7 @@ importMiscRiskPrecalculatedServer <- function(id, riskMetaData, epi_units) {
       })
 
       output$config_ui <- renderUI({
-        report_config_status(configIsValid())
+        report_config_status(configIsValid(), in_panel = FALSE)
       })
       observe({
         if(isTruthy(configIsValid())) {

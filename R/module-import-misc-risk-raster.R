@@ -383,7 +383,7 @@ importMiscRiskRasterServer <- function(id, riskMetaData, epi_units) {
         )
       })
       output$config_is_valid <- renderUI({
-        report_config_status(configIsValid())
+        report_config_status(configIsValid(), in_panel = FALSE)
       })
       observe({
         if(configIsValid() && is.null(read_error())) {

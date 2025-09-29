@@ -107,7 +107,7 @@ importRoadAccessServer <- function(id) {
         )
       })
       output$config_is_valid <- renderUI({
-        report_config_status(configIsValid())
+        report_config_status(configIsValid(), in_panel = FALSE)
       })
 
       observe({

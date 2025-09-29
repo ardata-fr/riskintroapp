@@ -58,7 +58,7 @@ is_non_empty_single_logical <- function(x) {
 #' If `status` is NULL returns NULL for ease of use in [shiny::renderUI()].
 #' @keywords internal
 #' @importFrom shinyWidgets panel
-report_config_status <- function(status) {
+report_config_status <- function(status, in_panel = TRUE) {
   if (is.null(status)) return(NULL)
   stopifnot(is.logical(status), length(status) == 1L)
 
@@ -68,33 +68,42 @@ report_config_status <- function(status) {
   warnings_msg <- attr(status, "warnings_msg", exact = TRUE) %||% msg
 
   if (isTRUE(status) && is.null(warnings)) {
-    shinyWidgets::panel(
-      status = "success",
+    message_div <-  div(
       shiny::icon("circle-check", , class = "text-success"),
       shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;")
     )
+    panel_status <- "success"
   } else if (isTRUE(status) && !is.null(warnings)) {
     warn_divs <- lapply(as.list(warnings), function(x) {
       format_cli_warning_to_html(x)
     })
-    shinyWidgets::panel(
-      status = "success",
+    message_div <- tagList(
       div(
         shiny::icon("circle-check", , class = "text-success"),
         shiny::span(
           warnings_msg,
           style = "margin-left: 5px; margin-right: 5px;"
-          )
+        )
       ),
       warn_divs
     )
+    panel_status <- "success"
   } else {
-    shinyWidgets::panel(
-      status = "danger",
+    message_div <- div(
       shiny::icon("circle-xmark", class = "text-danger"),
       shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;"),
       if (!is.null(error)) error_box(error)
     )
+    panel_status <- "danger"
+  }
+
+  if (in_panel) {
+    shinyWidgets::panel(
+      message_div,
+      status = panel_status
+    )
+  } else {
+    message_div
   }
 }
 

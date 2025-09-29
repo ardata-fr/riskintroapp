@@ -267,7 +267,7 @@ importAnimalMobilityServer <- function(id, is_overwriting = reactive(FALSE)) {
     })
 
     output$config_is_valid <- renderUI({
-      report_config_status(configIsValid()$status)
+      report_config_status(configIsValid()$status, in_panel = FALSE)
     })
 
     observe({
