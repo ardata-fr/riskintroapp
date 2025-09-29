@@ -16,7 +16,11 @@ Supported object types include:
 \item \code{data.frame} objects (datasets) - exported as Parquet (.parquet) or CSV (.csv)
 \item \code{splatRaster} objects (raster data) - exported as TIFF
 \item \code{ggplot} objects (plots) - exported as PNG, JPEG, or SVG
-}}
+}
+
+The nesting of the lists dictates the format of the display output. Top level
+list names are section names and second level lists names are used to label
+each dataset item and as the downloaded files' names.}
 }
 \value{
 A reactive expression that returns export error information (NULL if no errors).
@@ -51,9 +55,13 @@ The export process:
 # In your Shiny server function
 files_to_export <- reactive({
   list(
-    "my_data.csv" = my_dataframe,
+    "My csv data" = list(
+     "my_data.csv" = my_dataframe,
+    ),
+    "My other stuff" = list(
     "spatial_data.gpkg" = my_sf_object,
     "plot.png" = my_ggplot
+    )
   )
 })
 
