@@ -40,7 +40,7 @@ workspaceUI <- function(id) {
 #'
 #' @param id Character string. The namespace id for the module.
 #' @param datasets Reactive values containing analysis datasets.
-#' @param core_config Analysis settings for core analysis methods to include in workspace.
+#' @param settings Analysis settings to include in workspace.
 #' @param misc_risks Reactive value containing miscellaneous risks table.
 #' @return A reactive function returning loaded workspace data.
 #'
@@ -95,7 +95,7 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
           file = file,
           datasets = to_save,
           settings = list(
-            core_config = core_config(),
+            core_config = core_config,
             misc_risks = misc_risk_settings
           )
         )
@@ -144,10 +144,7 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
         return()
       }
       datasets <- result$result$datasets
-      tablenames_to_validate <- c(
-        "animal_mobility", "epi_units",
-        "entry_points", "emission_risk_factors"
-        )
+      tablenames_to_validate <- c("animal_mobility", "epi_units", "entry_points", "emission_risk_factors")
 
       # Validate input datasets ---------
       inputs_to_validate <- nullify(datasets[names(datasets) %in% tablenames_to_validate])
@@ -187,14 +184,7 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
 
       # Non-validated datasets ----
       validated_datasets$input_raster <- datasets$input_raster
-      validated_datasets$shared_borders <- datasets$shared_borders
-      validated_datasets$overwriter_data <- datasets$overwriter_data
-
-      # spoof validation of this dataset as attributes are not saved
-      if (!is.null(validated_datasets$shared_borders)){
-        attr(validated_datasets$shared_borders, "table_name") <- "shared_borders"
-      }
-
+      validated_datasets$border_input <- datasets$border_input
 
       # misc_data ---------
       misc_settings <- result$result$settings$misc_risks
@@ -210,7 +200,7 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
       }
       out <- list(
         datasets = validated_datasets,
-        settings = result$result$settings$core_config,
+        settings = result$core_config,
         misc_settings = misc_settings
       )
       updated_workspace(out)

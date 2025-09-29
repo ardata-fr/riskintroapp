@@ -8,7 +8,6 @@ save_workspace = function(
     ) {
 
   ws <- workspace::new_workspace()
-
   # save settings -----
   ws <- workspace::store_yaml(ws, list = settings, filename = "settings", subdir = "assets")
 
