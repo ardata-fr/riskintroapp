@@ -163,7 +163,7 @@ exportServer <- function(id = "export_module", files) {
             "geospatial"
           } else if (inherits(x, c("data.frame"))) {
             "dataset"
-          } else if (inherits(x, "splatRaster")) {
+          } else if (inherits(x, "SpatRaster")) {
             "raster"
           } else if (inherits(x, "ggplot")) {
             "plot"
@@ -295,7 +295,7 @@ exportServer <- function(id = "export_module", files) {
             dataset_type,
             "geospatial" = c("GeoPackage (.gpkg)" = "gpkg", "Shapefile (.shp)" = "shp"),
             "dataset" = c("CSV (.csv)" = "csv", "Parquet (.parquet)" = "parquet"),
-            "raster"= c("tiff"),
+            "raster"= c("TIFF" = "tiff"),
             "plot" = c("PNG", "JPEG", "SVG")
           )
 
