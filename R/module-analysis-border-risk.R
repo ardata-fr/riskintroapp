@@ -117,6 +117,7 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores, saved_c
         req(input_data())
         req(!is_error(input_data()$error))
         req(epi_units(), emission_scores())
+        logger::log_trace("Running calc_border_risk in borderRiskServer")
         result <- safe_and_quiet(
           .fun = calc_border_risk,
           epi_units = epi_units(),

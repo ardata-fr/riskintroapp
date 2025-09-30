@@ -58,6 +58,7 @@ is_non_empty_single_logical <- function(x) {
 #' If `status` is NULL returns NULL for ease of use in [shiny::renderUI()].
 #' @keywords internal
 #' @importFrom shinyWidgets panel
+#' @importFrom logger log_info log_warn log_error
 report_config_status <- function(status, in_panel = TRUE) {
   if (is.null(status)) return(NULL)
   stopifnot(is.logical(status), length(status) == 1L)
@@ -68,12 +69,16 @@ report_config_status <- function(status, in_panel = TRUE) {
   warnings_msg <- attr(status, "warnings_msg", exact = TRUE) %||% msg
 
   if (isTRUE(status) && is.null(warnings)) {
+    log_trace("Config status: {msg}")
     message_div <-  div(
       shiny::icon("circle-check", , class = "text-success"),
       shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;")
     )
     panel_status <- "success"
   } else if (isTRUE(status) && !is.null(warnings)) {
+    log_trace("Config status with warnings: {warnings_msg}")
+    sapply(warnings, log_warn)
+
     warn_divs <- lapply(as.list(warnings), function(x) {
       format_cli_warning_to_html(x)
     })
@@ -89,6 +94,10 @@ report_config_status <- function(status, in_panel = TRUE) {
     )
     panel_status <- "success"
   } else {
+    log_trace("Config status failed: {msg}")
+    if (!is.null(error)) {
+      log_error("Error details: {error}")
+    }
     message_div <- div(
       shiny::icon("circle-xmark", class = "text-danger"),
       shiny::span(msg, style = "margin-left: 5px; margin-right: 5px;"),
@@ -132,14 +141,28 @@ error_box <- function(error) {
 safe_and_quiet <- function(.fun, ...){
   safe_fun <- quietly(safely(.fun))
   res <- safe_fun(...)
-  list(
+  out <- list(
     result = res$result$result,
     error = res$result$error,
     output = res$output,
     warnings = res$warnings,
     messages = res$messages
   )
+  log_results(out)
+  out
 }
+
+#' @importFrom logger log_trace log_error log_warn log_threshold TRACE
+log_results <- function(res){
+  if (!is.null(res$error)) {
+    log_error(get_error_message(res$error))
+  }
+  if (length(res$warnings) > 0) {
+    sapply(res$warnings, log_warn)
+  }
+  invisible()
+}
+
 
 #' Convert CLI Warning Message to HTML
 #'

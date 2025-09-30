@@ -80,6 +80,7 @@ geodataServer <- function(id, is_overwriting) {
       call_geodata <- ExtendedTask$new(
         function(country, level) {
           mirai::mirai(.expr = {
+            logger::log_trace("Running geodata::gadm in geodataServer")
             x <- riskintroapp::safe_and_quiet(
               .fun = geodata::gadm,
               country = country,

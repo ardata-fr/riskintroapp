@@ -188,6 +188,7 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
         epi_units = epi_units
       )
       observeEvent(new_precalc(), ignoreNULL = TRUE, {
+        logger::log_info("Miscellaneous risk precalculated data imported in miscRiskServer: {new_precalc()$name}")
         metadata <- miscRiskMetaData()
         metadata[[new_precalc()$name]] <- new_precalc()
         miscRiskMetaData(metadata)
@@ -210,6 +211,7 @@ miscRiskServer <- function(id, epi_units, updated_workspace) {
         epi_units = epi_units
       )
       observeEvent(new_raster(), ignoreNULL = TRUE, {
+        logger::log_info("Miscellaneous risk raster imported in miscRiskServer: {new_raster()$name}")
         metadata <- miscRiskMetaData()
         metadata[[new_raster()$name]] <- new_raster()
         miscRiskMetaData(metadata)

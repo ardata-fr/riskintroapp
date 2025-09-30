@@ -101,11 +101,14 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
         )
         removeModal()
         if (isTruthy(save_result$error)) {
+          logger::log_error("Workspace save failed")
           popup_alert_error(
             title = "Unable to save workspace",
             text = "Error while saving workspace:",
             error = save_result$error
             )
+        } else {
+          logger::log_info("Workspace saved successfully: {input$modal_save_name}")
         }
       }
     )
@@ -137,12 +140,14 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
       result <- safely_load_workspace(input$modal_load_file$datapath)
       removeModal()
       if (is_error(result$error)) {
+        logger::log_error("Workspace load failed: {input$modal_load_file$name}")
         popup_alert_error(
           text = "Error while loading workspace:",
           error = result$error
         )
         return()
       }
+      logger::log_info("Workspace loaded successfully: {input$modal_load_file$name}")
       datasets <- result$result$datasets
       tablenames_to_validate <- c("animal_mobility", "epi_units", "entry_points", "emission_risk_factors")
 

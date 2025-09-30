@@ -227,6 +227,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
       imported_entry_points <- importEntryPointsServer("import_modal")
       observeEvent(imported_entry_points(), {
         req(imported_entry_points())
+        logger::log_info("Entry points imported in entryPointsServer")
         input_data(imported_entry_points())
       })
 
@@ -244,6 +245,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
       # calc_* ----
       observe({
         req(input_data(), epi_units(), emission_scores(),entry_point_params())
+        logger::log_trace("Running calc_entry_point_risk in entryPointsServer")
         result <- safe_and_quiet(
           .fun = calc_entry_point_risk,
           entry_points = input_data(),

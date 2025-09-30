@@ -1,3 +1,4 @@
+#' @importFrom logger log_threshold TRACE
 .onLoad <- function(...) {
   shiny::registerInputHandler("custom.dragula", function(data, ...) {
     if (is.null(data)) {
@@ -8,4 +9,6 @@
       data
     }
   }, force = TRUE)
+
+  logger::log_threshold(logger::TRACE)
 }

@@ -39,6 +39,8 @@ server <- function(input, output, session) {
   ## Load ----
   observeEvent(updated_workspace(), ignoreInit = TRUE, {
     new_datasets <- updated_workspace()$datasets
+    dataset_names <- names(new_datasets)[!sapply(new_datasets, is.null)]
+    logger::log_info("Workspace imported with datasets: {quote_and_collapse(dataset_names)}")
     epi_units(new_datasets$epi_units)
     emission_risk_factors(new_datasets$emission_risk_factors)
     input_raster(new_datasets$input_raster)
@@ -59,6 +61,7 @@ server <- function(input, output, session) {
     is_overwriting = reactive(isTruthy(epi_units()))
     )
   observeEvent(geodata_import(), {
+    logger::log_info("Epidemiological units imported from geodata")
     epi_units(geodata_import())
   })
 
@@ -73,6 +76,7 @@ server <- function(input, output, session) {
     )
 
   observeEvent(new_epi_units(),{
+    logger::log_info("Epidemiological units imported from file")
     epi_units(new_epi_units())
   })
 

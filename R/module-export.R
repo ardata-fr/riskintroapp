@@ -394,6 +394,7 @@ exportServer <- function(id = "export_module", files) {
         },
 
         content = function(file) {
+          logger::log_trace("Running export_helper in exportServer")
           res <- safe_and_quiet(
             export_helper,
             enabled_selections = selections(),
@@ -403,6 +404,7 @@ exportServer <- function(id = "export_module", files) {
           if (isTruthy(res$error)) {
             export_error(res$error)
           } else {
+            logger::log_info("Export completed successfully")
             removeModal()
             export_error(NULL)
           }

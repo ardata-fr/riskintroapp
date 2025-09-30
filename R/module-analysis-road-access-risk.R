@@ -91,6 +91,7 @@ roadAccessRiskServer <- function(id, input_raster, epi_units, saved_config) {
       })
       new_raster <- importRoadAccessServer("import")
       observeEvent(new_raster(), {
+        logger::log_info("Road access raster imported in roadAccessRiskServer")
         downloadError(NULL)
         cropped <- terra::crop(new_raster(), epi_units(), mask = TRUE)
         input_raster(cropped)

@@ -183,6 +183,7 @@ importEmissionRiskFactorsServer <- function(id) {
       observeEvent(input$file, ignoreInit = TRUE, ignoreNULL = TRUE, {
         fp <- req(input$file$datapath)
         import_is_valid$valid <- import_is_valid$msg <- NULL
+        logger::log_trace("Running read_emission_risk_factor_file in importEmissionRiskFactorsServer")
         result <- safe_and_quiet(
           .fun = riskintrodata::read_emission_risk_factor_file,
           fp = fp

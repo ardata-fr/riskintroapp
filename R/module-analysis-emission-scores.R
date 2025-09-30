@@ -9,6 +9,13 @@ emissionScoresUI <- function(id) {
 
       tags$hr(),
 
+      div(
+        class = "alert alert-info",
+        style = "margin-bottom: 15px;",
+        icon("info-circle"),
+        " Click countries on the map to edit their underlying emission risk factors."
+      ),
+
       # weights ----
       actionButton(
         inputId = ns("edit_weights"),
@@ -53,6 +60,7 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
       # import ----
       new_erf <- importEmissionRiskFactorsServer("import_erf")
       observeEvent(new_erf(),{
+        logger::log_info("Emission risk factors imported in emissionScoresServer")
         emission_risk_factors(new_erf())
       })
 
@@ -113,6 +121,7 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
 
       emission_risk_result <- reactive({
         req(emission_risk_factors(), current_weights())
+        logger::log_trace("Running calc_emission_risk in emissionScoresServer")
         res <- safe_and_quiet(
           .fun = riskintroanalysis::calc_emission_risk,
           emission_risk_factors = emission_risk_factors(),

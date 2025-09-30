@@ -86,6 +86,7 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
       new_mobility_data <- importAnimalMobilityServer("import")
       observeEvent(new_mobility_data(), {
         req(new_mobility_data())
+        logger::log_info("Animal mobility data imported in animalMobilityServer")
         input_data(new_mobility_data())
       })
 
@@ -93,6 +94,7 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
       observe({
         req(input_data(), epi_units(), emission_scores())
 
+        logger::log_trace("Running calc_animal_mobility_risk in animalMobilityServer")
         result <- safe_and_quiet(
           .fun = calc_animal_mobility_risk,
           animal_mobility = input_data(),
