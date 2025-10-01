@@ -58,6 +58,12 @@ ui <- function() {
           ),
 
           tags$hr(),
+          div(
+            class = "alert alert-info",
+            style = "margin-bottom: 15px;",
+            icon("info-circle"),
+            " Click countries on the map to see their scores and overwrite calculated scores."
+          ),
           summariseScoresUI("summarise_risk_table"),
           exportUI()
         ),
