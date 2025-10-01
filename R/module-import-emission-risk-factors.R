@@ -186,7 +186,7 @@ importEmissionRiskFactorsServer <- function(id) {
         logger::log_trace("Running read_emission_risk_factor_file in importEmissionRiskFactorsServer")
         result <- safe_and_quiet(
           .fun = riskintrodata::read_emission_risk_factor_file,
-          fp = fp
+          filepath = fp
         )
         if (!is.null(result$error)) {
           import_is_valid$valid <- FALSE
@@ -241,7 +241,7 @@ importEmissionRiskFactorsServer <- function(id) {
           ), size = "xl", easyClose = TRUE
         ))
 
-        import_btn_observer <<- observe({
+        import_btn_observer <- observe({
           if (isTruthy(import_is_valid$valid)) enable("import_apply") else disable(id = "import_apply")
         })
       })
@@ -313,7 +313,7 @@ importEmissionRiskFactorsServer <- function(id) {
         size = "xl",easyClose = TRUE
         ))
 
-        man_btn_observer <<- observe({
+        man_btn_observer <- observe({
           valid_selection <- all(nchar(c(input$man_disease, input$man_species, input$man_animal_category)) > 0)
           if (valid_selection) enable("man_apply") else disable(id = "man_apply")
         })
