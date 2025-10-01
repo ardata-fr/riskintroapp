@@ -20,16 +20,9 @@ Shiny application for estimating the risk of an animal disease being introduced 
 You can install riskintroapp from GitLab using the remotes package:
 
 ```{r, eval = FALSE}
-# Install remotes if you don't have it
-install.packages("remotes")
-remotes::install_gitlab("astre/riskintro-app/riskintroapp", host = "gitlab.cirad.fr", dependencies = TRUE)
-
-remotes::install_gitlab("astre/riskintro", host = "https://gitlab.cirad.fr", dependencies = TRUE)
-remotes::install_github("ardata-fr/rgeoboundaries")
-
-
-# Install riskintroapp (includes riskintroanalysis and riskintrodata dependencies)
-remotes::install_gitlab("astre/riskintro-app/riskintroapp", host = "gitlab.cirad.fr")
+# Install pak if you don't have it
+install.packages("pak")
+pak::pak("git::https://gitlab.cirad.fr/astre/riskintro-app/riskintroapp.git")
 ```
 
 ## Running the Application

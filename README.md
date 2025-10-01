@@ -11,14 +11,9 @@ Information System (WAHIS).
 You can install riskintroapp from GitLab using the remotes package:
 
 ``` r
-# Install remotes if you don't have it
-install.packages("remotes")
-
-# Install riskintroapp (includes riskintroanalysis and riskintrodata dependencies)
-remotes::install_gitlab(
-  "astre/riskintro-app/riskintroapp",
-  host = "gitlab.cirad.fr"
-)
+# Install pak if you don't have it
+install.packages("pak")
+pak::pak("git::https://gitlab.cirad.fr/astre/riskintro-app/riskintroapp.git")
 ```
 
 ## Running the Application

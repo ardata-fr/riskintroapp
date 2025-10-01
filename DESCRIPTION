@@ -1,6 +1,6 @@
 Package: riskintroapp
 Title: Analyse Risk of Introduction of Animal Diseases
-Version: 0.0.5.010
+Version: 0.0.5.011
 Authors@R: c(
     person("Eli", "Daniels", , "eli.daniels@ardata.fr", role = c("aut", "cre")),
     person("David", "Gohel", , "david.gohel@ardata.fr", role = "aut"),
@@ -46,8 +46,7 @@ Imports:
     logger
 Suggests:
     commonmark
-Remotes: 
-    ardata-fr/workspace,
+Remotes:
     git::https://gitlab.cirad.fr/astre/riskintro-app/riskintroanalysis.git,
     git::https://gitlab.cirad.fr/astre/riskintro-app/riskintrodata.git
 Encoding: UTF-8
