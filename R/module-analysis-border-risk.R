@@ -175,7 +175,7 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores, saved_c
         if (!isTruthy(input_data())) {
           status <- build_config_status(
             value = FALSE,
-            msg = "Shared borders has not been calculated, click the button above to start."
+            msg = "Shared borders has not been calculated, click the button below to start."
           )
           return(status)
         }
