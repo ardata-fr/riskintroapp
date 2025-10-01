@@ -105,16 +105,16 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
       tags$thead(
         tags$tr(
           class = "surveillance-header",
-          tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", "Surveillance Measures"),
-          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "No measure"),
-          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", "Weight"),
-          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", "Score")
+          tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", labelWithHelpKey("surveillance_measures")),
+          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_active_inactive")),
+          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_weight")),
+          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_score"))
         )
       ),
       tags$tbody(
         tags$tr(
           style = "border-bottom: 1px solid #dee2e6;",
-          tags$td(style = "vertical-align: middle; padding: 8px;", "Disease notification system"),
+          tags$td(style = "vertical-align: middle; padding: 8px;", labelWithHelpKey("disease_notification")),
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("disease_notification"), label = NULL,
@@ -128,7 +128,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
         ),
         tags$tr(
           style = "border-bottom: 1px solid #dee2e6;",
-          tags$td(style = "vertical-align: middle; padding: 8px;", "Targeted surveillance"),
+          tags$td(style = "vertical-align: middle; padding: 8px;", labelWithHelpKey("targeted_surveillance")),
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("targeted_surveillance"), label = NULL,
@@ -142,7 +142,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
         ),
         tags$tr(
           style = "border-bottom: 1px solid #dee2e6;",
-          tags$td(style = "vertical-align: middle; padding: 8px;", "General surveillance"),
+          tags$td(style = "vertical-align: middle; padding: 8px;", labelWithHelpKey("general_surveillance")),
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("general_surveillance"), label = NULL,
@@ -156,7 +156,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
         ),
         tags$tr(
           style = "border-bottom: 1px solid #dee2e6;",
-          tags$td(style = "vertical-align: middle; padding: 8px;", "Screening programs"),
+          tags$td(style = "vertical-align: middle; padding: 8px;", labelWithHelpKey("screening")),
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("screening"), label = NULL,
@@ -188,15 +188,15 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
       tags$thead(
         tags$tr(
           class = "control-header",
-          tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", "Control Measures"),
-          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "No measure"),
-          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", "Weight"),
-          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", "Score")
+          tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", labelWithHelpKey("control_measures")),
+          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_active_inactive")),
+          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_weight")),
+          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_score"))
         )
       ),
       tags$tbody(
         tags$tr(
-          tags$td(style = "width: 50%; vertical-align: middle;", "Border precautions"),
+          tags$td(style = "width: 50%; vertical-align: middle;", labelWithHelpKey("precautions_at_the_borders")),
           tags$td(style = "width: 30%; text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("precautions_at_the_borders"), label = NULL,
@@ -209,7 +209,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
                   tags$span(id = ns("score_precautions_at_the_borders"), "1.0"))
         ),
         tags$tr(
-          tags$td("Emergency slaughter"),
+          tags$td(labelWithHelpKey("slaughter")),
           tags$td(style = "text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("slaughter"), label = NULL,
@@ -222,7 +222,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
                   tags$span(id = ns("score_slaughter"), "0.5"))
         ),
         tags$tr(
-          tags$td("Selective culling & disposal"),
+          tags$td(labelWithHelpKey("selective_killing")),
           tags$td(style = "text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("selective_killing_and_disposal"), label = NULL,
@@ -235,7 +235,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
                   tags$span(id = ns("score_selective_killing_and_disposal"), "0.5"))
         ),
         tags$tr(
-          tags$td("Movement zoning"),
+          tags$td(labelWithHelpKey("zoning")),
           tags$td(style = "text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("zoning"), label = NULL,
@@ -248,7 +248,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
                   tags$span(id = ns("score_zoning"), "0.75"))
         ),
         tags$tr(
-          tags$td("Official vaccination programs"),
+          tags$td(labelWithHelpKey("official_vaccination")),
           tags$td(style = "text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("official_vaccination"), label = NULL,
@@ -280,16 +280,16 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
       tags$thead(
         tags$tr(
           class = "commerce-header",
-          tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", "Animal Commerce"),
-          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "Trade Present"),
+          tags$th(style = "width: 50%; padding: 8px; font-weight: bold;", labelWithHelpKey("sc_commerce")),
+          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_trade_present")),
           tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", " "),
-          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", "Score")
+          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_score"))
         )
       ),
       tags$tbody(
         tags$tr(
           style = "border-bottom: 1px solid #dee2e6;",
-          tags$td(style = "vertical-align: middle; padding: 8px;", "Legal trade present"),
+          tags$td(style = "vertical-align: middle; padding: 8px;", labelWithHelpKey("commerce_legal")),
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("commerce_legal"), label = NULL,
@@ -302,7 +302,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
         ),
         tags$tr(
           style = "border-bottom: 1px solid #dee2e6;",
-          tags$td(style = "vertical-align: middle; padding: 8px;", "Illegal trade present"),
+          tags$td(style = "vertical-align: middle; padding: 8px;", labelWithHelpKey("commerce_illegal")),
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("commerce_illegal"), label = NULL,
@@ -333,15 +333,15 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
       tags$thead(
         tags$tr(
           class = "epi-header",
-          tags$th(style = "width: 30%; padding: 8px; font-weight: bold;", "Epidemiological Status"),
-          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "Status"),
-          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", "Date (if past)"),
-          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", "Score")
+          tags$th(style = "width: 30%; padding: 8px; font-weight: bold;", labelWithHelpKey("epistatus")),
+          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_status")),
+          tags$th(style = "width: 30%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_outbreak_date")),
+          tags$th(style = "width: 10%; text-align: center; padding: 8px; font-weight: bold;", labelWithHelpKey("erf_score"))
         )
       ),
       tags$tbody(
         tags$tr(
-          tags$td(style = "vertical-align: middle; padding: 8px;", "Outbreak status"),
+          tags$td(style = "vertical-align: middle; padding: 8px;", labelWithHelpKey("epistatus")),
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::radioGroupButtons(
               inputId = ns("outbreak_status"),

@@ -1180,3 +1180,55 @@
       help: >
             French translation
 
+# Emission risk factor editor column headers
+- key: erf_active_inactive
+  data:
+    - lang: en
+      label: "Active/Inactive"
+      help: >
+            Toggle switches indicate whether a surveillance or control measure is
+            active (ON = measure not in place, risk present) or inactive (OFF = measure in place, no risk).
+
+- key: erf_weight
+  data:
+    - lang: en
+      label: "Weight"
+      help: >
+            The weight value determines how much this risk factor contributes to the
+            overall emission risk score. Higher weights mean greater contribution to risk.
+            Surveillance measures sum to 2.0 and control measures sum to 3.0.
+
+- key: erf_score
+  data:
+    - lang: en
+      label: "Score"
+      help: >
+            The score is calculated by multiplying the weight by whether the measure
+            is in place (0) or not in place (1). This shows the risk contribution
+            from this specific factor.
+
+- key: erf_trade_present
+  data:
+    - lang: en
+      label: "Trade Present"
+      help: >
+            Indicates whether legal or illegal animal trade exists between this
+            country and the study area. Both types of trade contribute to emission risk,
+            with illegal trade carrying higher risk.
+
+- key: erf_status
+  data:
+    - lang: en
+      label: "Status"
+      help: >
+            The epidemiological status indicates whether the disease is currently present,
+            was present in the past, or has not been detected in the last 5 years.
+
+- key: erf_outbreak_date
+  data:
+    - lang: en
+      label: "Date (if past)"
+      help: >
+            For past outbreaks, specify the date when the last outbreak ended.
+            This is used to calculate a time-decayed risk score (outbreaks within
+            5 years have reduced but non-zero risk).
