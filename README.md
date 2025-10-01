@@ -14,6 +14,12 @@ You can install riskintroapp from GitLab using the remotes package:
 # Install pak if you don't have it
 install.packages("pak")
 pak::pak("git::https://gitlab.cirad.fr/astre/riskintro-app/riskintroapp.git")
+
+# Accept updates to 
+#  + riskintrodata    
+#  + riskintroanalysis
+#  + riskintroapp
+#  + ideally any other dependencies
 ```
 
 ## Running the Application
