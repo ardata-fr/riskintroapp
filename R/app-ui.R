@@ -67,11 +67,22 @@ ui <- function() {
           summariseScoresUI("summarise_risk_table"),
           exportUI()
         ),
-        leafletOutput(
-          outputId = "map",
-          width = "100%",
-          height = "85vh"
+        navset_card_tab(
+          id = "panel_ui",
+          nav_panel(
+            title = "Map view",
+            leafletOutput(
+              outputId = "map",
+              width = "100%",
+              height = "85vh"
+            )
+          ),
+          nav_panel(
+            title = "Table view",
+            reactableOutput(outputId = "table")
+          )
         )
+
       ),
     ),
     # Emission risk ----

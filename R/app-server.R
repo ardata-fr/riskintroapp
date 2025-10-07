@@ -245,6 +245,18 @@ server <- function(input, output, session) {
     )
   })
 
+  output$table <- renderReactable({
+    req(intro_risk())
+    reactable::reactable(
+      intro_risk(),
+      searchable = TRUE,
+      filterable = TRUE,
+      showPageSizeOptions = TRUE,
+      defaultPageSize = 100,
+      striped = TRUE
+    )
+  })
+
   # export -----
   observeEvent(input$open_export, {
     showModal(exportUI("export_module"))
