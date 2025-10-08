@@ -193,7 +193,9 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
       validated_datasets$overwriter_data <- datasets$overwriter_data
 
       # Spoof the validation of this dataset to avoid recalculating
-      attr(validated_datasets$shared_borders, "table_name") <- "shared_borders"
+      if (!is.null(validated_datasets$shared_borders)) {
+        attr(validated_datasets$shared_borders, "table_name") <- "shared_borders"
+      }
 
       # misc_data ---------
       misc_settings <- result$result$settings$misc_risks
