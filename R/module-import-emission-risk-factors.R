@@ -240,24 +240,16 @@ importEmissionRiskFactorsServer <- function(id) {
             )
           ), size = "xl", easyClose = TRUE
         ))
+      })
 
-        import_btn_observer <- observe({
-          if (isTruthy(import_is_valid$valid)) enable("import_apply") else disable(id = "import_apply")
-        })
+      observe({
+        if (isTruthy(import_is_valid$valid)) enable("import_apply") else disable(id = "import_apply")
       })
       observeEvent(input$import_cancel,{
         removeModal()
-        if (!is.null(import_btn_observer)) {
-          import_btn_observer$destroy()
-          import_btn_observer <- NULL
-        }
       })
       observeEvent(input$import_apply,{
         removeModal()
-        if (!is.null(import_btn_observer)) {
-          import_btn_observer$destroy()
-          import_btn_observer <- NULL
-        }
         returnDataset(importDataset())
       })
 
