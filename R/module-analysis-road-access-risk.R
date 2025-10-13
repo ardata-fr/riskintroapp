@@ -18,12 +18,11 @@ roadAccessRiskUI <- function(id) {
           icon = icon('file-import'),
           type = "default"
         ),
-        div(bslib::input_task_button(
-          id = ns("dnld_btn"),
-          label_busy = "Downloading ...",
+        div(actionButton(
+          inputId = ns("dnld_btn"),
           label = "Direct download",
           icon = icon('download'),
-          type = "default"
+          width = "198px"
         )),
         div(actionButton(
           inputId = ns("import_btn"),
@@ -97,53 +96,45 @@ roadAccessRiskServer <- function(id, input_raster, epi_units, saved_config) {
         input_raster(cropped)
       })
 
-      # # download ----
-
+      # download ----
       downloadError <- reactiveVal(NULL)
-      # Setup async "function" ----
-      download_raster <- ExtendedTask$new(
-        function() {
-          mirai::mirai({
-            safely_download <- purrr::safely(riskintrodata::download_road_access_raster)
-            result <- safely_download()
-            result
-          })
-        }
-      ) |> bind_task_button("dnld_btn")
 
-
-      # Button click starts process
       observeEvent(input$dnld_btn, {
         req(epi_units())
-        download_raster$invoke()
-      })
-      # Reactive monitors process
-      new_input_data <- reactive({
-        res <- download_raster$result()
-        if (is_error(res$error)) {
-          downloadError(res$error)
+        hideDropMenu(id = "dropMenu_dropmenu")
+
+        logger::log_trace("Initializing riskintrodata cache")
+        cache_init <- safely(riskintrodata::init_riskintrodata_cache)()
+        if(is_error(cache_init$error)) {
+          downloadError(cache_init$error)
           return()
         }
 
+        logger::log_trace("Downloading road access raster")
+        download_result <- safely(riskintrodata::download_road_access_raster)()
+        if(is_error(download_result$error)) {
+          downloadError(download_result$error)
+          return()
+        }
+
+        logger::log_trace("Loading road access raster")
         safely_rast <- safely(terra::rast)
-        res <- safely_rast(res$result)
-        if (is_error(res$error)) {
-          downloadError(res$error)
+        raster_result <- safely_rast(download_result$result)
+        if(is_error(raster_result$error)) {
+          downloadError(raster_result$error)
           return()
         }
 
-        downloadError(NULL)
-        res
-      })
-      # Once new value arrives, replace input_data()
-      observeEvent(new_input_data(), {
-        cropped <- terra::crop(new_input_data()$result, epi_units(), mask = TRUE)
+        logger::log_trace("Cropping raster to epi_units")
+        cropped <- terra::crop(raster_result$result, epi_units(), mask = TRUE)
         input_raster(cropped)
+
         show_toast(
           "Road accessibility raster has finished downloading.",
           type = "info",
           timer = 5000
         )
+        downloadError(NULL)
       })
 
 
