@@ -1187,7 +1187,7 @@
       label: "Active/Inactive"
       help: >
             Toggle switches indicate whether a surveillance or control measure is
-            active (ON = measure not in place, risk present) or inactive (OFF = measure in place, no risk).
+            active. When the toggle is red there is a risk present.
 
 - key: erf_weight
   data:
