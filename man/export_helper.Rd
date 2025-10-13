@@ -4,7 +4,7 @@
 \alias{export_helper}
 \title{Export Helper Function}
 \usage{
-export_helper(enabled_selections, file_list, file)
+export_helper(enabled_selections, file_list, file, gg_bbox = NULL)
 }
 \arguments{
 \item{enabled_selections}{A named list where each element represents a file to export.

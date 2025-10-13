@@ -32,11 +32,10 @@ geodataUI <- function(id) {
         ),
         selected = 1
       ),
-      bslib::input_task_button(
-        id = ns("dnld"),
+      actionButton(
+        inputId = ns("dnld"),
         label = "Download",
-        icon = icon("download"),
-        label_busy = "Downloading..."
+        icon = icon("download")
       )
     )),
 
@@ -76,41 +75,8 @@ geodataServer <- function(id, is_overwriting) {
     id,
     function(input, output, session) {
 
-      # ExtendedTask ----
-      call_geodata <- ExtendedTask$new(
-        function(country, level) {
-          mirai::mirai(.expr = {
-            logger::log_trace("Running geodata::gadm in geodataServer")
-            x <- riskintroapp::safe_and_quiet(
-              .fun = geodata::gadm,
-              country = country,
-              level = level,
-              path = tempfile(pattern = "geodata-"),
-              resolution = 2 #low res
-            )
-            if (!is.null(x$result)){
-              x$result <- sf::st_as_sf(x$result)
-            }
-            x$level <- level
-            x$country <- country
-            x
-          },
-          .args = list(
-            country = country,
-            level = level
-          )
-          )
-        }
-      ) |> bind_task_button("dnld")
-
-      # Button click starts process
-      observeEvent(input$dnld, {
-        call_geodata$invoke(
-          country = input$cc,
-          level = input$level
-        )
-
-      })
+      # download result ----
+      download_result <- reactiveVal(NULL)
 
       # is_overwriting -----
       output$is_overwriting <- renderUI({
@@ -118,11 +84,21 @@ geodataServer <- function(id, is_overwriting) {
         alert(status = "warning", "Importing a new dataset will overwrite the existing one.")
         })
 
-      # download result ----
+      # Button click starts download ----
       downloadError <- reactiveVal(NULL)
       output$download_error <- renderUI(report_config_status(downloadError()))
-      download_result <- reactive({
-        res <- call_geodata$result()
+
+      observeEvent(input$dnld, {
+        logger::log_trace("Running geodata::gadm in geodataServer")
+
+        res <- safe_and_quiet(
+          .fun = geodata::gadm,
+          country = input$cc,
+          level = input$level,
+          path = tempfile(pattern = "geodata-"),
+          resolution = 2
+        )
+
         if (is_error(res$error)) {
           status <- build_config_status(
             value = FALSE,
@@ -130,9 +106,10 @@ geodataServer <- function(id, is_overwriting) {
             error = res$error
           )
           downloadError(status)
-          return(NULL)
+          download_result(NULL)
+          return()
         }
-        # geodata returning nothing because no file exists results in a message
+
         if (is.null(res$result) && is.null(res$error) && !is.null(res$messages)) {
           status <- build_config_status(
             value = FALSE,
@@ -140,23 +117,31 @@ geodataServer <- function(id, is_overwriting) {
             error = paste(res$messages, collapse = ". ")
           )
           downloadError(status)
-          return(NULL)
+          download_result(NULL)
+          return()
         }
+
+        if (!is.null(res$result)) {
+          res$result <- sf::st_as_sf(res$result)
+        }
+        res$level <- input$level
+        res$country <- input$cc
+
         show_toast(
           "Epidemiological units have finished downloading.",
           type = "info",
           timer = 5000
         )
         downloadError(NULL)
-        res
+        download_result(res)
       })
 
       # validation -----
       validationError <- reactiveVal(NULL)
       output$validation_error <- renderUI(report_config_status(validationError()))
       valid_dataset <- reactive({
-        req(download_result())
         res <- download_result()
+        req(res)
         dataset <- res$result
         level <- res$level
 
@@ -206,7 +191,7 @@ geodataServer <- function(id, is_overwriting) {
         if (!isTruthy(download_result())) {
           status <- build_config_status(
             value = FALSE,
-            msg = "Download a administrative boundaries to continue."
+            msg = "Download administrative boundaries to continue."
           )
           return(status)
         }

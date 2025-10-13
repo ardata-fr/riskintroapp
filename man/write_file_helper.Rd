@@ -4,7 +4,7 @@
 \alias{write_file_helper}
 \title{Write File Helper Function}
 \usage{
-write_file_helper(x, file, format)
+write_file_helper(x, file, format, gg_bbox = NULL)
 }
 \arguments{
 \item{x}{The R object to be written to file. Can be:
