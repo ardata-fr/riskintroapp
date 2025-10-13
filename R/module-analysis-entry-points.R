@@ -70,10 +70,8 @@ entryPointsUI <- function(id) {
 #' @importFrom riskintroanalysis calc_entry_point_risk
 entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_config) {
 
-  country_choices <- setNames(
-    object = riskintrodata::world_sf$iso3,
-    nm = paste(riskintrodata::world_sf$iso3, "-", riskintrodata::world_sf$country_name)
-  )
+  country_reference <- sf::st_drop_geometry(riskintrodata::world_sf[, c("iso3", "country_name")])
+  colnames(country_reference) <- c("iso3", "country")
 
   moduleServer(
     id,
@@ -107,6 +105,20 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         illegal_factor = 3
       ))
 
+      country_choices <- reactive({
+        country_choices <- country_reference
+        if (isTruthy(emission_scores())) {
+          browser()
+          es <- emission_scores()[, c("iso3", "country")]
+          country_choices <- dplyr::bind_rows(es, country_choices)
+          country_choices <- dplyr::distinct(country_choices, .data$iso3, .keep_all = TRUE)
+          country_choices <- dplyr::arrange(country_choices, .data$iso3)
+        }
+        country_choices <- setNames(country_choices$iso3, country_choices$country)
+        country_choices
+      })
+
+
       # Map event reactives for interactive editing ----
       clicky <- reactiveVal(NULL)
       observeEvent(input$map_click, {
@@ -137,7 +149,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         dat <- dataset[dataset$point_id %in% marker_click$id, ] |> sf::st_drop_geometry()
         config <- as.list(dat[1, ]) # these values are unique
         config$sources <- dat$sources  # but there are multiple sources per point
-        config$source_choices <- country_choices
+        config$source_choices <- country_choices()
         clicky(map_click)
         showModal(editEntryPointsUI(id = ns("edit_entry_points"), config = config))
       })
@@ -272,6 +284,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
       }
 
       observeEvent(input$manual_entry, {
+        hideDropMenu(id = "importDropMenu_dropmenu")
         if (isTruthy(input_data())) {
           showModal(modalDialog(
             title = "Overwrite existing entry points?",
