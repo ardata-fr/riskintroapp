@@ -9,7 +9,6 @@ entryPointsUI <- function(id) {
       width = .sidebar_width,
       title = titleWithHelpKey("entry-points-title"),
       uiOutput(ns("config_is_valid")),
-      # uiOutput(ns("warnings")),
       tags$br(),
 
       div(
@@ -18,11 +17,23 @@ entryPointsUI <- function(id) {
         icon("info-circle"),
         " Click on the map to add new entry points or click on existing markers to edit them."
       ),
-
-      actionButton(
-        inputId = ns("import_entry_points"),
-        label = "Import entry points",
-        icon = icon('file-import')
+      dropMenu(
+        placement = "right",
+        tag = actionButton(
+          inputId = ns("importDropMenu"),
+          label = "Import entry points",
+          icon = icon('file-import')
+        ),
+        actionButton(
+          inputId = ns("import_entry_points"),
+          label = "Import file",
+          icon = icon('file-import')
+        ),
+        actionButton(
+          inputId = ns("manual_entry"),
+          label = "Manual entry",
+          icon = icon('hand-pointer')
+        )
       ),
       tags$br(),
       actionButton(
@@ -113,9 +124,14 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
           map_click$id <- marker_click$id
         } else {
           map_click$operation <- "create"
-          new_id <- order(
-            as.integer(gsub("ep-", "", unique(dataset$point_id), fixed = TRUE)), decreasing = TRUE
-            )[[1]] + 1
+          new_id <- as.integer(gsub("ep-", "", unique(dataset$point_id), fixed = TRUE))
+          if (length(new_id) > 0) {
+            new_id <- order(new_id, decreasing = TRUE)
+            new_id[[1]] + 1
+          } else {
+            # No rows in dataset yet
+            new_id <- 1
+          }
           map_click$id <- sprintf("ep-%05i", new_id)
         }
         dat <- dataset[dataset$point_id %in% marker_click$id, ] |> sf::st_drop_geometry()
@@ -141,6 +157,8 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         if (operation %in% c("update", "create")) {
           out <- rbind(out, new_data)
         }
+        out <- validate_dataset(out, table_name = "entry_points")
+        out <- extract_dataset(out)
         input_data(out)
       })
 
@@ -219,8 +237,72 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         report_config_status(configIsValid())
       })
 
+      # manual entry init -----
+      init_empty_entry_points <- function() {
+        .fun <- function(){
+          dat <- data.frame(
+            point_name = character(0),
+            lng = numeric(0),
+            lat = numeric(0),
+            mode = character(0),
+            type = character(0),
+            sources = character(0),
+            stringsAsFactors = FALSE
+          ) |>
+            validate_dataset(table_name = "entry_points") |>
+            extract_dataset()
+          dat
+        }
+        res <- safe_and_quiet(.fun = .fun)
+        if (is_error(res$error)) {
+          show_toast(
+            "Error while initialising empty entry points for manual entry.",
+            type = "error",
+            timer = 5000
+          )
+          return(NULL)
+        } else {
+          show_toast(
+            "Entry points initialised for manual entry.",
+            type = "info",
+            timer = 5000
+          )
+          return(res$result)
+        }
+      }
+
+      observeEvent(input$manual_entry, {
+        if (isTruthy(input_data())) {
+          showModal(modalDialog(
+            title = "Overwrite existing entry points?",
+
+            tags$p("There is already an entry points dataset loaded,
+                     this operation will overwrite that dataset with an
+                     empty one. Are you sure you'd like to proceed?"),
+            footer = list(
+              actionButton(
+                ns("overwrite_with_manual_entry"),
+                "Yes, overwrite",
+                class = "btn btn-danger"
+              ),
+              modalButton("Cancel")
+            )
+          ))
+        } else {
+          dat <- init_empty_entry_points()
+          if (!is.null(dat)) input_data(dat)
+        }
+      })
+
+      observeEvent(input$overwrite_with_manual_entry,{
+        removeModal()
+        dat <- init_empty_entry_points()
+        if (!is.null(dat)) input_data(dat)
+      })
+
       # import ----
       observeEvent(input$import_entry_points, {
+        hideDropMenu(id = "importDropMenu_dropmenu")
         showModal(importEntryPointsUI(id = ns("import_modal")))
       })
 
@@ -245,7 +327,6 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
       # calc_* ----
       observe({
         req(input_data(), epi_units(), emission_scores(),entry_point_params())
-        logger::log_trace("Running calc_entry_point_risk in entryPointsServer")
         result <- safe_and_quiet(
           .fun = calc_entry_point_risk,
           entry_points = input_data(),
@@ -283,11 +364,12 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         )
       })
 
-      # map ----
-      observe({
-        req(configIsValid())
-        plot_risk_interactive(rescaledScores(), ll = leafletProxy("map"))
-      })
+      # # map ----
+      # observe({
+      #   req(configIsValid())
+      #   browser()
+      #   plot_risk_interactive(rescaledScores(), ll = leafletProxy("map"))
+      # })
 
       # table ----
       output$table <- renderReactable({
@@ -323,4 +405,3 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
     }
   )
 }
-

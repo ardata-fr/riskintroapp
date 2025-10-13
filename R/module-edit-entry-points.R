@@ -81,7 +81,7 @@ editEntryPointsUI <- function(id, config) {
       uiOutput(ns("config_is_valid")),
       actionButton(ns("apply"), class = "btn-primary", "Apply", disabled = TRUE),
       actionButton(ns("cancel"), class = "btn-light", "Cancel"),
-      actionButton(ns("delete"), class = "btn-danger", "Delete", disabled = TRUE)
+      actionButton(ns("delete"), class = "btn-danger", "Delete")
     )
   )
 }
@@ -136,14 +136,6 @@ editEntryPointsServer <- function(id, map_click) {
           shinyjs::enable("apply")
         } else {
           shinyjs::disable("apply")
-        }
-      })
-
-      observe({
-        if (isTruthy(configIsValid())) {
-          shinyjs::enable("delete")
-        } else {
-          shinyjs::disable("delete")
         }
       })
 
