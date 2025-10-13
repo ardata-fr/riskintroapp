@@ -116,8 +116,9 @@ exportUI <- function(id = "export_module") {
 #' @importFrom shinyWidgets updateAwesomeCheckboxGroup
 #' @importFrom shinyjs enable disable
 #' @importFrom purrr safely
+#' @importFrom leaflet.extras addDrawToolbar drawRectangleOptions drawShapeOptions
 #' @keywords internal
-exportServer <- function(id = "export_module", files) {
+exportServer <- function(id = "export_module", files, epi_units) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -239,6 +240,24 @@ exportServer <- function(id = "export_module", files) {
           fluidRow(
             column(
               width = 10, offset = 1,
+              awesomeCheckbox(
+                inputId = ns("use_bbox"),
+                label = "Use custom map bound for image exports",
+                value = FALSE,
+                width = "100%"
+                ),
+              conditionalPanel(
+                condition = "input.use_bbox",
+                ns = ns,
+                div(
+                  tags$p(
+                    class = "text-muted",
+                    "Use the 'Draw a rectangle' button to add custom bound for image exports"
+                    ),
+                  leafletOutput(ns("map"))
+                )
+
+              ),
               uiOutput(ns("dataset_selection_ui"))
             )
           ),
@@ -257,7 +276,55 @@ exportServer <- function(id = "export_module", files) {
         ))
       })
 
-      # Generate dynamic UI
+      # map ----
+      output$map <- renderLeaflet({
+        req(epi_units())
+        plot_epi_units_interactive(
+          dataset = epi_units(),
+          ll = basemap()
+        ) |>
+          addDrawToolbar(
+            polylineOptions = FALSE,
+            polygonOptions = FALSE,
+            circleOptions = FALSE,
+            rectangleOptions = drawRectangleOptions(
+              shapeOptions = drawShapeOptions(
+            )),
+            markerOptions = FALSE,
+            circleMarkerOptions = FALSE,
+            editOptions = FALSE,
+            singleFeature = TRUE,
+            edittoolbar = NULL,
+            drag = TRUE
+          )
+      })
+
+      observe({
+        req(input$map_shape)
+        browser()
+      })
+
+      observe({
+        req(input$map_polyline)
+      })
+
+      # bbox ----
+      bbox <- reactive({
+        if (isTRUE(input$use_bbox)) {
+          new_feature <- req(input$map_draw_new_feature)
+          geom <- req(new_feature$geometry$coordinates)
+          c(
+            xmin = geom[[1]][[2]][[1]],
+            xmax = geom[[1]][[3]][[1]],
+            ymin = geom[[1]][[1]][[2]],
+            ymax = geom[[1]][[2]][[2]]
+          )
+        } else {
+          NULL
+        }
+      })
+
+      # Generate dynamic UI -----
       output$dataset_selection_ui <- renderUI({
         datasets_info <- file_types()
         datasets_info <- unlist(datasets_info)
@@ -399,8 +466,10 @@ exportServer <- function(id = "export_module", files) {
             export_helper,
             enabled_selections = selections(),
             file_list = file_list(),
-            file = file
+            file = file,
+            gg_bbox = bbox()
           )
+          browser()
           if (isTruthy(res$error)) {
             export_error(res$error)
           } else {
@@ -456,7 +525,7 @@ exportServer <- function(id = "export_module", files) {
 #' \code{\link{exportServer}} for the main export server function
 #'
 #' @keywords internal
-export_helper <- function(enabled_selections, file_list, file) {
+export_helper <- function(enabled_selections, file_list, file, gg_bbox = NULL) {
   if (length(enabled_selections) == 1) {
     internal_key <- names(enabled_selections)[1]
     obj <- file_list[[internal_key]]
@@ -488,7 +557,7 @@ export_helper <- function(enabled_selections, file_list, file) {
         temp_file <- file.path(temp_dir, paste0(tools::file_path_sans_ext(display_name), ".", format))
       }
 
-      write_file_helper(obj, temp_file, format)
+      write_file_helper(obj, temp_file, format, gg_bbox = gg_bbox)
     }
     workspace:::pack_folder(temp_dir, file)
   }
@@ -541,7 +610,7 @@ export_helper <- function(enabled_selections, file_list, file) {
 #' @importFrom arrow write_parquet
 #' @importFrom terra writeRaster
 #' @keywords internal
-write_file_helper <- function(x, file, format) {
+write_file_helper <- function(x, file, format, gg_bbox = NULL) {
   if (format %in% c("gpkg", "shp")) {
     sf::write_sf(x, file)
   } else if (format == "csv") {
@@ -557,7 +626,12 @@ write_file_helper <- function(x, file, format) {
   } else if (format == "raster") {
     terra::writeRaster(x, file)
   } else if (format %in% c("PNG", "JPEG", "SVG")) {
-    # Handle ggplot exports
+    if (isTruthy(gg_bbox)) {
+      x <- x + ggplot2::coord_sf(
+        xlim = c(gg_bbox["xmin"], gg_bbox["xmax"]),
+        ylim = c(gg_bbox["ymin"], gg_bbox["ymax"])
+      )
+    }
     ggplot2::ggsave(
       filename = file,
       plot = x,

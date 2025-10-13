@@ -4,7 +4,7 @@
 \alias{exportServer}
 \title{Export Module Server}
 \usage{
-exportServer(id = "export_module", files)
+exportServer(id = "export_module", files, epi_units)
 }
 \arguments{
 \item{id}{Character string. The module ID for namespacing. Should match the ID used in \code{\link{exportUI}}.}

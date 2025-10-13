@@ -20,6 +20,7 @@ Imports:
     ggplot2,
     htmltools,
     leaflet,
+    leaflet.extras,
     arrow,
     reactable,
     riskintroanalysis,

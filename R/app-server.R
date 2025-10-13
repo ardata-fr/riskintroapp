@@ -263,6 +263,7 @@ server <- function(input, output, session) {
     })
   exportServer(
     id = "export_module",
+    epi_units = epi_units,
     files = reactive({
       misc_list <- list("Combined table" = misc_risk_table())
       misc_meta <- misc_risk_meta()
