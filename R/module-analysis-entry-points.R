@@ -59,8 +59,12 @@ entryPointsUI <- function(id) {
         leafletOutput(ns("map"), width = "100%", height = "85vh")
       ),
       nav_panel(
-        title = "Table view",
-        reactableOutput(outputId = ns("table"))
+        title = "Risk scores",
+        reactableOutput(outputId = ns("table1"))
+      ),
+      nav_panel(
+        title = "Entry points",
+        reactableOutput(outputId = ns("table2"))
       )
     )
   )
@@ -143,19 +147,20 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         )) {
           map_click$operation <- "update"
           map_click$id <- marker_click$id
+          new_id <- map_click$id
         } else {
           map_click$operation <- "create"
           new_id <- as.integer(gsub("ep-", "", unique(dataset$point_id), fixed = TRUE))
           if (length(new_id) > 0) {
             new_id <- order(new_id, decreasing = TRUE)
-            new_id[[1]] + 1
+            new_id <- new_id[[1]] + 1
           } else {
             # No rows in dataset yet
             new_id <- 1
           }
           map_click$id <- sprintf("ep-%05i", new_id)
         }
-        dat <- dataset[dataset$point_id %in% marker_click$id, ] |> sf::st_drop_geometry()
+        dat <- dataset[dataset$point_id %in% new_id, ] |> sf::st_drop_geometry()
         config <- as.list(dat[1, ]) # these values are unique
         config$sources <- dat$sources  # but there are multiple sources per point
         config$source_choices <- country_choices()
@@ -172,6 +177,10 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         operation <- edit_data()$operation
         new_data <- edit_data()$row
         out <- input_data()
+        clicky(NULL)
+        if(operation %in% "cancel"){
+          return()
+        }
         if (operation %in% c("delete", "update")) {
           out <- out[!out$point_id %in% unique(new_data$point_id), ]
         }
@@ -386,18 +395,23 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         )
       })
 
-      # # map ----
-      # observe({
-      #   req(configIsValid())
-      #   browser()
-      #   plot_risk_interactive(rescaledScores(), ll = leafletProxy("map"))
-      # })
-
-      # table ----
-      output$table <- renderReactable({
+      # table1 ----
+      output$table1 <- renderReactable({
         req(configIsValid())
         reactable::reactable(
           rescaledScores(),
+          searchable = TRUE,
+          filterable = TRUE,
+          showPageSizeOptions = TRUE,
+          defaultPageSize = 100,
+          striped = TRUE
+        )
+      })
+      # table2 ----
+      output$table2 <- renderReactable({
+        req(configIsValid())
+        reactable::reactable(
+          input_data(),
           searchable = TRUE,
           filterable = TRUE,
           showPageSizeOptions = TRUE,

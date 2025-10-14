@@ -139,11 +139,20 @@ editEntryPointsServer <- function(id, map_click) {
         }
       })
 
+
+      # Counter ensures that each time time apply, cancel or delete are clicked
+      # that the return value of this module changes, **even if** the data has not
+      # changed. Required for reactivety, otherwise clicking the same country after
+      # having just edited it without changing the data would not reopen the editor
+      # modal.
+      counter <- reactiveVal(1L)
+
       update_row <- reactive({
         req(configIsValid())
+        counter(counter() + 1L)
         clicky <- map_click()
         data.frame(
-          point_id = clicky$id,
+          point_id = unique(clicky$id),
           point_name = input$name,
           mode = input$mode,
           sources = input$sources,
@@ -159,7 +168,8 @@ editEntryPointsServer <- function(id, map_click) {
         removeModal()
         returnList(list(
           row = update_row(),
-          operation = map_click()$operation
+          operation = map_click()$operation,
+          counter = counter()
         ))
       })
 
@@ -167,12 +177,18 @@ editEntryPointsServer <- function(id, map_click) {
         removeModal()
         returnList(list(
           row = update_row(),
-          operation = "delete"
+          operation = "delete",
+          counter = counter()
         ))
       })
 
       observeEvent(input$cancel, {
         removeModal()
+        returnList(list(
+          row = NULL,
+          operation = "cancel",
+          counter = counter()
+        ))
       })
 
       returnList
