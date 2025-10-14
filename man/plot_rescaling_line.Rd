@@ -28,7 +28,8 @@ with actual data points overlaid to visualize scaling effects.
 The plot displays:
 \itemize{
 \item Grey smooth line showing the continuous transformation function
-\item Colored points representing actual data positioned on the curve
+\item Jittered colored points representing actual data with slight random displacement to avoid overlap
+\item Alpha transparency (0.6) for better visualization of overlapping points
 \item Viridis color scale representing transformed values (0-100)
 \item Fixed 1:1 aspect ratio for accurate visual comparison
 }

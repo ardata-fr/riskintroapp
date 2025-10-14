@@ -25,9 +25,23 @@ rescaleRiskUI <- function(id, rescaling_args) {
   ns <- NS(id)
 
   modalDialog(
-    title = titleWithHelpKey("rescale-risk-title"),
+    title = div(
+      div(
+        style = "display: inline-flex; align-items: center; gap: 8px;",
+        h4(get_label("rescale-risk-title", "en"), style = "margin: 0;"),
+        actionLink(
+          inputId = ns("help_link"),
+          label = NULL,
+          icon = icon("circle-question"),
+          style = "font-size: 1.2em; color: #0d6efd;"
+        )
+      ),
+    ),
     fluidRow(column(
       width = 12,
+      tags$p(
+        HTML(get_help("rescale-risk-title", "en"))
+      ),
       div(
         style = "display: flex; align-items: center; gap: 20px;",
         awesomeRadio(
@@ -118,7 +132,8 @@ rescaleRiskUI <- function(id, rescaling_args) {
 #' @importFrom riskintroanalysis rescale_risk_scores
 #' @importFrom shiny
 #'  moduleServer reactiveValues observe reactive req isTruthy eventReactive
-#'  updateNumericInput observeEvent renderPlot
+#'  updateNumericInput observeEvent renderPlot actionLink
+#' @importFrom shinyjs runjs
 #'
 #' @keywords internal
 rescaleRiskServer <- function(
@@ -132,6 +147,12 @@ rescaleRiskServer <- function(
     id,
     function(input, output, session) {
       ns <- session$ns
+
+      # Help button ----
+      observeEvent(input$help_link, {
+        url <- "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/risk-scaling.html"
+        shinyjs::runjs(paste0("window.open('", url, "', 'help', 'width=1200,height=800,scrollbars=yes,resizable=yes');"))
+      })
 
       rescale_error <- reactiveVal(NULL)
       output$rescale_error_ui <- renderUI({
@@ -222,13 +243,14 @@ rescaleRiskServer <- function(
 #' The plot displays:
 #' \itemize{
 #'   \item Grey smooth line showing the continuous transformation function
-#'   \item Colored points representing actual data positioned on the curve
+#'   \item Jittered colored points representing actual data with slight random displacement to avoid overlap
+#'   \item Alpha transparency (0.6) for better visualization of overlapping points
 #'   \item Viridis color scale representing transformed values (0-100)
 #'   \item Fixed 1:1 aspect ratio for accurate visual comparison
 #' }
 #'
 #' @importFrom ggplot2
-#'  ggplot aes geom_smooth geom_point coord_fixed scale_color_viridis_c xlab ylab theme_minimal
+#'  ggplot aes geom_smooth geom_jitter coord_fixed scale_color_viridis_c xlab ylab theme_minimal
 #' @keywords internal
 plot_rescaling_line <- function(
     dataset,
@@ -261,13 +283,16 @@ plot_rescaling_line <- function(
       formula = 'y ~ x',
       se = FALSE
     )
-  gg <- gg + geom_point(
+  gg <- gg + geom_jitter(
       data = dataset,
       aes(
         x = .data[[initial_column]],
         y = .data[[scaled_col]],
         colour = .data[[scaled_col]]
-      )
+      ),
+      alpha = 0.6,
+      width = diff(initial_scale) * 0.01,
+      height = 1
     )
   gg <- gg + ggplot2::scale_color_viridis_c(
     limits = c(0,100),
