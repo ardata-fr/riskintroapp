@@ -7,7 +7,11 @@ entryPointsUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = titleWithHelpKey("entry-points-title"),
+      title = titleWithHelpButton(
+        key = "entry-points-title",
+        ns = ns,
+        help_url = "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/entry-points-analysis.html"
+      ),
       uiOutput(ns("config_is_valid")),
       tags$br(),
 
@@ -78,6 +82,12 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
     function(input, output, session) {
       ns <- session$ns
 
+      # Help button ----
+      observeEvent(input$open_help, {
+        url <- "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/entry-points-analysis.html"
+        shinyjs::runjs(paste0("window.open('", url, "', 'help', 'width=1200,height=800,scrollbars=yes,resizable=yes');"))
+      })
+
       # saved_config -----
       observeEvent(saved_config(), {
         rescaling_args(saved_config()$rescaling_args)
@@ -108,7 +118,6 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
       country_choices <- reactive({
         country_choices <- country_reference
         if (isTruthy(emission_scores())) {
-          browser()
           es <- emission_scores()[, c("iso3", "country")]
           country_choices <- dplyr::bind_rows(es, country_choices)
           country_choices <- dplyr::distinct(country_choices, .data$iso3, .keep_all = TRUE)

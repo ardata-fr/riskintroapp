@@ -8,7 +8,11 @@ animalMobilityUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = titleWithHelpKey("animal-mobility-title"),
+      title = titleWithHelpButton(
+        key = "animal-mobility-title",
+        ns = ns,
+        help_url = "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/animal-mobility-analysis.html"
+      ),
       uiOutput(ns("config_is_valid")),
       tags$br(),
       actionButton(
@@ -50,6 +54,12 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
     id,
     function(input, output, session) {
       ns <- session$ns
+
+      # Help button ----
+      observeEvent(input$open_help, {
+        url <- "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/animal-mobility-analysis.html"
+        shinyjs::runjs(paste0("window.open('", url, "', 'help', 'width=1200,height=800,scrollbars=yes,resizable=yes');"))
+      })
 
       # saved_config -----
       observeEvent(saved_config(), {

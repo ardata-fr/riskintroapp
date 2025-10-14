@@ -66,6 +66,40 @@ titleWithHelpKey <- function(key,level = 4, lang = "en") {
   titleWithHelp(title_text, help_text, level)
 }
 
+#' Title with help button that opens vignette
+#' @param key Key for the thing being labeled
+#' @param ns Namespace function from the module
+#' @param help_url URL to the vignette
+#' @param level Header level (1-6), defaults to 4
+#' @param lang Language code, defaults to "en"
+#' @importFrom shiny actionLink icon h4 h5 h6
+#' @importFrom htmltools div
+#' @noRd
+titleWithHelpButton <- function(key, ns, help_url, level = 4, lang = "en") {
+  title_text <- get_label(key, lang)
+
+  header_tag <- switch(as.character(level),
+    "1" = h1,
+    "2" = h2,
+    "3" = h3,
+    "4" = h4,
+    "5" = h5,
+    "6" = h6,
+    h4  # default
+  )
+
+  div(
+    style = "display: inline-flex; align-items: center; gap: 8px;",
+    header_tag(title_text, style = "margin: 0;"),
+    actionLink(
+      inputId = ns("open_help"),
+      label = NULL,
+      icon = icon("circle-question"),
+      style = "font-size: 1.2em; color: #0d6efd;"
+    )
+  )
+}
+
 #' Label using label keys
 #' @param label_key Key for thing being labeled
 #' @param lang Language code, defaults to "en"

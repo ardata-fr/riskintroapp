@@ -7,7 +7,11 @@ borderRiskUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = titleWithHelpKey("border-risk-title"),
+      title = titleWithHelpButton(
+        key = "border-risk-title",
+        ns = ns,
+        help_url = "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/border-risk-analysis.html"
+      ),
       uiOutput(ns("config_is_valid")),
       uiOutput(ns("warnings")),
       tags$br(),
@@ -52,6 +56,12 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores, saved_c
     id,
     function(input, output, session) {
       ns <- session$ns
+
+      # Help button ----
+      observeEvent(input$open_help, {
+        url <- "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/border-risk-analysis.html"
+        shinyjs::runjs(paste0("window.open('", url, "', 'help', 'width=1200,height=800,scrollbars=yes,resizable=yes');"))
+      })
 
       # saved_config -----
       observeEvent(saved_config(), {

@@ -3,7 +3,11 @@ emissionScoresUI <- function(id) {
   layout_sidebar(
     sidebar = sidebar(
       width = .sidebar_width,
-      title = titleWithHelpKey("emission-scores-title"),
+      title = titleWithHelpButton(
+        key = "emission-scores-title",
+        ns = ns,
+        help_url = "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/emission-scores.html"
+      ),
       uiOutput(ns("config_is_valid")),
       importEmissionRiskFactorsUI(ns("import_erf")),
 
@@ -56,6 +60,12 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
     id,
     function(input, output, session) {
       ns <- session$ns
+
+      # Help button ----
+      observeEvent(input$open_help, {
+        url <- "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/emission-scores.html"
+        shinyjs::runjs(paste0("window.open('", url, "', 'help', 'width=1200,height=800,scrollbars=yes,resizable=yes');"))
+      })
 
       # import ----
       new_erf <- importEmissionRiskFactorsServer("import_erf")

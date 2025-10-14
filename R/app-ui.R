@@ -20,9 +20,9 @@ ui <- function() {
     header = app_header(),
     theme = bs_theme_cirad(),
     title = "RiskIntroApp",
-    nav_item(
-      div(icon("warning"))
-    ),
+    # nav_item(
+    #   div(icon("warning"))
+    # ),
     # Epidemiological units ----
     nav_panel(
       title = "Introduction risk",
@@ -31,10 +31,15 @@ ui <- function() {
       layout_sidebar(
         sidebar = sidebar(
           width = .sidebar_width,
-          title = titleWithHelp(
-            title = "Introduction risk",
-            help_text = "This is help text",
-            level = 4
+          title = div(
+            style = "display: inline-flex; align-items: center; gap: 8px;",
+            h4("Introduction risk", style = "margin: 0;"),
+            actionLink(
+              inputId = "open_intro_risk_help",
+              label = NULL,
+              icon = icon("circle-question"),
+              style = "font-size: 1.2em; color: #0d6efd;"
+            )
           ),
           dropMenu(
             placement = "right",
@@ -143,12 +148,10 @@ ui <- function() {
     ),
     nav_spacer(),
 
-    # Help ----
-    helpUI(),
-
     # Workspace -----
     workspaceUI("workspace"),
-
+    # Help ----
+    helpUI(),
     # About ----
     nav_panel(
       title = "About",

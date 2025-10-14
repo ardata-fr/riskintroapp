@@ -7,6 +7,12 @@
 #' @importFrom shinyjs runjs
 server <- function(input, output, session) {
 
+  # Help button ----
+  observeEvent(input$open_intro_risk_help, {
+    url <- "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/introduction-risk.html"
+    shinyjs::runjs(paste0("window.open('", url, "', 'help', 'width=1200,height=800,scrollbars=yes,resizable=yes');"))
+  })
+
   # init map ----
   baseLeaflet <- reactive({basemap()})
   output$map <- renderLeaflet({
