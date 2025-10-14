@@ -299,15 +299,6 @@ exportServer <- function(id = "export_module", files, epi_units) {
           )
       })
 
-      observe({
-        req(input$map_shape)
-        browser()
-      })
-
-      observe({
-        req(input$map_polyline)
-      })
-
       # bbox ----
       bbox <- reactive({
         if (isTRUE(input$use_bbox)) {
@@ -469,7 +460,6 @@ exportServer <- function(id = "export_module", files, epi_units) {
             file = file,
             gg_bbox = bbox()
           )
-          browser()
           if (isTruthy(res$error)) {
             export_error(res$error)
           } else {
