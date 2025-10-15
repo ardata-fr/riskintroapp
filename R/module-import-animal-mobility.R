@@ -148,19 +148,36 @@ importAnimalMobilityServer <- function(id, is_overwriting = reactive(FALSE)) {
     output$map_preview <- renderLeaflet({
       req(importTable(), !isTruthy(importTable()$error))
 
-      # Check if we have destination coordinates for preview
-      data <- importTable()$result
-      if (all(c("d_lng", "d_lat") %in% names(data))) {
-        # Simple preview map with destination points
-        leaflet(data) |>
-          addTiles() |>
-          addMarkers(
-            lng = ~d_lng,
-            lat = ~d_lat,
-            popup = ~paste("Destination:", if("d_name" %in% names(data)) d_name else "Unknown")
-          )
+      # Try to get validated/mapped dataset
+      validation_result <- configIsValid()
+
+      if (!is.null(validation_result) &&
+          !is_error(validation_result$error) &&
+          !is.null(validation_result$result)) {
+        # Use the validated dataset with mapped columns
+        data <- extract_dataset(validation_result$result)
+
+        if (!is.null(data) && all(c("d_lng", "d_lat") %in% names(data))) {
+          # Map with destination points
+          leaflet(data) |>
+            addTiles() |>
+            addCircleMarkers(
+              lng = ~d_lng,
+              lat = ~d_lat,
+              label = generate_leaflet_labels(data),
+              radius = 6,
+              fillOpacity = 0.7,
+              stroke = TRUE,
+              weight = 1
+            )
+        } else {
+          # Fallback map if coordinates not available yet
+          leaflet() |>
+            addTiles() |>
+            setView(lng = 0, lat = 0, zoom = 2)
+        }
       } else {
-        # Fallback map if coordinates not available yet
+        # Fallback map before mapping is configured
         leaflet() |>
           addTiles() |>
           setView(lng = 0, lat = 0, zoom = 2)
