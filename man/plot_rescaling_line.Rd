@@ -4,7 +4,14 @@
 \alias{plot_rescaling_line}
 \title{Plot Risk Score Transformation Curve}
 \usage{
-plot_rescaling_line(dataset, method, inverse, initial_scale, initial_column)
+plot_rescaling_line(
+  dataset,
+  method,
+  inverse,
+  reverse,
+  initial_scale,
+  initial_column
+)
 }
 \arguments{
 \item{dataset}{Data frame containing risk scores with rescaled column.}
@@ -12,6 +19,8 @@ plot_rescaling_line(dataset, method, inverse, initial_scale, initial_column)
 \item{method}{Character string. Transformation method used ("linear", "quadratic", "exponential", "sigmoid").}
 
 \item{inverse}{Logical. Whether inverse transformation was applied.}
+
+\item{reverse}{Logical. Whether risk scale was reversed.}
 
 \item{initial_scale}{Numeric vector of length 2. Original scale range.}
 

@@ -51,10 +51,18 @@ rescaleRiskUI <- function(id, rescaling_args) {
           selected = rescaling_args$method
         ),
 
-        awesomeCheckbox(
-          inputId = ns("inverse"),
-          label = "Inverse function",
-          value = rescaling_args$inverse
+        div(
+          style = "display: flex; flex-direction: column; gap: 10px;",
+          awesomeCheckbox(
+            inputId = ns("inverse"),
+            label = "Inverse function",
+            value = rescaling_args$inverse
+          ),
+          awesomeCheckbox(
+            inputId = ns("reverse"),
+            label = "Reverse risk scale",
+            value = rescaling_args$reverse
+          )
         )
       ),
 
@@ -165,7 +173,7 @@ rescaleRiskServer <- function(
 
       # Used to display the graphs
       rescaledDataset <- reactive({
-        req(dataset(), input$method, !is.null(input$inverse))
+        req(dataset(), input$method, !is.null(input$inverse), !is.null(input$reverse))
         safely_rescale_risk_scores <- safely(rescale_risk_scores)
         result <- safely_rescale_risk_scores(
           dataset = dataset(),
@@ -174,6 +182,7 @@ rescaleRiskServer <- function(
           to = to,
           method = input$method,
           inverse = input$inverse,
+          reverse = input$reverse,
           keep_cols = TRUE,
           names_to = "rescaled"
         )
@@ -192,6 +201,7 @@ rescaleRiskServer <- function(
           dataset = rescaledDataset(),
           method = input$method,
           inverse = input$inverse,
+          reverse = input$reverse,
           initial_scale = attr(dataset(), "scale"),
           initial_column = attr(dataset(), "risk_col")
         )
@@ -202,6 +212,7 @@ rescaleRiskServer <- function(
           dataset = rescaledDataset(),
           method = input$method,
           inverse = input$inverse,
+          reverse = input$reverse,
           initial_scale = attr(dataset(), "scale"),
           initial_column = attr(dataset(), "risk_col")
         )
@@ -216,7 +227,8 @@ rescaleRiskServer <- function(
           from = attr(dataset(), "scale"),
           to = c(0, 100),
           method = input$method,
-          inverse = input$inverse
+          inverse = input$inverse,
+          reverse = input$reverse
         )
         newRescaleArgs(args)
       })
@@ -234,6 +246,7 @@ rescaleRiskServer <- function(
 #' @param dataset Data frame containing risk scores with rescaled column.
 #' @param method Character string. Transformation method used ("linear", "quadratic", "exponential", "sigmoid").
 #' @param inverse Logical. Whether inverse transformation was applied.
+#' @param reverse Logical. Whether risk scale was reversed.
 #' @param initial_scale Numeric vector of length 2. Original scale range.
 #' @param initial_column Character string. Name of the original risk score column.
 #'
@@ -256,6 +269,7 @@ plot_rescaling_line <- function(
     dataset,
     method,
     inverse,
+    reverse,
     initial_scale,
     initial_column
 ){
@@ -268,6 +282,7 @@ plot_rescaling_line <- function(
     to = c(0, 100),
     method = method,
     inverse = inverse,
+    reverse = reverse,
     names_to = "after",
     keep_cols = TRUE
   )
@@ -315,6 +330,7 @@ plot_rescaling_line <- function(
 #' @param dataset Data frame containing risk scores with rescaled column.
 #' @param method Character string. Transformation method used ("linear", "quadratic", "exponential", "sigmoid").
 #' @param inverse Logical. Whether inverse transformation was applied.
+#' @param reverse Logical. Whether risk scale was reversed.
 #' @param initial_scale Numeric vector of length 2. Original scale range.
 #' @param initial_column Character string. Name of the original risk score column.
 #'
@@ -335,6 +351,7 @@ plot_rescaling_boxplot <- function(
     dataset,
     method,
     inverse,
+    reverse,
     initial_scale,
     initial_column
 ){
