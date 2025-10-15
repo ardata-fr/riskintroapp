@@ -127,7 +127,7 @@ importEpiUnitsServer <- function(id, is_overwriting) {
       if (is_error(importTable()$error)) {
         alert_error(
           text = "Error while reading file:",
-          error = importTable()$error
+          error = get_error_message(importTable()$error)
         )
       } else {
         alert(
