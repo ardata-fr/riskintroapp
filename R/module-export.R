@@ -279,6 +279,10 @@ exportServer <- function(id = "export_module", files, epi_units) {
       # map ----
       output$map <- renderLeaflet({
         req(epi_units())
+        # forces the map to reload on each checkbox click
+        # otherwise the input$map_draw_new_feature will not update
+        # after the first time the modal opens :)
+        req(input$use_bbox)
         plot_epi_units_interactive(
           dataset = epi_units(),
           ll = basemap()
@@ -300,16 +304,23 @@ exportServer <- function(id = "export_module", files, epi_units) {
       })
 
       # bbox ----
-      bbox <- reactive({
-        if (isTRUE(input$use_bbox)) {
+      drawRect <- reactiveVal(NULL)
+      observe({
+
           new_feature <- req(input$map_draw_new_feature)
           geom <- req(new_feature$geometry$coordinates)
-          c(
+          zz <- c(
             xmin = geom[[1]][[2]][[1]],
             xmax = geom[[1]][[3]][[1]],
             ymin = geom[[1]][[1]][[2]],
             ymax = geom[[1]][[2]][[2]]
           )
+          drawRect(zz)
+      })
+
+      bbox <- reactive({
+        if (isTRUE(input$use_bbox)) {
+          drawRect()
         } else {
           NULL
         }

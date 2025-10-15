@@ -100,7 +100,6 @@ jokerManagerServer <- function(id, emission_risk_factors) {
         data = new_row,
         counter = counter()
       )
-      print(res)
       returnList(res)
     })
 
