@@ -85,7 +85,8 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
       # Risk scaling arguments ----
       rescaling_args <- reactiveVal(list(
         method = "linear",
-        inverse = FALSE
+        inverse = FALSE,
+        reverse = FALSE
       ))
 
       # import ----
@@ -138,7 +139,8 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
         rescale_risk_scores(
           dataset = riskScores()$result,
           method = args$method,
-          inverse = args$inverse
+          inverse = args$inverse,
+          reverse = args$reverse
         )
       })
 

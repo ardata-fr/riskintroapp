@@ -314,8 +314,8 @@ plot_rescaling_line <- function(
     direction = -1
   )
   gg <- gg + labs(
-      x = "Before rescaling",
-      y = "After rescaling"
+      x = "Original",
+      y = "Rescaled"
     )
   gg <- gg + theme_minimal()
   gg <- gg + theme(aspect.ratio=1)
@@ -360,15 +360,17 @@ plot_rescaling_boxplot <- function(
   # Prepare comparison data
   comparison_data <- data.frame(
     values = c(dataset[[initial_column]], dataset[[scaled_col]]),
-    type = rep(c("Before", "After"), each = nrow(dataset))
+    type = rep(c("Original", "Rescaled"), each = nrow(dataset))
   )
-  comparison_data$type <- factor(comparison_data$type, levels = c("Before", "After"))
+  comparison_data$type <- factor(comparison_data$type, levels = c("Original", "Rescaled"))
 
-  gg <- ggplot2::ggplot(comparison_data, ggplot2::aes(x = .data$type, y = .data$values, fill = .data$type)) +
+  gg <- ggplot2::ggplot(
+    comparison_data,
+    ggplot2::aes(y = .data$values, fill = .data$type)
+  ) +
     ggplot2::geom_boxplot(alpha = 0.7, outlier.alpha = 0.6) +
-    ggplot2::geom_jitter(width = 0.2, alpha = 0.4, size = 1) +
     ggplot2::scale_fill_manual(
-      values = c("Before" = "#E31A1C", "After" = "#1F78B4"),
+      values = c("Original" = "#E31A1C", "Rescaled" = "#1F78B4"),
       name = ""
     ) +
     ggplot2::labs(
@@ -379,8 +381,10 @@ plot_rescaling_boxplot <- function(
     ggplot2::theme(
       legend.position = "none",
       plot.title = ggplot2::element_text(size = 12, hjust = 0.5),
-      axis.text.x = ggplot2::element_text(size = 11, face = "bold")
-    )
+      axis.text.x = element_blank(), axis.ticks.x = element_blank()
+    ) +
+    ggplot2::facet_wrap(~.data$type, scales = "free_y")
+
   gg <- gg + theme(aspect.ratio=1)
   gg
 }

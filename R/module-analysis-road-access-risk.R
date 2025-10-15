@@ -89,8 +89,9 @@ roadAccessRiskServer <- function(id, input_raster, epi_units, saved_config) {
 
       rescaling_args <- reactiveVal(list(
         method = "linear",
-        inverse = FALSE
-        ))
+        inverse = FALSE,
+        reverse = TRUE # Default for road access is REVERSED
+      ))
 
       # import ----
       observeEvent(input$import_btn, {
@@ -184,7 +185,8 @@ roadAccessRiskServer <- function(id, input_raster, epi_units, saved_config) {
         rescale_risk_scores(
           dataset = riskScores()$result,
           method = args$method,
-          inverse = args$inverse
+          inverse = args$inverse,
+          reverse = args$reverse
         )
       })
 

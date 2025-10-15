@@ -386,7 +386,8 @@ build_misc_risk_table <- function(epi_units, risk_list){
       from = i$rescale_args$from,
       to = c(0, 100),
       method = i$rescale_args$method,
-      inverse = i$rescale_args$inverse
+      inverse = i$rescale_args$inverse,
+      reverse = if (!is.null(i$rescale_args$reverse)) i$rescale_args$reverse else FALSE
     )
 
     rt <- add_risk(
