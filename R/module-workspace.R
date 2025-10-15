@@ -180,10 +180,23 @@ workspaceServer <- function(id, datasets, core_config, misc_risks) {
         }
       }
       if(length(validate_msg) > 0) {
+        validate_msg_w_table_name <- list()
+        for (name in names(validate_msg)) {
+          msg <- validate_msg[[name]]
+          validate_msg_w_table_name[[name]] <- tags$div(
+            tags$strong(paste(name, "dataset is not valid")),
+            msg
+          )
+        }
         showModal(modalDialog(
-          title = titleWithHelpKey("workspace-validation-error-title"),
           div(h4("Some datasets where not validated and will not be loaded.")),
-          do.call(tagList, validate_msg)
+          tags$p(
+            "Some datasets in the workspace file could not be validated and
+            will not be loaded. This usually happens when the file format has
+            changed or the data is corrupted. Check the error messages below
+            for details."
+          ),
+          do.call(tagList, validate_msg_w_table_name)
         ))
       }
 
