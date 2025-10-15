@@ -118,7 +118,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("disease_notification"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
@@ -132,7 +132,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("targeted_surveillance"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
@@ -146,7 +146,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("general_surveillance"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
@@ -160,7 +160,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "text-align: center; vertical-align: middle; padding: 8px;",
             shinyWidgets::prettySwitch(
               inputId = ns("screening"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold; padding: 8px;",
@@ -200,7 +200,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "width: 30%; text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("precautions_at_the_borders"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "width: 10%; text-align: center; vertical-align: middle; font-weight: bold;",
@@ -213,7 +213,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("slaughter"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
@@ -226,7 +226,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("selective_killing_and_disposal"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
@@ -239,7 +239,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("zoning"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
@@ -252,7 +252,7 @@ riskFactorEditorUI <- function(id, country_id, current_weights) {
           tags$td(style = "text-align: center; vertical-align: middle;",
             shinyWidgets::prettySwitch(
               inputId = ns("official_vaccination"), label = NULL,
-              status = "danger", fill = TRUE, inline = TRUE
+              status = "success", fill = TRUE, inline = TRUE
             )
           ),
           tags$td(style = "text-align: center; vertical-align: middle; font-weight: bold;",
@@ -502,8 +502,16 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
       temp_row <- edit_row()
 
       # Update with current input values
+      # For control/surveillance: UI TRUE = measure in place = 0 risk
+      # For commerce: UI TRUE = trade present = 1 risk (unchanged)
       for (factor in all_risk_factors) {
-        temp_row[[factor]] <- if (input[[factor]] %||% FALSE) 1 else 0
+        if (factor %in% c(surveillance_factors, control_factors)) {
+          # Inverted logic for control/surveillance
+          temp_row[[factor]] <- if (input[[factor]] %||% FALSE) 0 else 1
+        } else {
+          # Normal logic for commerce
+          temp_row[[factor]] <- if (input[[factor]] %||% FALSE) 1 else 0
+        }
       }
       # Handle outbreak status
       temp_row$last_outbreak_end_date <- switch(
@@ -547,41 +555,42 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
     # display real-time scores ----
     observe({
       ## Individual scores ----
+      # Inverted logic for surveillance/control: TRUE = measure in place = 0 risk
       session$sendCustomMessage("updateScore", list(
         id = ns("score_disease_notification"),
-        value = if (input$disease_notification %||% FALSE) current_weights()$disease_notification else 0
+        value = if (!(input$disease_notification %||% FALSE)) current_weights()$disease_notification else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_targeted_surveillance"),
-        value = if (input$targeted_surveillance %||% FALSE) current_weights()$targeted_surveillance else 0
+        value = if (!(input$targeted_surveillance %||% FALSE)) current_weights()$targeted_surveillance else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_general_surveillance"),
-        value = if (input$general_surveillance %||% FALSE) current_weights()$general_surveillance else 0
+        value = if (!(input$general_surveillance %||% FALSE)) current_weights()$general_surveillance else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_screening"),
-        value = if (input$screening %||% FALSE) current_weights()$screening else 0
+        value = if (!(input$screening %||% FALSE)) current_weights()$screening else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_precautions_at_the_borders"),
-        value = if (input$precautions_at_the_borders %||% FALSE) current_weights()$precautions_at_the_borders else 0
+        value = if (!(input$precautions_at_the_borders %||% FALSE)) current_weights()$precautions_at_the_borders else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_slaughter"),
-        value = if (input$slaughter %||% FALSE) current_weights()$slaughter else 0
+        value = if (!(input$slaughter %||% FALSE)) current_weights()$slaughter else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_selective_killing_and_disposal"),
-        value = if (input$selective_killing_and_disposal %||% FALSE) current_weights()$selective_killing_and_disposal else 0
+        value = if (!(input$selective_killing_and_disposal %||% FALSE)) current_weights()$selective_killing_and_disposal else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_zoning"),
-        value = if (input$zoning %||% FALSE) current_weights()$zoning else 0
+        value = if (!(input$zoning %||% FALSE)) current_weights()$zoning else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_official_vaccination"),
-        value = if (input$official_vaccination %||% FALSE) current_weights()$official_vaccination else 0
+        value = if (!(input$official_vaccination %||% FALSE)) current_weights()$official_vaccination else 0
       ))
       session$sendCustomMessage("updateScore", list(
         id = ns("score_commerce_legal"),
@@ -626,15 +635,22 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
     observe({
       country_data <- edit_row()
 
-      # UI  : F = measure in place (good), T = no measure (risk), NA is converted to F
-      # Data: 0 = measure in place (good), 1 = no measure (risk), NA = unknown (risk)
+      # For control/surveillance:
+      #   UI  : T = measure in place (good), F = no measure (risk)
+      #   Data: 0 = measure in place (good), 1 = no measure (risk), NA = unknown (risk)
+      # For commerce (unchanged):
+      #   UI  : F = no trade, T = trade present (risk)
+      #   Data: 0 = no trade, 1 = trade present
 
       for (factor in c(surveillance_factors, control_factors, commerce_factors)) {
         current_value <- country_data[[factor]]
-        # Measures of control and surveillence, all are either 1 or 0
-        #  0 = measure inplace, 1 = no measure inplace
-        #  i.e. 1 = there is a risk, 0 = there is no risk).
-        ui_value <- if_else(is.na(current_value), TRUE, as.logical(current_value))
+        if (factor %in% c(surveillance_factors, control_factors)) {
+          # Inverted logic for control/surveillance: Data 0 -> UI TRUE, Data 1 -> UI FALSE
+          ui_value <- if_else(is.na(current_value), FALSE, !as.logical(current_value))
+        } else {
+          # Normal logic for commerce: Data 0 -> UI FALSE, Data 1 -> UI TRUE
+          ui_value <- if_else(is.na(current_value), FALSE, as.logical(current_value))
+        }
         updatePrettySwitch(session, factor, value = ui_value)
       }
 
@@ -676,8 +692,16 @@ riskFactorEditorServer <- function(id, emission_risk_factors, country_id, curren
 
       new_row <- edit_row()
       # Gather factor inputs
+      # For control/surveillance: UI TRUE = measure in place = 0 in data
+      # For commerce: UI TRUE = trade present = 1 in data
       for (factor in all_risk_factors) {
-        new_row[[factor]] <- input[[factor]] %||% FALSE
+        if (factor %in% c(surveillance_factors, control_factors)) {
+          # Inverted logic: UI TRUE -> Data 0, UI FALSE -> Data 1
+          new_row[[factor]] <- as.integer(!(input[[factor]] %||% FALSE))
+        } else {
+          # Normal logic: UI TRUE -> Data 1, UI FALSE -> Data 0
+          new_row[[factor]] <- as.integer(input[[factor]] %||% FALSE)
+        }
       }
 
       # Handle outbreak status

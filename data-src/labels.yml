@@ -1184,10 +1184,11 @@
 - key: erf_active_inactive
   data:
     - lang: en
-      label: "Active/Inactive"
+      label: "Active"
       help: >
-            Toggle switches indicate whether a surveillance or control measure is
-            active. When the toggle is red there is a risk present.
+            Toggle ON indicates that the measure is active.
+            When active, the measure does not contribute to the total
+            emission score.
 
 - key: erf_weight
   data:
