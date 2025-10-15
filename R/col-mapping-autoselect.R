@@ -1,21 +1,21 @@
 
 .auto_select_dict <- list(
-  point_name = c("name","name", "descr", "nom", "id"),
+  point_name = c("name","name", "descr", "nom", "point_name"),
   mode       = c("mode", "legal"),
   type       = c("type", "transport"),
   lat        = c("lat", "ycoord"),
   lng        = c("lng", "long", "xcoord"),
   source     = c("source", "origin"),
-  sources     = c("source", "origin"),
-  geometry   = c("geometry"),
-  eu_name    = c("name", "descr", 'nom', "id"),
-  geometry   = c("geom"),
-  o_name     = c("name","nom", "ori"),
-  o_lat      = c("lat", "ori", "start"),
-  o_lng      = c("lng", "long", "ori", "start"),
-  d_name     = c("name","nom", "dest"),
-  d_lat      = c("lat", "dest", "end"),
-  d_lng      = c("lng", "long", "dest", "end"),
+  sources     = c("source", "sources", "origin", "origins"),
+  eu_id      = c("eu_id", "id"),
+  eu_name    = c("eu_name", "name", "descr", "nom"),
+  geometry   = c("geom", "geometry"),
+  o_name     = c("o_name", "name","nom", "ori"),
+  o_lat      = c("o_lat", "lat", "ori", "start"),
+  o_lng      = c("o_lng", "lng", "long", "ori", "start"),
+  d_name     = c("d_name", "name","nom", "dest"),
+  d_lat      = c("d_lat", "lat", "dest", "end"),
+  d_lng      = c("d_lng", "lng", "long", "dest", "end"),
   quantity   = c("headcount", "qty", "quantity", "weight", "flow", "volume")
 )
 

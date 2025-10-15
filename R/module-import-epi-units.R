@@ -203,7 +203,8 @@ importEpiUnitsServer <- function(id, is_overwriting) {
       args <- mapping$target
       args <- append(
         args,list(x = importTable()$result,
-                  table_name = "epi_units"))
+                  table_name = "epi_units",
+                  geometry = attr(importTable()$result, "sf_column")))
 
       safely_validate_dataset <- safely(validate_dataset)
       res <- do.call(safely_validate_dataset, args)
@@ -211,7 +212,8 @@ importEpiUnitsServer <- function(id, is_overwriting) {
       if (is_error(res$error)) {
         status <- build_config_status(
           value = FALSE,
-          msg = res$error
+          msg = "Error while validating dataset:",
+          error = res$error
         )
         res$status <- status
       } else if (is_dataset_valid(res$result)) {
