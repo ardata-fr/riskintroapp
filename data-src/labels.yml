@@ -1187,7 +1187,7 @@
       label: "Active"
       help: >
             Toggle ON indicates that the measure is active.
-            When active, the measure does not contribute to the total
+            When active, the item does not increase the total
             emission score.
 
 - key: erf_weight
