@@ -9,6 +9,7 @@ plot_rescaling_line(
   method,
   inverse,
   reverse,
+  to,
   initial_scale,
   initial_column,
   target_scale = c(0, 100)

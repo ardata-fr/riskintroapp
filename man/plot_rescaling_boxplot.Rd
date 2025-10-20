@@ -10,7 +10,8 @@ plot_rescaling_boxplot(
   inverse,
   reverse,
   initial_scale,
-  initial_column
+  initial_column,
+  target_scale
 )
 }
 \arguments{

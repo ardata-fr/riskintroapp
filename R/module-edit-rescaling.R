@@ -303,7 +303,8 @@ rescaleRiskServer <- function(
           inverse = input$inverse,
           reverse = input$reverse,
           initial_scale = attr(dataset(), "scale"),
-          initial_column = attr(dataset(), "risk_col")
+          initial_column = attr(dataset(), "risk_col"),
+          target_scale = input$to_range
         )
       })
 
@@ -369,6 +370,7 @@ plot_rescaling_line <- function(
     method,
     inverse,
     reverse,
+    to,
     initial_scale,
     initial_column,
     target_scale = c(0, 100)
@@ -387,6 +389,7 @@ plot_rescaling_line <- function(
     keep_cols = TRUE
   )
 
+  browser()
   gg <- ggplot()
   gg <- gg + geom_smooth(
       data = line_df,
@@ -410,8 +413,11 @@ plot_rescaling_line <- function(
       height = 1
     )
   gg <- gg + ggplot2::scale_color_viridis_c(
-    limits = target_scale,
+    limits = c(0, 100),
     direction = -1
+  )
+  gg <- gg + ggplot2::scale_y_continuous(
+    limits = c(0, 100)
   )
   gg <- gg + labs(
       x = "Original",
@@ -453,7 +459,8 @@ plot_rescaling_boxplot <- function(
     inverse,
     reverse,
     initial_scale,
-    initial_column
+    initial_column,
+    target_scale
 ){
   scaled_col <- "rescaled"
 
@@ -464,6 +471,13 @@ plot_rescaling_boxplot <- function(
   )
   comparison_data$type <- factor(comparison_data$type, levels = c("Original", "Rescaled"))
 
+
+  # Used to ensure limits of axes are shown properly.
+  facet_lims <- data.frame(
+    values = c(initial_scale, c(0, 100)),
+    type = factor(rep(c("Original", "Rescaled"), each = 2))
+  )
+
   gg <- ggplot2::ggplot(
     comparison_data,
     ggplot2::aes(y = .data$values, fill = .data$type)
@@ -473,6 +487,7 @@ plot_rescaling_boxplot <- function(
       values = c("Original" = "#E31A1C", "Rescaled" = "#1F78B4"),
       name = ""
     ) +
+    ggplot2::geom_blank(data = facet_lims, ggplot2::aes(y = .data$values, fill = .data$type)) +
     ggplot2::labs(
       x = "",
       y = "Risk Score"
