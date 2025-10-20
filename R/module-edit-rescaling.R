@@ -16,9 +16,9 @@
 #'   \item Apply and Close action buttons
 #' }
 #'
-#' @importFrom shinyWidgets awesomeCheckbox awesomeRadio
+#' @importFrom shinyWidgets awesomeCheckbox awesomeRadio numericRangeInput
 #' @importFrom bslib card layout_column_wrap card_body card_header
-#' @importFrom shiny NS modalDialog fluidRow column tags div numericInput actionButton icon plotOutput modalButton
+#' @importFrom shiny NS modalDialog fluidRow column tags div actionButton icon plotOutput modalButton
 #'
 #' @keywords internal
 rescaleRiskUI <- function(id, rescaling_args) {
@@ -63,6 +63,19 @@ rescaleRiskUI <- function(id, rescaling_args) {
             label = "Reverse risk scale",
             value = rescaling_args$reverse
           )
+        ),
+
+        div(
+          style = "display: flex; flex-direction: column; gap: 10px;",
+          numericRangeInput(
+            inputId = ns("to_range"),
+            label = "Target scale range",
+            value = rescaling_args$to,
+            min = 0,
+            max = 100,
+            step = 1,
+            width = "180px"
+          )
         )
       ),
 
@@ -92,6 +105,7 @@ rescaleRiskUI <- function(id, rescaling_args) {
       ),
     )),
     footer = list(
+      uiOutput(ns("config_is_valid")),
       actionButton(
         inputId = ns("apply"),
         class = "btn-primary",
@@ -162,52 +176,127 @@ rescaleRiskServer <- function(
         shinyjs::runjs(paste0("window.open('", url, "', 'help', 'width=1200,height=800,scrollbars=yes,resizable=yes');"))
       })
 
-      rescale_error <- reactiveVal(NULL)
-      output$rescale_error_ui <- renderUI({
-        req(rescale_error())
-        alert_error(
-          text = "Error: unable to rescale dataset",
-          error = rescale_error()
+
+      configIsValid <- reactive({
+
+        if (!isTruthy(dataset())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "No dataset found."
+          )
+          return(status)
+        }
+
+        if (!isTruthy(input$method)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "No rescaling method found."
+          )
+          return(status)
+        }
+
+        if (is.null(input$inverse)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "No value for inverse parameter found."
+          )
+          return(status)
+        }
+
+        if (is.null(input$reverse)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "No value for reverse parameter found."
+          )
+          return(status)
+        }
+
+        range_val <- input$to_range
+        if (range_val[1] >= range_val[2]) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Target minimum must be less than target maximum."
+          )
+          return(status)
+        }
+
+        # Validate that target range is within risk_table scale (0-100)
+        if (range_val[1] < 0 || range_val[2] > 100) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Target range must be within 0-100."
+          )
+          return(status)
+        }
+
+        if (!isTruthy(rescaledDatasetRes())) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Unable to rescale dataset."
+          )
+          return(status)
+        }
+
+        if (is_error(rescaledDatasetRes()$error)) {
+          status <- build_config_status(
+            value = FALSE,
+            msg = "Error while rescaling:",
+            error = rescaledDatasetRes()$error
+          )
+          return(status)
+        }
+
+        build_config_status(
+          value = TRUE,
+          msg = "Configuration is valid."
         )
+      })
+      output$config_is_valid <- renderUI({
+        report_config_status(configIsValid(), in_panel = FALSE)
       })
 
       # Used to display the graphs
-      rescaledDataset <- reactive({
-        req(dataset(), input$method, !is.null(input$inverse), !is.null(input$reverse))
+      rescaledDatasetRes <- reactive({
+        req(input$to_range, input$method, dataset())
+        req(!is.null(input$inverse), !is.null(input$reverse))
         safely_rescale_risk_scores <- safely(rescale_risk_scores)
         result <- safely_rescale_risk_scores(
           dataset = dataset(),
           cols = attr(dataset(), "risk_col"),
           from = attr(dataset(), "scale"),
-          to = to,
+          to = input$to_range,
           method = input$method,
           inverse = input$inverse,
           reverse = input$reverse,
           keep_cols = TRUE,
           names_to = "rescaled"
         )
-        if (is_error(result$error)) {
-          rescale_error(result$error)
+      })
+
+
+      rescaledDataset <- reactive({
+        req(rescaledDatasetRes)
+        if (is_error(rescaledDatasetRes()$error)) {
           return(NULL)
         } else {
-          rescale_error(NULL)
-          return(result$result)
+          rescaledDatasetRes()$result
         }
       })
 
       output$points_plot <- renderPlot({
-        req(rescaledDataset(), dataset())
+        req(rescaledDataset())
         plot_rescaling_line(
           dataset = rescaledDataset(),
           method = input$method,
           inverse = input$inverse,
           reverse = input$reverse,
           initial_scale = attr(dataset(), "scale"),
-          initial_column = attr(dataset(), "risk_col")
+          initial_column = attr(dataset(), "risk_col"),
+          target_scale = input$to_range
         )
       })
       output$boxplot <- renderPlot({
-        req(rescaledDataset(), dataset())
+        req(rescaledDataset())
         plot_rescaling_boxplot(
           dataset = rescaledDataset(),
           method = input$method,
@@ -218,6 +307,15 @@ rescaleRiskServer <- function(
         )
       })
 
+
+      observe({
+        if (configIsValid()) {
+          shinyjs::enable("apply")
+        } else {
+          shinyjs::disable("apply")
+        }
+      })
+
       # Create scaled output
       newRescaleArgs <- reactiveVal(NULL)
       observeEvent(input$apply, {
@@ -225,7 +323,7 @@ rescaleRiskServer <- function(
         args <- list(
           cols = attr(dataset(), "risk_col"),
           from = attr(dataset(), "scale"),
-          to = c(0, 100),
+          to = input$to_range,
           method = input$method,
           inverse = input$inverse,
           reverse = input$reverse
@@ -249,6 +347,7 @@ rescaleRiskServer <- function(
 #' @param reverse Logical. Whether risk scale was reversed.
 #' @param initial_scale Numeric vector of length 2. Original scale range.
 #' @param initial_column Character string. Name of the original risk score column.
+#' @param target_scale Numeric vector of length 2. Target scale range. Defaults to c(0, 100).
 #'
 #' @return A ggplot object showing transformation curve and data points.
 #'
@@ -258,7 +357,7 @@ rescaleRiskServer <- function(
 #'   \item Grey smooth line showing the continuous transformation function
 #'   \item Jittered colored points representing actual data with slight random displacement to avoid overlap
 #'   \item Alpha transparency (0.6) for better visualization of overlapping points
-#'   \item Viridis color scale representing transformed values (0-100)
+#'   \item Viridis color scale representing transformed values
 #'   \item Fixed 1:1 aspect ratio for accurate visual comparison
 #' }
 #'
@@ -271,7 +370,8 @@ plot_rescaling_line <- function(
     inverse,
     reverse,
     initial_scale,
-    initial_column
+    initial_column,
+    target_scale = c(0, 100)
 ){
   scaled_col <- "rescaled"
   line_df <- rescale_risk_scores(
@@ -279,7 +379,7 @@ plot_rescaling_line <- function(
                             to = initial_scale[[2]])),
     cols = "before",
     from = initial_scale,
-    to = c(0, 100),
+    to = target_scale,
     method = method,
     inverse = inverse,
     reverse = reverse,
@@ -310,7 +410,7 @@ plot_rescaling_line <- function(
       height = 1
     )
   gg <- gg + ggplot2::scale_color_viridis_c(
-    limits = c(0,100),
+    limits = target_scale,
     direction = -1
   )
   gg <- gg + labs(

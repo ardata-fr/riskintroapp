@@ -10,7 +10,8 @@ plot_rescaling_line(
   inverse,
   reverse,
   initial_scale,
-  initial_column
+  initial_column,
+  target_scale = c(0, 100)
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ plot_rescaling_line(
 \item{initial_scale}{Numeric vector of length 2. Original scale range.}
 
 \item{initial_column}{Character string. Name of the original risk score column.}
+
+\item{target_scale}{Numeric vector of length 2. Target scale range. Defaults to c(0, 100).}
 }
 \value{
 A ggplot object showing transformation curve and data points.
@@ -39,7 +42,7 @@ The plot displays:
 \item Grey smooth line showing the continuous transformation function
 \item Jittered colored points representing actual data with slight random displacement to avoid overlap
 \item Alpha transparency (0.6) for better visualization of overlapping points
-\item Viridis color scale representing transformed values (0-100)
+\item Viridis color scale representing transformed values
 \item Fixed 1:1 aspect ratio for accurate visual comparison
 }
 }

@@ -196,7 +196,8 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
       rescaling_args <- reactiveVal(list(
         method = "linear",
         inverse = FALSE,
-        reverse = FALSE
+        reverse = FALSE,
+        to = c(0, 100)
       ))
 
       # configIsValid ----
@@ -214,7 +215,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
         if (!isTruthy(emission_scores())) {
           status <- build_config_status(
             value = FALSE,
-            msg = "Emission risk scores must be calculated."
+            msg = "Emission scores must be provided."
           )
           return(status)
         }
@@ -393,7 +394,8 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
           dataset = riskScores()$result,
           method = args$method,
           inverse = args$inverse,
-          reverse = args$reverse
+          reverse = args$reverse,
+          to = args$to
         )
       })
 
@@ -411,7 +413,7 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
       })
       # table2 ----
       output$table2 <- renderReactable({
-        req(configIsValid())
+        req(input_data())
         reactable::reactable(
           input_data(),
           searchable = TRUE,

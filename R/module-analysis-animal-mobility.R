@@ -86,7 +86,8 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
       rescaling_args <- reactiveVal(list(
         method = "linear",
         inverse = FALSE,
-        reverse = FALSE
+        reverse = FALSE,
+        to = c(0, 100)
       ))
 
       # import ----
@@ -140,7 +141,8 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
           dataset = riskScores()$result,
           method = args$method,
           inverse = args$inverse,
-          reverse = args$reverse
+          reverse = args$reverse,
+          to = args$to
         )
       })
 
@@ -159,7 +161,7 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
         if (!isTruthy(emission_scores())) {
           status <- build_config_status(
             value = FALSE,
-            msg = "Emission risk scores must be calculated."
+            msg = "Emission scores must be provided."
           )
           return(status)
         }

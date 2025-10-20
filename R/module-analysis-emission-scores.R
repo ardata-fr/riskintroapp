@@ -141,9 +141,11 @@ emissionScoresServer <- function(id, emission_risk_factors, updated_workspace, s
         res
       })
 
-      emission_scores <- reactive({
+      emission_scores <- reactiveVal(NULL)
+
+      observe({
         req(!is_error(emission_risk_result()$error))
-        emission_risk_result()$result
+        emission_scores( emission_risk_result()$result)
       })
 
       # jokers -----

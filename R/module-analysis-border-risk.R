@@ -86,7 +86,9 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores, saved_c
       # Risk scaling arguments ----
       rescaling_args <- reactiveVal(list(
         method = "linear",
-        inverse = FALSE
+        inverse = FALSE,
+        reverse = FALSE,
+        to = c(0, 100)
       ))
 
       # Setup async "function" ----
@@ -160,7 +162,8 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores, saved_c
         rescale_risk_scores(
           dataset = riskScores()$result,
           method = args$method,
-          inverse = args$inverse
+          inverse = args$inverse,
+          to = args$to
         )
       })
 
@@ -178,7 +181,7 @@ borderRiskServer <- function(id, input_data, epi_units, emission_scores, saved_c
         if (!isTruthy(emission_scores())) {
           status <- build_config_status(
             value = FALSE,
-            msg = "Emission risk scores must be calculated."
+            msg = "Emission scores must be provided."
           )
           return(status)
         }
