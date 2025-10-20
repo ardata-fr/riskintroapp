@@ -305,7 +305,7 @@ importEmissionRiskFactorsServer <- function(id) {
         size = "xl",easyClose = TRUE
         ))
 
-        man_btn_observer <- observe({
+        observe({
           valid_selection <- all(nchar(c(input$man_disease, input$man_species, input$man_animal_category)) > 0)
           if (valid_selection) enable("man_apply") else disable(id = "man_apply")
         })
@@ -313,10 +313,6 @@ importEmissionRiskFactorsServer <- function(id) {
 
       observeEvent(input$man_apply,{
         removeModal()
-        if (!is.null(man_btn_observer)) {
-          man_btn_observer$destroy()
-          man_btn_observer <- NULL
-        }
         empty_erf <- riskintrodata::wahis_emission_risk_factors[0, ]
         attr(empty_erf, "study_settings") <- c(
           disease = input$man_disease,
@@ -328,10 +324,6 @@ importEmissionRiskFactorsServer <- function(id) {
       })
       observeEvent(input$man_cancel,{
         removeModal()
-        if (!is.null(man_btn_observer)) {
-          man_btn_observer$destroy()
-          man_btn_observer <- NULL
-        }
       })
 
       returnDataset
