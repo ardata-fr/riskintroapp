@@ -389,7 +389,6 @@ plot_rescaling_line <- function(
     keep_cols = TRUE
   )
 
-  browser()
   gg <- ggplot()
   gg <- gg + geom_smooth(
       data = line_df,
