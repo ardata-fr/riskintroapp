@@ -378,7 +378,7 @@ plot_rescaling_line <- function(
   scaled_col <- "rescaled"
   line_df <- rescale_risk_scores(
     data.frame(before = seq(from = initial_scale[[1]],
-                            to = initial_scale[[2]])),
+                            to = initial_scale[[2]], 0.1)),
     cols = "before",
     from = initial_scale,
     to = target_scale,

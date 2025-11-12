@@ -8,20 +8,23 @@ entryPointsParametersUI(id, saved_params)
 }
 \arguments{
 \item{id}{Character string. Module namespace identifier.}
+
+\item{saved_params}{List of saved parameters to restore}
 }
 \value{
 A modal dialog UI element with parameter controls and visualization panels.
 }
 \description{
 Creates a modal dialog interface for configuring entry point risk calculation
-parameters with real-time interactive visualization.
+parameters with real-time interactive visualization using the univariate method.
 }
 \details{
 The UI provides:
 \itemize{
-\item Parameter sliders for max_risk (m), coef_legal (α), coef_illegal (β), illegal_factor (λ)
+\item Parameter sliders for coef_legal (α), coef_illegal (β), illegal_factor (λ)
+\item max_risk (m) is disabled - scaling is handled by rescale_risk_scores()
 \item Real-time parameter value display with mathematical notation
-\item 2x2 visualization grid: heatmap, 3D surface, equivalent points curve, risk scaling curve
+\item 2x2 visualization grid: bivariate heatmap, 3D surface, equivalent points curve, example transform
 \item Apply and Close action buttons
 }
 }

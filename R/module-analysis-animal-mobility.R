@@ -137,13 +137,19 @@ animalMobilityServer <- function(id, input_data, epi_units, emission_scores, sav
           return(NULL)
         }
         args <- req(rescaling_args())
-        rescale_risk_scores(
+        res <- safe_and_quiet(
+          .fun = rescale_risk_scores,
           dataset = riskScores()$result,
           method = args$method,
           inverse = args$inverse,
           reverse = args$reverse,
           to = args$to
         )
+        if (is_error(res$error)) {
+          NULL
+        } else {
+          res$result
+        }
       })
 
       # configIsValid ----

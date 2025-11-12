@@ -1,18 +1,20 @@
 #' Entry Points Parameters Module UI
 #'
 #' Creates a modal dialog interface for configuring entry point risk calculation
-#' parameters with real-time interactive visualization.
+#' parameters with real-time interactive visualization using the univariate method.
 #'
 #' @param id Character string. Module namespace identifier.
+#' @param saved_params List of saved parameters to restore
 #'
 #' @return A modal dialog UI element with parameter controls and visualization panels.
 #'
 #' @details
 #' The UI provides:
 #' \itemize{
-#'   \item Parameter sliders for max_risk (m), coef_legal (α), coef_illegal (β), illegal_factor (λ)
+#'   \item Parameter sliders for coef_legal (α), coef_illegal (β), illegal_factor (λ)
+#'   \item max_risk (m) is disabled - scaling is handled by rescale_risk_scores()
 #'   \item Real-time parameter value display with mathematical notation
-#'   \item 2x2 visualization grid: heatmap, 3D surface, equivalent points curve, risk scaling curve
+#'   \item 2x2 visualization grid: bivariate heatmap, 3D surface, equivalent points curve, example transform
 #'   \item Apply and Close action buttons
 #' }
 #'
@@ -26,7 +28,11 @@ entryPointsParametersUI <- function(id, saved_params) {
   ns <- NS(id)
 
   modalDialog(
-    title = titleWithHelpKey("entry-points-parameters-title"),
+    title = titleWithHelpButton(
+      key = "entry-points-parameters-title",
+      ns = ns,
+      help_url = "https://astre.gitlab.cirad.fr/riskintro-app/riskintroanalysis/articles/entry-points-analysis.html"
+    ),
     fluidRow(
       # Left sidebar with controls
       column(
@@ -39,7 +45,7 @@ entryPointsParametersUI <- function(id, saved_params) {
             numericInput(
               inputId = ns("max_risk"),
               label = "Maximum Risk (m):",
-              value = 12
+              value = 100
             )
           ),
           sliderInput(
@@ -83,11 +89,16 @@ entryPointsParametersUI <- function(id, saved_params) {
             style = "background: white; padding: 10px; border-radius: 5px; margin: 10px 0; text-align: center; border: 1px solid #dee2e6;",
             tags$p(
               style = "margin-bottom: 5px; font-weight: bold; font-size: 12px;",
-              "Scaling Function:"
+              "Univariate Conversion:"
             ),
             div(
               style = "font-size: 11px; font-family: 'Times New Roman', serif; line-height: 1.2;",
-              "f(x", tags$sub("c"), ", x", tags$sub("u"), ") = m \u00b7 s(\u03b2 \u00b7 x", tags$sub("u"), " + s", tags$sup("-1"), "(s(\u03b1 \u00b7 x", tags$sub("c"), ") / \u03bb))"
+              "x̂", tags$sub("u"), " = s", tags$sup("-1"), "(s(\u03b2 \u00b7 x", tags$sub("c"), ") / \u03bb) / \u03b1"
+            ),
+            tags$br(),
+            div(
+              style = "font-size: 11px; font-family: 'Times New Roman', serif; line-height: 1.2;",
+              "x", tags$sub("total"), " = x", tags$sub("u"), " + x̂", tags$sub("u")
             ),
             tags$br(),
             div(
@@ -132,7 +143,7 @@ entryPointsParametersUI <- function(id, saved_params) {
           ),
           card(
             full_screen = FALSE,
-            card_header("Risk Scaling Curve"),
+            card_header("Example Risk Transform"),
             card_body(
               class = "p-0",
               plotlyOutput(ns("scaling_plot"), height = "300px")
@@ -158,28 +169,29 @@ entryPointsParametersUI <- function(id, saved_params) {
 #' Entry Points Parameters Module Server
 #'
 #' Server logic for entry point risk parameter configuration with interactive
-#' visualization and real-time parameter updates.
+#' visualization and real-time parameter updates using the univariate method.
 #'
 #' @param id Character string. Module namespace identifier.
 #'
 #' @return Reactive expression returning a list with entry point parameters:
 #' \itemize{
-#'   \item \code{max_risk}: Maximum asymptotic risk value
-#'   \item \code{coef_legal}: Legal entry points coefficient (α)
-#'   \item \code{coef_illegal}: Illegal entry points coefficient (β)
-#'   \item \code{illegal_factor}: Relative risk factor for illegal vs legal points (λ)
+#'   \item \code{max_risk}: Fixed at 12 (for legacy compatibility)
+#'   \item \code{coef_legal}: Controlled entry points coefficient (α)
+#'   \item \code{coef_illegal}: Uncontrolled entry points coefficient (β)
+#'   \item \code{illegal_factor}: Relative risk factor for uncontrolled vs controlled points (λ)
 #' }
 #'
 #' @details
 #' The server function:
 #' \itemize{
-#'   \item Provides real-time visualization of parameter effects
+#'   \item Provides real-time visualization of parameter effects on conversion
 #'   \item Updates mathematical displays with current parameter values
 #'   \item Generates interactive plots using plotly
-#'   \item Returns parameter configuration for use in entry point risk calculations
+#'   \item Returns parameter configuration for calc_entry_point_risk()
+#'   \item Risk scaling (0-100) is applied separately via rescale_risk_scores()
 #' }
 #'
-#' @importFrom riskintroanalysis scale_entry_points sigmoid inv_sigmoid
+#' @importFrom riskintroanalysis scale_entry_points scale_controlled sigmoid
 #' @importFrom plotly plot_ly add_surface add_trace layout renderPlotly
 #' @importFrom shiny moduleServer reactive renderText observeEvent removeModal
 #'
@@ -310,34 +322,41 @@ prepare_heatmap_data <- function(max_risk, coef_legal, coef_illegal, illegal_fac
 }
 
 #' Prepare Equivalent Points Data
-#' @param coef_legal Legal coefficient
-#' @param coef_illegal Illegal coefficient
-#' @param illegal_factor Illegal factor
+#' @param coef_legal Legal coefficient (alpha)
+#' @param coef_illegal Illegal coefficient (beta)
+#' @param illegal_factor Illegal factor (lambda)
 #' @noRd
 prepare_equivalent_points_data <- function(coef_legal, coef_illegal, illegal_factor) {
   x_legal <- seq(0, 4, length.out = 100)
 
-  # Calculate equivalent illegal points
-  equivalent_illegal <- sapply(x_legal, function(xl) {
-    if (xl == 0) return(0)
-    sigmoid_val <- riskintroanalysis::sigmoid(coef_legal * xl)
-    scaled_val <- sigmoid_val / illegal_factor
-    if (scaled_val >= 1 || scaled_val <= -1) return(0)
-    riskintroanalysis::inv_sigmoid(scaled_val) / coef_illegal
-  })
+  # Calculate equivalent uncontrolled points using scale_controlled
+  equivalent_uncontrolled <- riskintroanalysis::scale_controlled(
+    x = x_legal,
+    alpha = coef_legal,
+    beta = coef_illegal,
+    lambda = illegal_factor
+  )
 
-  list(x = x_legal, y = equivalent_illegal)
+  list(x = x_legal, y = equivalent_uncontrolled)
 }
 
 #' Prepare Scaling Curve Data
+#'
+#' Shows an example sigmoid transformation of total equivalent uncontrolled exposure.
+#' This is for visualization only - actual scaling is done via rescale_risk_scores().
+#'
 #' @param max_risk Maximum risk value
-#' @param coef_illegal Illegal coefficient
+#' @param coef_illegal Coefficient for visualization (used as alpha in sigmoid)
 #' @noRd
 prepare_scaling_curve_data <- function(max_risk, coef_illegal) {
-  x <- seq(0, 4, length.out = 100)
-  y <- max_risk * riskintroanalysis::sigmoid(coef_illegal * x)
+  # x represents total equivalent uncontrolled exposure
+  x_total <- seq(0, 4, length.out = 100)
 
-  list(x = x, y = y)
+  # Show example sigmoid transformation (what rescale_risk_scores might apply)
+  # Note: Actual transformation is chosen by user in the risk scaling module
+  y <- 100 * riskintroanalysis::sigmoid(coef_illegal * x_total)
+
+  list(x = x_total, y = y)
 }
 
 
@@ -402,8 +421,8 @@ plot_equivalent_points_plot <- function(data) {
     showlegend = FALSE
   ) |>
     plotly::layout(
-      xaxis = list(title = "Legal Entry Points (x_c)", range = c(0, 4)),
-      yaxis = list(title = "Equivalent Illegal Points"),
+      xaxis = list(title = "Controlled Entry Points (x_c)", range = c(0, 4)),
+      yaxis = list(title = "Equiv. Uncontrolled Points (x̂_u)"),
       margin = list(t = 10, r = 10, b = 50, l = 60)
     )
 }
@@ -421,8 +440,8 @@ plot_scaling_curve_plot <- function(data) {
     showlegend = FALSE
   ) |>
     plotly::layout(
-      xaxis = list(title = "Equivalent Illegal Points", range = c(0, 4)),
-      yaxis = list(title = "Risk Score"),
+      xaxis = list(title = "Total Equiv. Uncontrolled (x_total)", range = c(0, 4)),
+      yaxis = list(title = "Example Sigmoid Transform"),
       margin = list(t = 10, r = 10, b = 50, l = 60)
     )
 }

@@ -20,7 +20,8 @@ roadAccessRiskUI <- function(id) {
           inputId = ns("dropMenu"),
           label = "Import raster",
           icon = icon('file-import'),
-          type = "default"
+          type = "default",
+          width = "100%"
         ),
         div(actionButton(
           inputId = ns("dnld_btn"),
@@ -183,14 +184,19 @@ roadAccessRiskServer <- function(id, input_raster, epi_units, saved_config) {
           return(NULL)
         }
         args <- req(rescaling_args())
-        out <- rescale_risk_scores(
+        res <- safe_and_quiet(
+          .fun = rescale_risk_scores,
           dataset = riskScores()$result,
           method = args$method,
           inverse = args$inverse,
           reverse = args$reverse,
           to = args$to
         )
-        out
+        if (is_error(res$error)) {
+          NULL
+        } else {
+          res$result
+        }
       })
 
       # configIsValid ----

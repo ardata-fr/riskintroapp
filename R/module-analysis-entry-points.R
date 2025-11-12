@@ -26,7 +26,8 @@ entryPointsUI <- function(id) {
         tag = actionButton(
           inputId = ns("importDropMenu"),
           label = "Import entry points",
-          icon = icon('file-import')
+          icon = icon('file-import'),
+          width = "100%"
         ),
         actionButton(
           inputId = ns("import_entry_points"),
@@ -360,12 +361,15 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
       # calc_* ----
       observe({
         req(input_data(), epi_units(), emission_scores(),entry_point_params())
+        params <- entry_point_params()
         result <- safe_and_quiet(
           .fun = calc_entry_point_risk,
           entry_points = input_data(),
           epi_units = epi_units(),
           emission_risk = emission_scores(),
-          scaling_args = entry_point_params()
+          alpha = params$coef_legal,
+          beta = params$coef_illegal,
+          lambda = params$illegal_factor
         )
         riskScores(result)
       })
@@ -390,13 +394,19 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
           return(NULL)
         }
         args <- req(rescaling_args())
-        rescale_risk_scores(
+        res <- safe_and_quiet(
+          .fun = rescale_risk_scores,
           dataset = riskScores()$result,
           method = args$method,
           inverse = args$inverse,
           reverse = args$reverse,
           to = args$to
         )
+        if (is_error(res$error)) {
+          NULL
+        } else {
+          res$result
+        }
       })
 
       # table1 ----

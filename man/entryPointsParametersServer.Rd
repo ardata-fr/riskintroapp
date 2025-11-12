@@ -12,23 +12,24 @@ entryPointsParametersServer(id)
 \value{
 Reactive expression returning a list with entry point parameters:
 \itemize{
-\item \code{max_risk}: Maximum asymptotic risk value
-\item \code{coef_legal}: Legal entry points coefficient (α)
-\item \code{coef_illegal}: Illegal entry points coefficient (β)
-\item \code{illegal_factor}: Relative risk factor for illegal vs legal points (λ)
+\item \code{max_risk}: Fixed at 12 (for legacy compatibility)
+\item \code{coef_legal}: Controlled entry points coefficient (α)
+\item \code{coef_illegal}: Uncontrolled entry points coefficient (β)
+\item \code{illegal_factor}: Relative risk factor for uncontrolled vs controlled points (λ)
 }
 }
 \description{
 Server logic for entry point risk parameter configuration with interactive
-visualization and real-time parameter updates.
+visualization and real-time parameter updates using the univariate method.
 }
 \details{
 The server function:
 \itemize{
-\item Provides real-time visualization of parameter effects
+\item Provides real-time visualization of parameter effects on conversion
 \item Updates mathematical displays with current parameter values
 \item Generates interactive plots using plotly
-\item Returns parameter configuration for use in entry point risk calculations
+\item Returns parameter configuration for calc_entry_point_risk()
+\item Risk scaling (0-100) is applied separately via rescale_risk_scores()
 }
 }
 \keyword{internal}

@@ -7,6 +7,7 @@ jokerManagerUI <- function(id) {
         inputId = ns("dropMenu"),
         label = "Joker manager",
         icon = icon("mask"),
+        width = "100%"
       ),
       placement = "right",
       tags$table(
