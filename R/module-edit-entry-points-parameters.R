@@ -40,14 +40,14 @@ entryPointsParametersUI <- function(id, saved_params) {
         div(
           style = "padding-right: 15px;",
 
-          # Parameter controls ----
-          shinyjs::disabled(
-            numericInput(
-              inputId = ns("max_risk"),
-              label = "Maximum Risk (m):",
-              value = 100
-            )
-          ),
+          # # Parameter controls ----
+          # shinyjs::disabled(
+          #   numericInput(
+          #     inputId = ns("max_risk"),
+          #     label = "Maximum Risk (m):",
+          #     value = 100
+          #   )
+          # ),
           sliderInput(
             inputId = ns("coef_legal"),
             label = "Legal Coefficient (\u03b1):",
@@ -77,7 +77,7 @@ entryPointsParametersUI <- function(id, saved_params) {
           div(
             class = "parameter-display",
             style = "display: grid; grid-template-columns: 1fr; gap: 5px; margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; font-family: 'Courier New', monospace;",
-            div(tags$strong("m = "), textOutput(ns("m_display"), inline = TRUE)),
+            # div(tags$strong("m = "), textOutput(ns("m_display"), inline = TRUE)),
             div(tags$strong("\u03b1 = "), textOutput(ns("alpha_display"), inline = TRUE)),
             div(tags$strong("\u03b2 = "), textOutput(ns("beta_display"), inline = TRUE)),
             div(tags$strong("\u03bb = "), textOutput(ns("lambda_display"), inline = TRUE))
@@ -112,45 +112,53 @@ entryPointsParametersUI <- function(id, saved_params) {
       # Right side with data visuals grid ----
       column(
         width = 9,
-        layout_column_wrap(
-          width = 1/2,
-          height = 700,
-          fill = TRUE,
-
-          card(
-            full_screen = FALSE,
-            card_header("2D Heatmap"),
-            card_body(
-              class = "p-0",
-              plotlyOutput(ns("heatmap_plot"), height = "300px")
-            )
-          ),
-          card(
-            full_screen = FALSE,
-            card_header("3D Surface"),
-            card_body(
-              class = "p-0",
-              plotlyOutput(ns("surface_plot"), height = "300px")
-            )
-          ),
-          card(
-            full_screen = FALSE,
-            card_header("Equivalent Uncontrolled Points"),
-            card_body(
-              class = "p-0",
-              plotlyOutput(ns("equivalent_plot"), height = "300px")
-            )
-          ),
-          card(
-            full_screen = FALSE,
-            card_header("Example Risk Transform"),
-            card_body(
-              class = "p-0",
-              plotlyOutput(ns("scaling_plot"), height = "300px")
-            )
+        card(
+          full_screen = FALSE,
+          card_header("Equivalent Uncontrolled Points"),
+          card_body(
+            class = "p-0",
+            plotlyOutput(ns("equivalent_plot"), height = "600px")
           )
         )
       )
+        # layout_column_wrap(
+        #   width = 1/2,
+        #   height = 700,
+        #   fill = TRUE,
+        #
+        #   card(
+        #     full_screen = FALSE,
+        #     card_header("2D Heatmap"),
+        #     card_body(
+        #       class = "p-0",
+        #       plotlyOutput(ns("heatmap_plot"), height = "300px")
+        #     )
+        #   ),
+        #   card(
+        #     full_screen = FALSE,
+        #     card_header("3D Surface"),
+        #     card_body(
+        #       class = "p-0",
+        #       plotlyOutput(ns("surface_plot"), height = "300px")
+        #     )
+        #   ),
+        #   card(
+        #     full_screen = FALSE,
+        #     card_header("Equivalent Uncontrolled Points"),
+        #     card_body(
+        #       class = "p-0",
+        #       plotlyOutput(ns("equivalent_plot"), height = "300px")
+        #     )
+        #   ),
+        #   card(
+        #     full_screen = FALSE,
+        #     card_header("Example Risk Transform"),
+        #     card_body(
+        #       class = "p-0",
+        #       plotlyOutput(ns("scaling_plot"), height = "300px")
+        #     )
+        #   )
+        # )
     ),
     footer = list(
       actionButton(
@@ -203,10 +211,10 @@ entryPointsParametersServer <- function(id) {
       ns <- session$ns
 
       # Parameter displays ----
-      output$m_display <- renderText({
-        req(input$max_risk)
-        as.character(input$max_risk)
-      })
+      # output$m_display <- renderText({
+      #   req(input$max_risk)
+      #   as.character(input$max_risk)
+      # })
 
       output$alpha_display <- renderText({
         req(input$coef_legal)
@@ -225,9 +233,11 @@ entryPointsParametersServer <- function(id) {
 
       # Generate data for visualizations ----
       heatmap_data <- reactive({
-        req(input$max_risk, input$coef_legal, input$coef_illegal, input$illegal_factor)
+        req(
+          # input$max_risk,
+          input$coef_legal, input$coef_illegal, input$illegal_factor)
         prepare_heatmap_data(
-          max_risk = input$max_risk,
+          max_risk = 100,
           coef_legal = input$coef_legal,
           coef_illegal = input$coef_illegal,
           illegal_factor = input$illegal_factor
@@ -244,9 +254,11 @@ entryPointsParametersServer <- function(id) {
       })
 
       scaling_data <- reactive({
-        req(input$max_risk, input$coef_illegal)
+        req(
+          # input$max_risk,
+          input$coef_illegal)
         prepare_scaling_curve_data(
-          max_risk = input$max_risk,
+          max_risk = 100,
           coef_illegal = input$coef_illegal
         )
       })
@@ -276,7 +288,7 @@ entryPointsParametersServer <- function(id) {
       parameters <- reactiveVal(NULL)
       observeEvent(input$apply, {
         params <- list(
-          max_risk = input$max_risk,
+          max_risk = 100,
           coef_legal = input$coef_legal,
           coef_illegal = input$coef_illegal,
           illegal_factor = input$illegal_factor

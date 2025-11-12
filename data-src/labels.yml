@@ -901,7 +901,7 @@
 - key: entry-points-parameters-title
   data:
     - lang: en
-      label: "Entry Points Risk Parameters"
+      label: "Equivalent number of unconttolled entry points parameters"
       help: >
             Configure the parameters used for calculating entry point risk scores,
             including coefficients for legal and illegal entry points.

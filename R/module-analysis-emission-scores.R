@@ -10,16 +10,13 @@ emissionScoresUI <- function(id) {
       ),
       uiOutput(ns("config_is_valid")),
       importEmissionRiskFactorsUI(ns("import_erf")),
-
       tags$hr(),
-
       div(
         class = "alert alert-info",
         style = "margin-bottom: 15px;",
         icon("info-circle"),
         " Click countries on the map to edit their underlying emission risk factors."
       ),
-
       # weights ----
       actionButton(
         inputId = ns("edit_weights"),

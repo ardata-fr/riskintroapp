@@ -400,7 +400,9 @@ entryPointsServer <- function(id, input_data, epi_units, emission_scores, saved_
           method = args$method,
           inverse = args$inverse,
           reverse = args$reverse,
-          to = args$to
+          to = args$to,
+          names_to = "entry_points_risk",
+          keep_cols = TRUE
         )
         if (is_error(res$error)) {
           NULL
