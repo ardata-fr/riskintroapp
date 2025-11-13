@@ -12,10 +12,10 @@ entryPointsParametersServer(id)
 \value{
 Reactive expression returning a list with entry point parameters:
 \itemize{
-\item \code{max_risk}: Fixed at 12 (for legacy compatibility)
+\item \code{max_risk}: Fixed at 100
 \item \code{coef_legal}: Controlled entry points coefficient (α)
 \item \code{coef_illegal}: Uncontrolled entry points coefficient (β)
-\item \code{illegal_factor}: Relative risk factor for uncontrolled vs controlled points (λ)
+\item \code{illegal_factor}: Relative risk factor for uncontrolled vs controlled points (ʎ)
 }
 }
 \description{

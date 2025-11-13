@@ -11,7 +11,7 @@
 #' @details
 #' The UI provides:
 #' \itemize{
-#'   \item Parameter sliders for coef_legal (α), coef_illegal (β), illegal_factor (λ)
+#'   \item Parameter sliders for coef_legal (α), coef_illegal (β), illegal_factor (ʎ)
 #'   \item max_risk (m) is disabled - scaling is handled by rescale_risk_scores()
 #'   \item Real-time parameter value display with mathematical notation
 #'   \item 2x2 visualization grid: bivariate heatmap, 3D surface, equivalent points curve, example transform
@@ -22,7 +22,7 @@
 #' @importFrom shiny NS modalDialog fluidRow column tags div sliderInput actionButton icon modalButton
 #' @importFrom plotly plotlyOutput
 #' @importFrom shinyjs disabled
-#'
+#' @encoding UTF-8
 #' @keywords internal
 entryPointsParametersUI <- function(id, saved_params) {
   ns <- NS(id)
@@ -93,12 +93,12 @@ entryPointsParametersUI <- function(id, saved_params) {
             ),
             div(
               style = "font-size: 11px; font-family: 'Times New Roman', serif; line-height: 1.2;",
-              "x̂", tags$sub("u"), " = s", tags$sup("-1"), "(s(\u03b2 \u00b7 x", tags$sub("c"), ") / \u03bb) / \u03b1"
+              "x\u0302", tags$sub("u"), " = s", tags$sup("-1"), "(s(\u03b2 \u00b7 x", tags$sub("c"), ") / \u03bb) / \u03b1"
             ),
             tags$br(),
             div(
               style = "font-size: 11px; font-family: 'Times New Roman', serif; line-height: 1.2;",
-              "x", tags$sub("total"), " = x", tags$sub("u"), " + x̂", tags$sub("u")
+              "x", tags$sub("total"), " = x", tags$sub("u"), " + x\u0302", tags$sub("u")
             ),
             tags$br(),
             div(
@@ -183,10 +183,10 @@ entryPointsParametersUI <- function(id, saved_params) {
 #'
 #' @return Reactive expression returning a list with entry point parameters:
 #' \itemize{
-#'   \item \code{max_risk}: Fixed at 12 (for legacy compatibility)
+#'   \item \code{max_risk}: Fixed at 100
 #'   \item \code{coef_legal}: Controlled entry points coefficient (α)
 #'   \item \code{coef_illegal}: Uncontrolled entry points coefficient (β)
-#'   \item \code{illegal_factor}: Relative risk factor for uncontrolled vs controlled points (λ)
+#'   \item \code{illegal_factor}: Relative risk factor for uncontrolled vs controlled points (ʎ)
 #' }
 #'
 #' @details
@@ -434,7 +434,7 @@ plot_equivalent_points_plot <- function(data) {
   ) |>
     plotly::layout(
       xaxis = list(title = "Controlled Entry Points (x_c)", range = c(0, 4)),
-      yaxis = list(title = "Equiv. Uncontrolled Points (x̂_u)"),
+      yaxis = list(title = "Equiv. Uncontrolled Points (x\u0302_u)"),
       margin = list(t = 10, r = 10, b = 50, l = 60)
     )
 }

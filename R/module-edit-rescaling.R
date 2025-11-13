@@ -450,7 +450,9 @@ plot_rescaling_line <- function(
 #'   \item Clear visual comparison of distribution changes
 #' }
 #'
-#' @importFrom ggplot2 ggplot aes geom_boxplot geom_jitter scale_fill_manual labs theme_minimal theme element_text
+#' @importFrom ggplot2
+#' ggplot aes geom_boxplot geom_jitter scale_fill_manual labs theme_minimal
+#'  theme element_text element_blank
 #' @keywords internal
 plot_rescaling_boxplot <- function(
     dataset,
